@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Seguimiento semanal KM-HR — Resiter Minería</title>
+  <link rel="stylesheet" href="../css/panel.css">
+</head>
+<body>
+  <header><div class="logo">RESITER<span> / </span>MINERÍA</div><h1>Seguimiento KM-HR</h1><a class="volver-inicio" href="Panel.html">← Inicio</a></header>
+  <nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html">Reportabilidad</a><a href="Panel_Seguimiento_KM_HR.html" aria-current="page">Seguimiento KM-HR</a><a href="Panel_Resumen_Mantencion.html">Resumen de mantención</a><a href="Panel_Calendario_Mantencion.html">Calendario de mantención</a></nav>
+  <main>
+    <div class="intro"><div><h2>Seguimiento semanal y mantenciones</h2><p>Patentes del maestro · lecturas de PruebaForm · proyección según uso.</p></div><span class="badge">Ventana semanal: −3 / +1 días</span></div>
+    <form id="km-form" class="filtros"><label>Fecha semana 1<input id="km-inicio" type="date" value="2026-09-01" required></label><label>Semanas hasta<input id="km-fecha" type="date" required></label><button class="pri" id="km-consultar">Consultar Excel</button><label>Buscar patente o CeCo<input id="km-buscar" type="search" placeholder="Patente o centro de costo"></label><label>Región<select id="km-region"><option value="">Todas</option></select></label><label>Status mantención<select id="km-estado"><option value="">Todos</option><option>Mantención Vigente</option><option>Próxima a vencer</option><option>Mantención Vencida</option><option>REVISAR</option></select></label><button type="button" id="km-exportar" disabled>Exportar CSV</button></form>
+    <p id="km-mensaje" role="status" aria-live="polite"></p>
+    <section id="km-resultados" hidden>
+      <p id="km-periodo"></p>
+      <div class="leyenda"><span class="semaforo verde">Vigente: saldo ≥ 10% del intervalo</span><span class="semaforo amarillo">Próxima: −10% ≤ saldo &lt; 10%</span><span class="semaforo rojo">Vencida: saldo &lt; −10%</span><span class="semaforo neutro">REVISAR: datos faltantes o inconsistentes</span></div>
+      <div class="kpis km-kpis"><div class="kpi"><b id="km-total">—</b><span>Patentes visibles</span></div><div class="kpi"><b id="km-vigentes">—</b><span>Mantenciones vigentes</span></div><div class="kpi"><b id="km-proximas">—</b><span>Próximas a vencer</span></div><div class="kpi"><b id="km-vencidas">—</b><span>Mantenciones vencidas</span></div><div class="kpi"><b id="km-revisar">—</b><span>REVISAR</span></div></div>
+      <section class="tarjeta km-graficos"><div class="titulo"><h3>Progreso de una patente</h3><label>Patente<select id="km-patente" aria-label="Patente del gráfico"></select></label></div><div id="km-resumen-grafico" class="nota"></div><div class="km-graficos-grid"><figure><figcaption id="km-titulo-lecturas">Lecturas por semana</figcaption><div id="km-grafico-lecturas"></div></figure><figure><figcaption id="km-titulo-ritmo">Uso diario entre lecturas</figcaption><div id="km-grafico-ritmo"></div></figure></div><p class="nota">Selecciona una patente o pulsa su nombre en la tabla. Los espacios sin reporte no se rellenan. Los gráficos separan KM y HR; una unidad incompatible se indica para revisión.</p></section>
+      <section class="tarjeta"><div class="scroll km-tabla-scroll"><table id="km-tabla"><caption class="nota">Último registro ADC de cada ventana por Hora de finalización. El maestro aporta el intervalo; la UM se actualiza con los formularios válidos del Jefe de Mantenimiento. Saldo = KM/HR de próxima mantención − última lectura semanal disponible.</caption><thead id="km-cabecera"></thead><tbody id="km-detalle"></tbody></table></div></section>
+    </section>
+    <details class="tarjeta km-config"><summary>Cómo se calcula</summary><p>Semana los miercoles luego cada 7 días. Cada columna busca entre tres días antes y uno después, incluidos, según Hora de finalización. Si falta un reporte aparece —.</p><p>Próxima mantención = KM U HR UM + INTERVALO. Se usan UN UM y UN IN para comprobar las unidades. La última mantención válida del Jefe de Mantenimiento actualiza KM U HR UM y FECHA UM para esta consulta, conservando el certificado. El Excel maestro no se modifica.</p><p>Consumo diario = (última lectura − primera lectura) / días entre ambas fechas de lectura válidas. Fecha proyectada = fecha de última lectura + saldo / consumo diario, redondeando los días hacia arriba. Una fecha anterior corresponde a un objetivo ya alcanzado; sigue siendo una estimación, no una mantención realizada.</p><p>Con menos de dos lecturas, consumo cero, retroceso del medidor, fechas incompatibles o unidades distintas no se proyecta. Si falta la fecha de lectura se usa la fecha de envío, señalada en el detalle; si falta la unidad declarada se usa la unidad UM del maestro.</p></details>
+    <footer id="km-fuente">Fuentes: BD ACTIVOS MOBILES.xlsx y PruebaForm.xlsx</footer>
+  </main>
+  <script src="../js/seguimiento_km_hr.js" defer></script>
+</body>
+</html>

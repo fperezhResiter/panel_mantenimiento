@@ -1,44 +1,56 @@
 # connection_sharepoint
 
-Componente de extracción de Excel con tipos BigQuery mediante `ClientContext` y `UserCredential`. Requiere Python 3.10 o superior. Devuelve registros Python y JSON; no realiza cargas a BigQuery.
+Componente de extracción de Excel con tipos BigQuery mediante `ClientContext` y autenticación moderna OAuth con tenant ID y client ID. Devuelve registros Python y JSON; no realiza cargas a BigQuery. Usa la versión 3.1 de Office365-REST-Python-Client; instala las dependencias con un Python compatible con esa versión.
 
-**Limitación actual:** Microsoft retiró el flujo antiguo de usuario y contraseña de SharePoint Online el **1 de mayo de 2026**. La implementación solicitada no es una conexión soportada para Online y no admite MFA. Cambiar la biblioteca no elimina esa restricción.
+El inicio de sesión usa un código de dispositivo: Microsoft muestra una URL y un código, y el usuario completa el acceso en el navegador, incluido MFA cuando corresponda. No se solicita contraseña en Python. La organización debe permitir este flujo.
 
 ## Instalación y ejecución
 
 Desde la raíz del proyecto:
 
 ```powershell
-python -m pip install Office365-REST-Python-Client openpyxl python-dotenv
+python -m pip install -r App/panel_mantenimiento/requirements.txt
 python App/panel_mantenimiento/connection_sharepoint.py
 ```
 
 ## Configuración general: `App/panel_mantenimiento/.env`
 
 ```dotenv
+TENANT_ID=TU_TENANT_ID
+CLIENT_ID=TU_CLIENT_ID
 SHAREPOINT_SITE_URL=https://TU_EMPRESA.sharepoint.com/sites/Mantenimiento
 ```
 
-La URL es el único valor persistente. Se eliminaron `TENANT_ID` y `CLIENT_ID`. Usa la URL del sitio sin enlaces de compartir, parámetros ni formato Markdown. El `.env` se busca junto al módulo independientemente de la carpeta de ejecución. La variable del proceso tiene prioridad. La lectura no modifica el entorno global.
+Estos tres valores son la configuración general. Se conserva la URL existente al restaurar los identificadores. Usa la URL del sitio sin enlaces de compartir, parámetros ni formato Markdown. El `.env` se busca junto al módulo independientemente de la carpeta de ejecución. Las variables del proceso tienen prioridad. La lectura no modifica el entorno global.
 
-El `.gitignore` local excluye `.env`, cachés y la salida predeterminada. El usuario y la contraseña se solicitan en cada ejecución. `getpass` oculta la contraseña en una terminal compatible; no se guarda en `.env` ni en archivos. Las credenciales permanecen en memoria durante la ejecución.
+El `.gitignore` local excluye `.env`, cachés y la salida predeterminada. No configures usuario, contraseña ni client secret. La sesión se mantiene en memoria durante la ejecución, sin una caché persistente de tokens configurada por el componente.
 
-### Autenticación mediante usuario
+### Configuración de Microsoft Entra ID
+
+1. Obtén una aplicación autorizada por TI. Copia el identificador del directorio en `TENANT_ID` y el identificador de aplicación en `CLIENT_ID`.
+2. En autenticación de la aplicación, habilita **Permitir flujos de cliente público** para usar código de dispositivo.
+3. En permisos API, selecciona **SharePoint → Permisos delegados → AllSites.Read** y concede el consentimiento requerido. Este componente usa SharePoint REST; configurar solamente permisos de Microsoft Graph no habilita estos llamados.
+4. Inicia sesión con una cuenta que tenga acceso al sitio y al archivo. El permiso de la aplicación no otorga acceso adicional a la cuenta.
+
+No se necesita client secret ni URI de redirección para el flujo de dispositivo. El código solicita el recurso `https://<empresa>.sharepoint.com/.default`, que usa los permisos de SharePoint configurados en la aplicación.
 
 ```python
-from office365.runtime.auth.user_credential import UserCredential
 from office365.sharepoint.client_context import ClientContext
 
-context = ClientContext(site_url).with_credentials(UserCredential(username, password))
+context = ClientContext(site_url).with_device_flow(
+    tenant=tenant_id,
+    client_id=client_id,
+    scopes=["https://TU_EMPRESA.sharepoint.com/.default"],
+)
 ```
 
-Crear el contexto no confirma la autenticación: normalmente esta ocurre al ejecutar la consulta. Algunas versiones rechazan el método antiguo al configurarlo. Los errores se presentan sin el mensaje original del proveedor, para no exponer datos de autenticación.
+Crear el contexto no confirma la autenticación: esta ocurre en la primera consulta. `verify_connection()` ejecuta una lectura del título del sitio antes de descargar. Los errores orientan a revisar identificadores, URL, permisos, consentimiento y políticas de acceso; no exponen mensajes completos del proveedor.
 
-El [aviso oficial de Microsoft](https://devblogs.microsoft.com/microsoft365dev/migrating-from-idcrl-authentication-to-modern-authentication-in-sharepoint/) establece que IDCRL no puede reactivarse en Online desde el 1 de mayo de 2026. La alternativa moderna `with_username_and_password` exige tenant y client ID y no resuelve MFA. Para conectar Online de forma soportada se necesita una aplicación autorizada por TI. Sin ella, puedes descargar o sincronizar el Excel con tu sesión Microsoft 365 y usar `extract_records` sobre la copia local. El componente no incorpora NTLM para SharePoint Server local.
+La implementación ya no usa `UserCredential`, IDCRL ni contraseñas directas. Si el tenant bloquea códigos de dispositivo, TI debe habilitar un flujo permitido; los identificadores por sí solos no eliminan las políticas de acceso.
 
 ## Datos solicitados en cada ejecución
 
-Primero pide usuario Microsoft 365 y contraseña oculta. Luego pide:
+El programa solicita por consola:
 
 1. Biblioteca de documentos: nombre exacto, por ejemplo `Documentos`.
 2. Ruta dentro de la biblioteca: por ejemplo `Reportes/2026`; Enter para la raíz. No incluyas la biblioteca ni el archivo. Escribe espacios normales, sin `%20`.
@@ -49,6 +61,8 @@ Primero pide usuario Microsoft 365 y contraseña oculta. Luego pide:
 7. Ruta del JSON de salida. Por defecto: `App/panel_mantenimiento/connection_sharepoint_output.json`. Debe ser un archivo nuevo dentro de una carpeta existente; nunca sobrescribe archivos.
 
 Las columnas salen en el orden elegido. Los tipos se aceptan sin distinguir mayúsculas; también se admiten `INTEGER`/`INT`, `FLOAT`, `BOOLEAN`, `DECIMAL` y `BIGDECIMAL` como alias. Los valores vacíos son `None`/`null` si se permiten nulos (`NULLABLE`); de lo contrario se rechazan (`REQUIRED`).
+
+Al comenzar la conexión, sigue la URL y el código que muestra Microsoft. No introduzcas la contraseña en la consola.
 
 ## Tipos y conversiones
 
@@ -88,7 +102,8 @@ El módulo usa nombres en inglés, anotaciones de tipos y responsabilidades sepa
 
 - `SharePointSettings`, `ColumnSchema`, `ExtractionRequest`: contratos inmutables y validación de entradas.
 - `load_settings`: lectura del entorno y `.env`.
-- `create_client_context`: construcción del contexto con usuario y contraseña.
+- `create_client_context`: configura OAuth con tenant/client ID y código de dispositivo.
+- `SharePointClient.verify_connection`: ejecuta la primera consulta y devuelve el título del sitio.
 - `SharePointClient`: acceso de solo lectura mediante SharePoint REST; recibe el contexto como dependencia. Resuelve el título de la biblioteca a su ruta real antes de descargar.
 - `convert_value`, `extract_records`: conversión y extracción, sin interacción de consola ni llamadas de red.
 - `prompt_extraction_request`: interacción con el usuario.
@@ -114,14 +129,10 @@ request = ExtractionRequest(
         ColumnSchema("Fecha", "DATE", date_format="%d/%m/%Y"),
     ),
 )
-from getpass import getpass
-
-username = input("Usuario Microsoft 365: ").strip()
-password = getpass("Contraseña: ")
-records = read_sharepoint_excel(load_settings(), request, username, password)
+records = read_sharepoint_excel(load_settings(), request)
 ```
 
-La firma de `read_sharepoint_excel` ahora requiere usuario y contraseña. Para procesar una copia local sin depender del flujo retirado, reutiliza `request` del ejemplo:
+La firma de `read_sharepoint_excel` recibe únicamente configuración general y solicitud de extracción. Para procesar una copia local, reutiliza `request` del ejemplo:
 
 ```python
 from pathlib import Path
@@ -140,7 +151,19 @@ Se lee el último resultado guardado de las fórmulas; no se recalculan. Guarda 
 
 ### 2026-09-24
 
-#### Cambio a ClientContext
+#### Restauración de tenant ID y client ID (versión actual)
+
+- Restablecidos `TENANT_ID` y `CLIENT_ID` en `.env` conservando la URL del sitio.
+- Reemplazado `UserCredential` por `ClientContext.with_device_flow` con scope SharePoint `/.default`.
+- Eliminados parámetros y preguntas de usuario/contraseña; sesión de Microsoft mediante navegador y código.
+- Añadida comprobación explícita del sitio antes de la descarga.
+- Actualizado `test.py`: prueba básica de conexión por defecto y descarga opcional con `--download`, sin ejecución al importar ni escritura duplicada.
+- El modo `--download` reutiliza el formulario de extracción (incluye hoja y columnas), aunque solo comprueba la descarga del archivo, no sus conversiones.
+- Fijado rango de dependencia Office365-REST-Python-Client `>=3.1.0,<4`, conservando las otras dependencias del proyecto.
+- Ajustado `main.bat` para ejecutarse desde su propia carpeta y detenerse si falla la activación o instalación.
+- Actualizadas pruebas de contexto, scope, verificación del sitio y fallos, junto con instrucciones y ejemplos.
+
+#### Cambio a ClientContext con contraseña (histórico, reemplazado)
 
 - Sustituidos MSAL, Microsoft Graph y el flujo de dispositivo por `ClientContext` con `UserCredential`.
 - Eliminados tenant y client ID del código y `.env`, conservando la URL existente.
@@ -171,7 +194,17 @@ Toda modificación futura del componente debe actualizar este documento, tanto e
 python -m unittest discover -s App/panel_mantenimiento -p test_connection_sharepoint.py
 ```
 
-Las pruebas usan `unittest` y `openpyxl`. Simulan el libro y la biblioteca de conexión para verificar conversiones, interacción, contexto, descarga y errores sin acceder a Microsoft. No certifican autenticación real; el flujo implementado fue retirado de SharePoint Online.
+Las pruebas simulan libro y conexión para verificar conversiones, interacción, tenant/client ID, scope, descarga y errores sin acceder a Microsoft. No certifican autenticación real.
+
+Prueba manual básica con la configuración real:
+
+```powershell
+python App/panel_mantenimiento/test.py
+# Opcional: comprobar también la descarga del Excel
+python App/panel_mantenimiento/test.py --download
+```
+
+La descarga de prueba se guarda junto a `test.py`, una sola vez y sin sobrescribir archivos. Completar `TENANT_ID`, `CLIENT_ID`, permisos y consentimiento es necesario antes de estas pruebas. No se ejecutó inicio de sesión real durante la actualización. La ejecución automatizada en `venv_mtto` quedó pendiente: el entorno devolvió acceso denegado y no se autorizó el reintento fuera de ese entorno.
 
 ## Referencias
 

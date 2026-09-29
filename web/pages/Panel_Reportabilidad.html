@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Reportabilidad — Resiter Minería</title>
+<link rel="stylesheet" href="../css/panel.css">
+</head>
+<body>
+<header><div class="logo">RESITER<span> / </span>MINERÍA</div><h1>Panel de reportabilidad</h1><a class="volver-inicio" href="Panel.html">← Inicio</a></header>
+<nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html" aria-current="page">Reportabilidad</a><a href="Panel_Seguimiento_KM_HR.html">Seguimiento KM-HR</a><a href="Panel_Resumen_Mantencion.html">Resumen de mantención</a><a href="Panel_Calendario_Mantencion.html">Calendario de mantención</a></nav>
+<nav class="tabs" role="tablist" aria-label="Secciones del panel"><button id="tab-reporte" type="button" role="tab" aria-selected="true" aria-controls="vista-reporte">Reporte</button><button id="tab-configuracion" type="button" role="tab" aria-selected="false" aria-controls="vista-configuracion" tabindex="-1">Configuraciones</button></nav>
+<form id="formulario" class="filtros"><label>Fecha de referencia<input id="fecha" type="date" required></label><button class="pri" id="consultar">Consultar Excel</button><label>Región<select id="region"><option value="">Todas las regiones</option></select></label><label>Buscar CeCo<input id="buscar" type="search" placeholder="Nombre del centro de costo"></label><button id="exportar" type="button" disabled>Exportar CSV</button></form>
+<main>
+<section id="vista-configuracion" role="tabpanel" aria-labelledby="tab-configuracion" hidden>
+<h2>Configuraciones del reporte</h2><p>Marca las regiones y los CeCo que quieres contar. Los cambios se aplican al instante a reportadas, total de patentes, porcentajes y CSV.</p><p>Al desmarcar una región se excluyen todos sus CeCo. Sus selecciones individuales se conservan para cuando vuelvas a incluirla.</p>
+<div class="config-acciones"><button id="incluir-todos" type="button">Incluir todos</button><button id="excluir-todos" type="button">Excluir todos</button></div><p id="guardado-config" role="status" aria-live="polite">La selección se guarda en este navegador.</p><div id="lista-configuracion">Consulta el Excel para cargar las regiones y los CeCo.</div>
+</section>
+<section id="vista-reporte" role="tabpanel" aria-labelledby="tab-reporte">
+<div class="intro"><div><h2>Reportabilidad de patentes</h2><p id="periodo">Selecciona una fecha para consultar el reporte.</p></div><span class="badge">Patentes distintas por CeCo</span></div>
+<div id="estado" role="status" aria-live="polite"></div><div id="avisos" hidden></div>
+<section id="resultados" hidden>
+<div class="leyenda" aria-label="Rangos del semáforo"><span class="semaforo verde">Verde: 90 % o más</span><span class="semaforo amarillo">Amarillo: desde 75 % y menos de 90 %</span><span class="semaforo rojo">Rojo: menos de 75 %</span><span class="semaforo neutro">Sin base: total igual a 0</span></div><p id="resumen-config"></p>
+<div class="kpis"><div class="kpi"><b id="reportadas">—</b><span>Patentes reportadas</span></div><div class="kpi"><b id="total">—</b><span>Total patentes del maestro</span></div><div class="kpi"><b id="porcentaje">—</b><span>Reportadas / total</span></div><div class="kpi"><b id="cecos">—</b><span>Centros de costo</span></div></div>
+<section class="tarjeta"><div class="titulo"><h3>Detalle por región y CeCo</h3><button id="expandir" type="button">Contraer regiones</button></div><div class="scroll"><table><caption class="nota">Patentes distintas reportadas frente al total de patentes del maestro por CeCo.</caption><thead id="cabecera"></thead><tbody id="detalle"></tbody><tfoot id="pie"></tfoot></table></div><div class="nota">Una patente cuenta una sola vez por CeCo en todo el período. Los subtotales suman los CeCo. El porcentaje compara cantidades; no acredita que todas las patentes reportadas pertenezcan al maestro.</div></section>
+</section></section><footer id="fuente">Fuente: PruebaForm.xlsx · Clasificación: BD ACTIVOS MOBILES.xlsx</footer>
+</main>
+<script src="../js/reportabilidad.js" defer></script></body></html>

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
-from connection_sharepoint import (
+from connection_sharepoint.connection_sharepoint import (
     BIGNUMERIC_MAX, BIGNUMERIC_MIN, NUMERIC_MAX, ColumnSchema, ExtractionRequest,
     SharePointSettings, SharePointClient, ConnectionSharePointError, create_client_context,
     convert_value, extract_records, prompt_extraction_request,
@@ -64,7 +64,7 @@ class ConversionTests(unittest.TestCase):
 
     def test_configuration_validation(self):
         with self.assertRaises(ValueError):
-            SharePointSettings("https://TU_EMPRESA.sharepoint.com")
+            SharePointSettings("TU_TENANT_ID", "TU_CLIENT_ID", "https://example.sharepoint.com")
         with self.assertRaises(ValueError):
             ColumnSchema("Cost", "ARRAY")
 
@@ -109,22 +109,35 @@ class ExtractionTests(unittest.TestCase):
 
 class ConnectionTests(unittest.TestCase):
     def setUp(self):
-        self.settings = SharePointSettings("https://example.sharepoint.com/sites/Maintenance")
+        self.settings = SharePointSettings("tenant-id", "client-id", "https://example.sharepoint.com/sites/Maintenance")
         self.request = ExtractionRequest("Documentos", "Informes/Septiembre", "Costo #1%.xlsx", "Data",
                                          (ColumnSchema("Id", "STRING"),))
 
-    def test_context_uses_user_credentials_without_ids(self):
-        factory, credentials = MagicMock(), MagicMock()
+    def test_context_uses_tenant_client_and_sharepoint_scope(self):
+        factory = MagicMock()
         modules = {
             "office365.sharepoint.client_context": SimpleNamespace(ClientContext=factory),
-            "office365.runtime.auth.user_credential": SimpleNamespace(UserCredential=credentials),
         }
         with patch.dict(sys.modules, modules):
-            context = create_client_context(self.settings, " reader@example.com ", " password ")
+            context = create_client_context(self.settings)
         factory.assert_called_once_with(self.settings.site_url)
-        credentials.assert_called_once_with("reader@example.com", " password ")
-        factory.return_value.with_credentials.assert_called_once_with(credentials.return_value)
-        self.assertIs(context, factory.return_value.with_credentials.return_value)
+        factory.return_value.with_device_flow.assert_called_once_with(
+            tenant="tenant-id", client_id="client-id", scopes=["https://example.sharepoint.com/.default"],
+        )
+        self.assertIs(context, factory.return_value.with_device_flow.return_value)
+
+    def test_verify_connection_reads_site_title(self):
+        context = MagicMock()
+        context.web.get.return_value.execute_query.return_value.properties = {"Title": "Maintenance"}
+        self.assertEqual(SharePointClient(context).verify_connection(), "Maintenance")
+
+    def test_auth_failure_has_configuration_guidance(self):
+        context = MagicMock()
+        context.web.get.side_effect = RuntimeError("private-provider-data")
+        with self.assertRaises(ConnectionSharePointError) as raised:
+            SharePointClient(context).verify_connection()
+        self.assertIn("TENANT_ID", str(raised.exception))
+        self.assertNotIn("private-provider-data", str(raised.exception))
 
     def test_download_resolves_actual_library_path(self):
         context = MagicMock()
@@ -152,7 +165,7 @@ class ConnectionTests(unittest.TestCase):
         with self.assertRaises(ConnectionSharePointError) as raised:
             SharePointClient(context).download_excel(self.request)
         self.assertNotIn("private-provider-data", str(raised.exception))
-        self.assertIn("retirado", str(raised.exception))
+        self.assertIn("permisos", str(raised.exception))
 
 
 if __name__ == "__main__":

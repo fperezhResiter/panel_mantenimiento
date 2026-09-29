@@ -1,11 +1,5 @@
 
-
-
-
-"""Extract typed Excel data using ClientContext; see connection_sharepoint.md."""
-
 import argparse
-import getpass
 import json
 import math
 import os
@@ -44,11 +38,13 @@ class ConnectionSharePointError(Exception):
 
 @dataclass(frozen=True)
 class SharePointSettings:
+    tenant_id: str
+    client_id: str
     site_url: str
 
     def __post_init__(self) -> None:
-        if not self.site_url or "TU_" in self.site_url:
-            raise ValueError("Completa SHAREPOINT_SITE_URL en el .env junto a connection_sharepoint.py.")
+        if any(not value or "TU_" in value for value in (self.tenant_id, self.client_id, self.site_url)):
+            raise ValueError("Completa TENANT_ID, CLIENT_ID y SHAREPOINT_SITE_URL en el .env junto al módulo.")
         site = urlsplit(self.site_url)
         if (site.scheme != "https" or not site.hostname
                 or not site.hostname.endswith(".sharepoint.com")
@@ -110,25 +106,19 @@ def load_settings(env_path: Path = APP_DIRECTORY / ".env") -> SharePointSettings
     from dotenv import dotenv_values
 
     file_values = dotenv_values(env_path, encoding="utf-8-sig")
-    site_url = os.environ.get("SHAREPOINT_SITE_URL", file_values.get("SHAREPOINT_SITE_URL"))
-    return SharePointSettings(str(site_url or "").strip())
+    keys = ("TENANT_ID", "CLIENT_ID", "SHAREPOINT_SITE_URL")
+    return SharePointSettings(*(str(os.environ.get(key, file_values.get(key)) or "").strip() for key in keys))
 
 
-def create_client_context(settings: SharePointSettings, username: str, password: str) -> "ClientContext":
-    """Build the requested legacy user context; Online retired this authentication."""
-    from office365.runtime.auth.user_credential import UserCredential
+def create_client_context(settings: SharePointSettings) -> "ClientContext":
+    """Configure delegated OAuth; Microsoft login starts on the first query."""
     from office365.sharepoint.client_context import ClientContext
 
-    if not username.strip() or not password:
-        raise ValueError("El usuario y la contraseña son obligatorios.")
-    try:
-        return ClientContext(settings.site_url).with_credentials(UserCredential(username.strip(), password))
-    except Exception:
-        # Do not expose provider errors that may contain authentication data.
-        raise ConnectionSharePointError(
-            "No se pudo configurar ClientContext con usuario y contraseña. "
-            "SharePoint Online retiró este flujo antiguo; consulta connection_sharepoint.md."
-        ) from None
+    resource = urlsplit(settings.site_url)
+    return ClientContext(settings.site_url).with_device_flow(
+        tenant=settings.tenant_id, client_id=settings.client_id,
+        scopes=[f"{resource.scheme}://{resource.netloc}/.default"],
+    )
 
 
 class SharePointClient:
@@ -136,6 +126,18 @@ class SharePointClient:
 
     def __init__(self, context: "ClientContext") -> None:
         self._context = context
+
+    def verify_connection(self) -> str:
+        """Authenticate and read the site's title without downloading files."""
+        try:
+            web = self._context.web.get().execute_query()
+            return str(web.properties.get("Title", ""))
+        except Exception:
+            raise ConnectionSharePointError(
+                "No se pudo autenticar o leer el sitio. Revisa TENANT_ID, CLIENT_ID, URL, "
+                "flujo de cliente público, permiso delegado SharePoint AllSites.Read y consentimiento. "
+                "La cuenta debe tener acceso y la organización debe permitir el flujo de dispositivo."
+            ) from None
 
     def download_excel(self, request: ExtractionRequest) -> bytes:
         try:
@@ -151,8 +153,7 @@ class SharePointClient:
         except Exception:
             raise ConnectionSharePointError(
                 "No se pudo leer el Excel con ClientContext. Revisa biblioteca, ruta, archivo y permisos. "
-                "El flujo antiguo de usuario/contraseña fue retirado de SharePoint Online "
-                "y no admite MFA. Consulta connection_sharepoint.md."
+                "Revisa también la vigencia de la sesión Microsoft. Consulta connection_sharepoint.md."
             ) from None
 
 
@@ -278,10 +279,11 @@ def extract_records(content: bytes, request: ExtractionRequest) -> list[dict[str
 
 
 def read_sharepoint_excel(
-    settings: SharePointSettings, request: ExtractionRequest, username: str, password: str,
+    settings: SharePointSettings, request: ExtractionRequest,
 ) -> list[dict[str, Any]]:
-    context = create_client_context(settings, username, password)
-    content = SharePointClient(context).download_excel(request)
+    client = SharePointClient(create_client_context(settings))
+    client.verify_connection()
+    content = client.download_excel(request)
     return extract_records(content, request)
 
 
@@ -373,11 +375,6 @@ def main() -> None:
     parser.parse_args()
     try:
         settings = load_settings()
-        print("Aviso: el flujo UserCredential fue retirado de SharePoint Online; ver connection_sharepoint.md.")
-        username = prompt_value("Usuario Microsoft 365 (correo)", required_text)
-        password = getpass.getpass("Contraseña (no se muestra ni se guarda): ")
-        if not password:
-            raise ValueError("La contraseña es obligatoria.")
         request = prompt_extraction_request()
         output_path = Path(prompt_value(
             "Ruta JSON de salida (debe ser un archivo nuevo)", required_text,
@@ -385,7 +382,7 @@ def main() -> None:
         )).expanduser()
         if output_path.exists() or not output_path.parent.is_dir():
             raise ValueError("La salida ya existe o su carpeta no existe; indica un archivo nuevo.")
-        records = read_sharepoint_excel(settings, request, username, password)
+        records = read_sharepoint_excel(settings, request)
         save_records(records, output_path)
         print(f"Extraídas {len(records)} filas en {output_path.resolve()}")
     except (EOFError, KeyboardInterrupt):
