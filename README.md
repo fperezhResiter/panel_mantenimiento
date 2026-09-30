@@ -4,6 +4,7 @@ Portal local con página de inicio y acceso a los paneles. Conserva el estilo vi
 
 ## Archivos
 
+- `Iniciar_Primera_Vez.bat`: crea o reutiliza `venv_mtto`, prepara pip, instala las dependencias y comprueba la carga del servidor.
 - `Iniciar_Panel.bat`: activa `venv_mtto`, comprueba las dependencias y ejecuta el servidor Python.
 - `venv_mtto/`: entorno virtual de Python que utiliza el panel.
 - `Panel.html`: página inicial con acceso a los paneles, disponible también en `/`.
@@ -25,16 +26,16 @@ Portal local con página de inicio y acceso a los paneles. Conserva el estilo vi
 
 ## Inicio en Windows con doble clic
 
-1. Mantén el `.bat`, los dos módulos Python (`reportabilidad.py` y `seguimiento_km_hr.py`), todos los HTML, CSS y JavaScript del portal, `requirements.txt`, la carpeta `venv_mtto` dentro de esta misma carpeta.
-2. Haz doble clic en **Iniciar_Panel.bat**. El archivo se ubica automáticamente en la carpeta del proyecto y activa **venv_mtto**.
-3. Si falta `openpyxl`, el archivo te avisa y se detiene. Abre PowerShell en esta carpeta, ejecuta `.\venv_mtto\Scripts\python.exe -m pip install -r requirements.txt` y vuelve a hacer doble clic en el `.bat`. Esta instalación necesita acceso a Internet y se realiza **dentro de venv_mtto**.
+1. Conserva la estructura completa del portal, incluyendo las carpetas `app` y `web`, los archivos `.bat`, `reportabilidad.py` y `requirements.txt`.
+2. La primera vez, instala Python 3.10 o superior con el lanzador `py` o Python en PATH y haz doble clic en **Iniciar_Primera_Vez.bat**. Necesita Internet. Crea `venv_mtto` si falta, prepara y actualiza pip, instala `requirements.txt` dentro de ese entorno y verifica las dependencias y la carga del servidor. Puedes repetirlo; reutiliza el entorno existente. Si está dañado, pide renombrarlo como respaldo.
+3. Cuando indique **Preparación completada**, ejecuta **Iniciar_Panel.bat**. Para el uso diario solo necesitas este segundo archivo. El preparador instala las dependencias del portal; el conector independiente de SharePoint conserva su propia configuración e instalación.
 4. Espera el mensaje **Panel disponible en http://127.0.0.1:8765**.
 5. Abre <http://127.0.0.1:8765> en tu navegador. En el inicio selecciona **Reportabilidad**, elige la fecha y pulsa **Consultar Excel**. El enlace **Inicio** permite volver a la portada; también puedes pasar de un panel a otro desde la navegación superior.
 6. Mantén la ventana del `.bat` abierta mientras trabajas. Para detener el servidor pulsa `Ctrl+C`; si Windows pregunta si deseas terminar el trabajo por lotes, confirma con `S`.
 
 El `.bat` utiliza explícitamente `venv_mtto\Scripts\python.exe`, por lo que no depende de otro Python activo. El navegador se abre manualmente. No inicies varias copias del servidor en el mismo puerto.
 
-### Preparación del entorno, solo si no existe
+### Preparación manual alternativa del entorno
 
 Necesitas Python 3.10 o superior instalado. Si `venv_mtto` ya existe y funciona, omite estos pasos. Si falta, abre PowerShell en la carpeta del proyecto y ejecuta:
 
@@ -73,8 +74,8 @@ En ese caso abre <http://127.0.0.1:8766>. Solo se escucha en este equipo (`127.0
 ### Si no inicia
 
 - **Servidor anterior o incompatible / error toLocaleString / NaN:** el HTML se actualizó, pero sigue ejecutándose el Python anterior. Detén la ventana del servidor con `Ctrl+C`, ejecuta de nuevo `Iniciar_Panel.bat` y recarga con `Ctrl+F5`. No basta con recargar el navegador: Python necesita reiniciarse. El panel verifica la versión de los datos antes de mostrar resultados.
-- **No se encontró venv_mtto:** crea el entorno con los pasos anteriores.
-- **Error al instalar dependencias:** revisa la conexión a Internet y los permisos de tu equipo; vuelve a ejecutar el `.bat`.
+- **No se encontró venv_mtto:** ejecuta `Iniciar_Primera_Vez.bat`.
+- **Error al instalar dependencias:** revisa la conexión a Internet y los permisos de tu equipo; vuelve a ejecutar `Iniciar_Primera_Vez.bat`.
 - **Puerto en uso / WinError 10048:** detén la ventana anterior del panel o inicia con `.\Iniciar_Panel.bat --puerto 8766`.
 - El servidor reserva el puerto para una sola instancia. La consola indica **Reporte v2** al iniciar. Si el aviso persiste después de reiniciar, puede quedar otro proceso anterior activo en una ventana distinta.
 - **No se pudo leer el Excel:** verifica que los archivos estén disponibles localmente y sincronizados; si están bloqueados por Excel, ciérralos y reintenta.
