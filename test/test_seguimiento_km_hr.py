@@ -26,7 +26,7 @@ class SeguimientoTest(unittest.TestCase):
         with patch('app.seguimiento.leer_tabla', side_effect=[
             (maestro, CALENDAR_WINDOWS_1900, 'Maestro'),
             (filas, CALENDAR_WINDOWS_1900, 'Form')]):
-            return crear_seguimiento(Path('form.xlsx'), Path('maestro.xlsx'), date(2026, 9, 22))
+            return crear_seguimiento(Path('form.xlsx'), Path('maestro.xlsx'), date(2026, 9, 22), inicio=date(2026, 9, 1))
 
     def test_ventanas_y_ultimo_envio_incluyen_dia_posterior(self):
         filas = [(datetime(2026, 8, 28, 23, 59), 'ABCD12', 'Por kilometraje', '2026-08-28', 1, 0),
@@ -41,7 +41,7 @@ class SeguimientoTest(unittest.TestCase):
         self.assertEqual([s['fecha'] for s in r['semanas']], ['2026-09-01','2026-09-08','2026-09-15','2026-09-22'])
         self.assertEqual(len(r['equipos']), 2)
         self.assertEqual([l['valor'] if l else None for l in r['equipos'][0]['lecturas']], [1200,1300,None,1400])
-        self.assertEqual(r['equipos'][1]['calculo']['estado'], 'REVISAR')
+        self.assertEqual(r['equipos'][1]['calculo']['estado'], 'STAND BY')
 
     def test_formula_limites_exactos(self):
         for saldo, esperado in [(51,'verde'), (50,'verde'), (49.99,'amarillo'), (0,'amarillo'),
@@ -71,7 +71,7 @@ class SeguimientoTest(unittest.TestCase):
                   {**equipo(base[:1]), 'intervalo':None},
                   equipo([lectura(1,1200,'2026-09-01'), lectura(2,1300,'2026-09-01')])]:
             c = calcular_equipo(e)
-            self.assertEqual(c['estado'], 'REVISAR')
+            self.assertEqual(c['estado'], 'STAND BY')
             self.assertIsNone(c['fecha_proyectada'])
 
     def test_unidad_del_maestro_y_duplicados_conflictivos(self):
@@ -81,11 +81,11 @@ class SeguimientoTest(unittest.TestCase):
         e = r['equipos'][0]
         self.assertTrue(e['conflicto_maestro'])
         self.assertTrue(e['lecturas'][0]['unidad_desde_maestro'])
-        self.assertEqual(e['calculo']['estado'], 'REVISAR')
+        self.assertEqual(e['calculo']['estado'], 'STAND BY')
 
     def test_mantencion_actualiza_sin_contar_como_adc(self):
         adc = ('2026-09-22','ABCD12','Por kilometraje','2026-09-22',1400,0)
-        mtto = ('2026-09-23','REVISAR',None,None,9999,9999,TIPO_MANTENCION,'REGION BHP',
+        mtto = ('2026-09-23','STAND BY',None,None,9999,9999,TIPO_MANTENCION,'REGION BHP',
                 None,None,'ABCD12','2026-09-20',1300,'https://example.test/certificado.pdf')
         e = self.reporte([adc, mtto])['equipos'][0]
         self.assertEqual(e['lecturas'][3]['valor'],1400)
@@ -99,7 +99,7 @@ class SeguimientoTest(unittest.TestCase):
     def test_historial_mtto_fuera_de_ventanas_y_correccion_mismo_dia(self):
         filas = [('2026-09-22','ABCD12','Por kilometraje','2026-09-22',1400,0)]
         def mtto(envio, fecha, valor, candidata='ABCD12',extra=None):
-            return (envio,'REVISAR',None,None,None,None,TIPO_MANTENCION,'REGION BHP',
+            return (envio,'STAND BY',None,None,None,None,TIPO_MANTENCION,'REGION BHP',
                     extra,None,candidata,fecha,valor,'certificado')
         filas += [mtto('2026-09-18','2026-09-10',1100), # El envío del 18 está entre ventanas ADC.
                   mtto('2026-09-20','2026-09-10',1150), # Corrige el mismo evento.
@@ -114,14 +114,14 @@ class SeguimientoTest(unittest.TestCase):
 
     def test_mtto_antigua_no_reemplaza_maestro_y_sin_certificado_avisa(self):
         def mtto(fecha,certificado):
-            return ('2026-09-22','REVISAR',None,None,None,None,TIPO_MANTENCION,'REGION BHP',
+            return ('2026-09-22','STAND BY',None,None,None,None,TIPO_MANTENCION,'REGION BHP',
                     None,None,'ABCD12',fecha,1200,certificado)
         e=self.reporte([mtto('2026-07-01','certificado')])['equipos'][0]
         self.assertEqual(e['ultima_mantencion'],1000)
         r=self.reporte([mtto('2026-09-20',None)])
         self.assertEqual(r['equipos'][0]['ultima_mantencion'],1200)
         self.assertTrue(any('no incluyen certificado' in a for a in r['advertencias']))
-        self.assertEqual(r['equipos'][0]['calculo']['estado'],'REVISAR') # No existe una lectura ADC.
+        self.assertEqual(r['equipos'][0]['calculo']['estado'],'STAND BY') # No existe una lectura ADC.
 
 
 if __name__ == '__main__':

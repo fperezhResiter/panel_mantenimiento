@@ -28,17 +28,56 @@ class ReportabilidadTest(unittest.TestCase):
             return crear_reporte(Path('form.xlsx'), Path('maestro.xlsx'), date(2026, 9, 22))
 
     def test_limites_inclusivos_y_duplicados(self):
-        filas = [(datetime(2026, 9, 18, 23, 59, 59), 'A', 'REGION BHP', 'FUERA1'),
-                 (datetime(2026, 9, 19), 'A', 'REGION BHP', 'AB-CD12'),
+        filas = [(datetime(2026, 9, 20, 23, 59, 59), 'A', 'REGION BHP', 'FUERA1'),
+                 (datetime(2026, 9, 21), 'A', 'REGION BHP', 'AB-CD12'),
                  (datetime(2026, 9, 22), 'A', 'REGION BHP', ' abcd12 '),
-                 (datetime(2026, 9, 23, 23, 59, 59), 'A', 'REGION BHP', 'EFGH34'),
-                 (datetime(2026, 9, 24), 'A', 'REGION BHP', 'FUERA2')]
+                 (datetime(2026, 9, 25, 23, 59, 59), 'A', 'REGION BHP', 'EFGH34'),
+                 (datetime(2026, 9, 26), 'A', 'REGION BHP', 'FUERA2')]
         r = self.reporte(filas, [('A', 'REGION BHP', 'ABCD12'), ('A', 'REGION BHP', 'EFGH34'),
                                 ('A', 'REGION BHP', 'IJKL56'), ('A', 'REGION BHP', 'ABCD12')])
         self.assertEqual(r['total'], 3)
         self.assertEqual(r['reportadas'], 2)
         self.assertAlmostEqual(r['porcentaje'], 200 / 3)
         self.assertNotIn('dias', r)
+        self.assertEqual((r['semana'], r['inicio'], r['fin']), (8, '2026-09-21', '2026-09-25'))
+
+    def test_martes_desde_agosto(self):
+        for consulta, semana, referencia, inicio, fin in [
+                (date(2026, 8, 4), 1, '2026-08-04', '2026-08-03', '2026-08-07'),
+                (date(2026, 8, 10), 2, '2026-08-11', '2026-08-10', '2026-08-14'),
+                (date(2026, 8, 16), 2, '2026-08-11', '2026-08-10', '2026-08-14'),
+                (date(2026, 8, 11), 2, '2026-08-11', '2026-08-10', '2026-08-14')]:
+            with self.subTest(consulta=consulta), patch('app.reportes.leer_tabla', return_value=([], CALENDAR_WINDOWS_1900, 'Hoja')):
+                r = crear_reporte(Path('form.xlsx'), Path('maestro.xlsx'), consulta)
+                self.assertEqual((r['semana'], r['fecha'], r['inicio'], r['fin']), (semana, referencia, inicio, fin))
+        with self.assertRaises(ValueError):
+            crear_reporte(Path('form.xlsx'), Path('maestro.xlsx'), date(2026, 8, 2))
+
+    def test_historial_tres_semanas_y_actual(self):
+        r = self.reporte([
+            ('2026-09-07', 'A', None, 'ABCD12'),
+            ('2026-09-11 23:59:59', 'A', None, 'ABCD12'),
+            ('2026-09-12', 'A', None, 'OTRA12'),
+            ('2026-09-18', 'A', None, 'ABCD12'),
+            ('2026-09-25', 'A', None, 'EFGH34'),
+            ('2026-09-25', 'A', None, 'ABCD12'),
+            ('2026-09-01', 'HISTORICO', None, 'SOLO12'),
+        ], [('A', 'REGION BHP', 'ABCD12'), ('A', 'REGION BHP', 'EFGH34')])
+        self.assertEqual([s['fecha'] for s in r['semanas']], ['2026-09-01','2026-09-08','2026-09-15','2026-09-22'])
+        cecos = {c['ceco']: c for region in r['regiones'] for c in region['cecos']}
+        self.assertEqual(cecos['A']['historico'], [0, 1, 1, 2])
+        self.assertEqual(len(r['semanas_completas']), 8)
+        self.assertEqual(r['semanas_completas'][0]['fecha'], '2026-08-04')
+        self.assertEqual(cecos['A']['historico_completo'], [0, 0, 0, 0, 0, 1, 1, 2])
+        self.assertEqual(cecos['HISTORICO']['historico'], [1, 0, 0, 0])
+        self.assertEqual(cecos['HISTORICO']['total'], 0)
+        self.assertEqual(r['reportadas'], 2)
+
+    def test_primera_semana_sin_historial_anterior_al_inicio(self):
+        with patch('app.reportes.leer_tabla', return_value=([], CALENDAR_WINDOWS_1900, 'Hoja')):
+            r = crear_reporte(Path('form.xlsx'), Path('maestro.xlsx'), date(2026, 8, 4))
+        self.assertEqual(len(r['semanas']), 1)
+        self.assertEqual(r['semanas'][0]['numero'], 1)
 
     def test_maestro_fallback_vacios_y_ambiguedad(self):
         filas = [('22/09/2026 10:00', ' á ', 'Hrs', 'ABCD12'),

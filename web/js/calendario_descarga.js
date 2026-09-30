@@ -3,7 +3,7 @@ function escaparCalendario(valor)
 {
     return String(valor??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-function informeCalendarioMt(equipos,mes,region,standby,inicio,referencia)
+function informeCalendarioMt(equipos,mes,region,inicio,referencia)
 {
     if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)||Number(mes.slice(0,4))<1000||!region)throw new Error('Selecciona un mes y una región válidos.');
     const eventos=equipos.filter(e=>e.region===region&&e.calculo.fecha_proyectada?.slice(0,7)===mes).sort((a,b)=>a.calculo.fecha_proyectada.localeCompare(b.calculo.fecha_proyectada)||a.patente.localeCompare(b.patente));
@@ -20,11 +20,11 @@ function informeCalendarioMt(equipos,mes,region,standby,inicio,referencia)
                 continue;
             }
             const lista=eventos.filter(e=>e.calculo.fecha_proyectada===dia);
-            calendario+=`<td class="${lista.length?'programado':''}"><b>${Number(dia.slice(-2))}</b>${lista.length?`<strong>${lista.length} mantención${lista.length===1?'':'es'}</strong><span>${lista.slice(0,3).map(e=>esc(e.patente)).join('<br>')}${lista.length>3?'<br>… Ver tabla completa':''}</span>`:''}</td>`;
+            calendario+=`<td class="${lista.length?'programado':''}"><b>${Number(dia.slice(-2))}</b>${lista.length?`<strong>${lista.length} ${lista.length===1?'mantención preventiva':'mantenciones preventivas'}</strong><span>${lista.slice(0,3).map(e=>esc(e.patente)).join('<br>')}${lista.length>3?'<br>… Ver tabla completa':''}</span>`:''}</td>`;
         }
         calendario+='</tr>';
     }
-    const tabla=eventos.map(e=>{const estado=standby.has(e.estado_equipo)&&e.estado_equipo?'STAND BY':e.calculo.estado;return '<tr>'+[fecha(e.calculo.fecha_proyectada),e.patente,e.region,e.ceco,e.unidad||'—',numero(e.calculo.proxima),estado].map(v=>`<td>${esc(v)}</td>`).join('')+'</tr>';}).join('')||'<tr><td colspan="7">Sin mantenciones proyectadas para esta región y mes.</td></tr>';
+    const tabla=eventos.map(e=>{const estado=['REVISAR','REVISADO'].includes(e.calculo.estado?.toUpperCase())?'STAND BY':e.calculo.estado;return '<tr>'+[fecha(e.calculo.fecha_proyectada),e.patente,e.region,e.ceco,e.unidad||'—',numero(e.calculo.proxima),estado].map(v=>`<td>${esc(v)}</td>`).join('')+'</tr>';}).join('')||'<tr><td colspan="7">Sin mantenciones proyectadas para esta región y mes.</td></tr>';
     return `<!doctype html>
     <html lang="es"><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -51,7 +51,7 @@ function informeCalendarioMt(equipos,mes,region,standby,inicio,referencia)
     <h1>Calendario de mantención</h1>
     <h2>${esc(region)} · ${esc(mes)}</h2>
     <p>${eventos.length} patentes con fecha proyectada en el mes.</p>
-    <p>Lecturas: semana 1 ${esc(fecha(inicio))} · hasta referencia ${esc(fecha(referencia))}, con ventana −3/+1 días.</p>
+    <p>Lecturas: semana 1 ${esc(fecha(inicio))} · hasta referencia ${esc(fecha(referencia))}, según las columnas con fecha del Excel.</p>
     </header>
     <p class="instruccion">Este archivo se puede consultar sin conexión. Para imprimirlo o guardarlo como PDF usa la opción Imprimir de tu navegador.</p>
     <table class="calendario">
@@ -70,7 +70,7 @@ function informeCalendarioMt(equipos,mes,region,standby,inicio,referencia)
             <tbody>${tabla}</tbody>
         </table>
     </section>
-    <footer>Fuentes: BD ACTIVOS MOBILES.xlsx y PruebaForm.xlsx. Las fechas son estimaciones según uso, no órdenes de trabajo confirmadas. Se incluyen solo las patentes de esta región con fecha en el mes elegido. Los equipos sin proyección quedan fuera. Si un equipo está en STAND BY, valida la fecha si su ritmo de uso cambió.</footer>
+    <footer>Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR. Las fechas son estimaciones según uso, no órdenes de trabajo confirmadas. Se incluyen solo las patentes de esta región con fecha en el mes elegido. Los equipos sin proyección quedan fuera. Si un equipo está en STAND BY, valida la fecha si su ritmo de uso cambió.</footer>
     </body>
     </html>`;
 }

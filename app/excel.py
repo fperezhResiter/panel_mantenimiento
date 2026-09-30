@@ -12,10 +12,15 @@ def normalizar(valor):
     return ''.join(c for c in unicodedata.normalize('NFD', texto) if not unicodedata.combining(c))
 
 
-def leer_tabla(ruta, columnas):
+def leer_tabla(ruta, columnas, nombre_hoja=None):
     libro = load_workbook(ruta, read_only=True, data_only=True)
     try:
-        for hoja in libro:
+        hojas = list(libro)
+        if nombre_hoja:
+            hojas = [h for h in hojas if normalizar(h.title) == normalizar(nombre_hoja)]
+            if not hojas:
+                raise ValueError(f'{ruta.name}: no se encontró la hoja "{nombre_hoja}". Hojas disponibles: {", ".join(libro.sheetnames)}.')
+        for hoja in hojas:
             filas = hoja.iter_rows(values_only=True)
             cabecera = next(filas, ())
             indices = {normalizar(c): i for i, c in enumerate(cabecera) if c}
@@ -23,7 +28,8 @@ def leer_tabla(ruta, columnas):
                 seleccion = [indices[normalizar(c)] for c in columnas]
                 datos = [tuple(f[i] for i in seleccion) for f in filas if any(v is not None for v in f)]
                 return datos, libro.epoch, hoja.title
-        raise ValueError(f'{ruta.name}: no se encontraron las columnas {", ".join(columnas)} en la primera fila de una hoja.')
+        destino = f'la hoja "{nombre_hoja}"' if nombre_hoja else 'una hoja'
+        raise ValueError(f'{ruta.name}: no se encontraron las columnas {", ".join(columnas)} en la primera fila de {destino}.')
     finally:
         libro.close()
 
