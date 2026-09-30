@@ -17,9 +17,9 @@ set "PANEL_PYTHON=%~dp0venv_mtto\Scripts\python.exe"
 "%PANEL_PYTHON%" -c "import sys; assert sys.version_info >= (3,10), 'Se requiere Python 3.10 o superior'"
 if errorlevel 1 goto error
 
-"%PANEL_PYTHON%" -c "import openpyxl" >nul 2>&1
+"%PANEL_PYTHON%" -c "import openpyxl, dotenv" >nul 2>&1
 if errorlevel 1 (
-    echo ERROR: Falta openpyxl en venv_mtto.
+    echo ERROR: Faltan dependencias en venv_mtto. Ejecuta Iniciar_Primera_Vez.bat.
     echo Ejecuta este comando desde la carpeta del proyecto:
     echo venv_mtto\Scripts\python.exe -m pip install -r requirements.txt
     goto error
