@@ -11,6 +11,7 @@ from .reportes import crear_reporte
 from .api import API_RUTAS
 
 BASE = Path(__file__).resolve().parent.parent
+LIBRO_EQUIPOS = Path(r'C:\Users\fperezh\RESITER S.A\CL - Gestion Mineria - Documentos\06. Mantenimiento\Forms\Control de Equipos Móviles – Minería.xlsx')
 
 class ServidorPanel(ThreadingHTTPServer):
     """Evita que dos instancias atiendan el mismo puerto en Windows."""
@@ -25,8 +26,12 @@ class ServidorPanel(ThreadingHTTPServer):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--excel', type=Path, default=BASE / 'PruebaForm.xlsx')
-    parser.add_argument('--maestro', type=Path, default=BASE / 'BD ACTIVOS MOBILES.xlsx')
+    #"C:\Users\fperezh\RESITER S.A\CL - Gestion Mineria - Documentos\06. Mantenimiento\Forms\Control de Equipos Móviles – Minería.xlsx"
+    
+    parser.add_argument('--excel', type=Path, default=LIBRO_EQUIPOS,
+                        help='Libro de formularios (hoja Sheet1).')
+    parser.add_argument('--maestro', type=Path, default=LIBRO_EQUIPOS,
+                        help='Libro de activos (hoja BD ACTIVOS MOVILES).')
     parser.add_argument('--puerto', type=int, default=8765)
     args = parser.parse_args()
 

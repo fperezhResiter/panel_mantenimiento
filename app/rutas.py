@@ -1,5 +1,10 @@
 """Registro explícito de recursos publicados; no expone los Excel."""
 ARCHIVOS_WEB = {
+    '/Panel_Configuraciones.html': ('web/pages/Panel_Configuraciones.html', 'text/html; charset=utf-8'),
+    '/js/configuracion.js': ('web/js/configuracion.js', 'text/javascript; charset=utf-8'),
+    '/js/configuraciones_panel.js': ('web/js/configuraciones_panel.js', 'text/javascript; charset=utf-8'),
+    '/Panel_Programa_Mantencion.html': ('web/pages/Panel_Programa_Mantencion.html', 'text/html; charset=utf-8'),
+    '/js/programa.js': ('web/js/programa.js', 'text/javascript; charset=utf-8'),
     '/': ('web/pages/Panel.html', 'text/html; charset=utf-8'),
     '/Panel.html': ('web/pages/Panel.html', 'text/html; charset=utf-8'),
     '/Panel_Reportabilidad.html': ('web/pages/Panel_Reportabilidad.html', 'text/html; charset=utf-8'),

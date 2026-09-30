@@ -13,19 +13,19 @@ Portal local con página de inicio y acceso a los paneles. Conserva el estilo vi
 - `Panel_Seguimiento_KM_HR.html`: panel de próximas mantenciones según kilometraje y horómetro.
 - `seguimiento_km_hr.js`: tabla semanal, filtros, gráficos por patente y exportación CSV de KM-HR.
 - `seguimiento_km_hr.py`: cruce del maestro con reportes semanales, saldo, estado y fecha proyectada.
-- `Panel_Resumen_Mantencion.html`: panel independiente del resumen por región/CeCo, con configuración de regiones y STAND BY.
+- `Panel_Resumen_Mantencion.html`: panel independiente del resumen por región/CeCo, con configuración de regiones.
 - `Panel_Calendario_Mantencion.html`: panel independiente del calendario mensual, tabla de patentes y descargas por región.
 - `mantenciones.js` y `mantenciones.css`: lógica y estilos compartidos por Resumen y Calendario, sin combinar sus páginas.
 - `calendario_descarga.js`: genera el informe descargable con calendario y tabla de patentes de una región.
 - `Panel_Mantenciones.html`: acceso de compatibilidad con enlaces a los dos paneles nuevos.
 - `reportabilidad.py`: servidor local y cálculo de reportabilidad.
-- `PruebaForm.xlsx`: fuente de formularios.
-- `BD ACTIVOS MOBILES.xlsx`: clasificación de CeCo por región actual.
+- Hoja `Sheet1` del libro Control de Equipos Móviles – Minería.xlsx: formularios.
+- Hoja `BD ACTIVOS MOVILES` del mismo libro: maestro de activos.
 - `requirements.txt`: dependencia Python.
 
 ## Inicio en Windows con doble clic
 
-1. Mantén el `.bat`, los dos módulos Python (`reportabilidad.py` y `seguimiento_km_hr.py`), todos los HTML, CSS y JavaScript del portal, `requirements.txt`, los dos Excel y la carpeta `venv_mtto` dentro de esta misma carpeta.
+1. Mantén el `.bat`, los dos módulos Python (`reportabilidad.py` y `seguimiento_km_hr.py`), todos los HTML, CSS y JavaScript del portal, `requirements.txt`, la carpeta `venv_mtto` dentro de esta misma carpeta.
 2. Haz doble clic en **Iniciar_Panel.bat**. El archivo se ubica automáticamente en la carpeta del proyecto y activa **venv_mtto**.
 3. Si falta `openpyxl`, el archivo te avisa y se detiene. Abre PowerShell en esta carpeta, ejecuta `.\venv_mtto\Scripts\python.exe -m pip install -r requirements.txt` y vuelve a hacer doble clic en el `.bat`. Esta instalación necesita acceso a Internet y se realiza **dentro de venv_mtto**.
 4. Espera el mensaje **Panel disponible en http://127.0.0.1:8765**.
@@ -65,7 +65,7 @@ Selecciona la fecha y pulsa **Consultar Excel**. Para actualizar los datos, guar
 Puedes indicar otros archivos o puerto:
 
 ```powershell
-.\Iniciar_Panel.bat --excel "C:\Datos\PruebaForm.xlsx" --maestro "C:\Datos\BD ACTIVOS MOBILES.xlsx" --puerto 8766
+.\Iniciar_Panel.bat --excel "C:\Datos\Control.xlsx" --maestro "C:\Datos\Control.xlsx" --puerto 8766
 ```
 
 En ese caso abre <http://127.0.0.1:8766>. Solo se escucha en este equipo (`127.0.0.1`).
@@ -86,7 +86,7 @@ Esta sección corresponde al panel **Reportabilidad**; KM-HR tiene sus propios e
 
 El semáforo utiliza el porcentaje sin redondear: **verde desde 90%**, **amarillo desde 75% hasta menos de 90%** y **rojo por debajo de 75%**. Si el total de referencia es cero, aparece en gris como **Sin base**. Se aplica a cada CeCo, los subtotales de región y el total general. El CSV incluye el nombre del semáforo.
 
-En la pestaña **Configuraciones**, marca o desmarca las regiones y CeCo que se deben contar. Los cambios son inmediatos y afectan tanto las patentes reportadas como el total del maestro y los porcentajes. Al excluir una región se excluyen todos sus CeCo; al volver a incluirla se respetan sus selecciones individuales. **Incluir todos** restablece toda la selección y **Excluir todos** deja el reporte sin centros incluidos.
+En el panel **Configuraciones** del portal, marca o desmarca las regiones compartidas y los CeCo específicos de Reportabilidad. Los cambios son inmediatos y afectan tanto las patentes reportadas como el total del maestro y los porcentajes. Al excluir una región se excluyen todos sus CeCo; al volver a incluirla se respetan sus selecciones individuales. **Incluir todos** restablece toda la selección y **Excluir todos** deja el reporte sin centros incluidos.
 
 La selección se guarda en este navegador y dirección del panel. Se conserva al recargar o cambiar de fecha; otro navegador, puerto o equipo tiene su propia configuración. Los nuevos CeCo aparecen incluidos por defecto, salvo que su región esté excluida. Borrar los datos del navegador elimina la selección guardada. Si el navegador bloquea el guardado, se muestra un aviso y los cambios solo duran la sesión actual.
 
@@ -94,62 +94,35 @@ Los filtros de búsqueda y región se aplican además de la configuración. El C
 
 ## Seguimiento KM-HR: próximas mantenciones
 
-En el inicio, abre **Seguimiento KM-HR**. La semana 1 comienza por defecto el **01-09-2026**; las siguientes referencias son 08-09, 15-09, 22-09, etc. Puedes cambiar la fecha de semana 1 y la fecha hasta la que se generan referencias semanales (máximo 104 semanas).
+El portal usa `C:\Users\fperezh\RESITER S.A\CL - Gestion Mineria - Documentos\06. Mantenimiento\Forms\Control de Equipos Móviles – Minería.xlsx`:
 
-Cada semana busca en PruebaForm desde **tres días antes hasta un día después**, ambos incluidos, usando **Hora de finalización**. Por ejemplo S1 considera del 29-08 al 02-09 y S4 del 19-09 al 23-09. La última ventana incluye el día posterior aunque sea posterior al campo «Semanas hasta». No es un filtro estricto de conocimiento histórico a esa fecha.
+- `Sheet1`: formularios para Reportabilidad.
+- `BD ACTIVOS MOVILES`: clasificación y base de activos para Reportabilidad.
+- `Seguimiento KM-HR`: equipos, lecturas, última mantención, intervalo y STATUS EQUIPO para Seguimiento, Resumen y Calendario.
 
-El maestro define la lista de equipos: una fila por patente distinta. No se agregan patentes ajenas al maestro. Las repeticiones idénticas se consolidan; si hay datos diferentes para una misma patente se muestra REVISAR y se conservan visibles los datos de su primera fila. El cruce utiliza patentes normalizadas por mayúsculas, espacios, puntos y guiones.
+Las columnas con fecha, de texto o fechas nativas de Excel, se ordenan y filtran entre las fechas elegidas. No se aplican ventanas ADC a estas columnas. Ceros y celdas vacías representan semanas sin reporte. Los datos inválidos y retrocesos se marcan STAND BY. El CeCo actual se obtiene de la columna sin título inmediatamente después de REGION ACTUAL; si falta, se busca una ubicación única en el maestro. No se sustituye por el CeCo AF.
 
-Para cada patente y semana se elige el reporte con **Hora de finalización más reciente**; en empate, la última fila de PruebaForm. La celda muestra el valor de `Kilometraje actual (km)` o `Horómetro actual (hrs)` de acuerdo con `Unidad de Control del equipo`, junto con la unidad y fecha de lectura. Si falta la unidad declarada se usa `UN UM` del maestro y se indica; si falta la fecha de lectura se utiliza el día de envío y se indica. Al pasar el cursor se ve también la fila de origen. Una semana sin reporte queda **—**, no cero, y no se rellena con la semana anterior.
+La hoja aporta KM U HR UM, UN UM, FECHA UM, INTERVALO y UN IN. El portal calcula próxima mantención = UM + intervalo, saldo = próxima mantención − última lectura, y el semáforo con los límites de ±10% del intervalo. No usa los resultados de PROX.MANT, SALDO, STATUS MANTENCION, SEMAFORO, DURACION ni FECHA PROYECTADA del Excel.
 
-Se toman directamente del maestro:
+Uso diario = (última lectura − primera lectura) / días entre las fechas de esas columnas. Fecha proyectada = fecha de última lectura + saldo / uso diario, redondeando días hacia arriba. Con menos de dos lecturas válidas, consumo no positivo, retrocesos, unidades incompatibles o datos de mantención incompletos, no se proyecta. El estado del equipo y la última mantención reflejan el estado actual de la hoja; no se inventa una fecha de actualización del estado.
 
-| Columna | Uso |
-| --- | --- |
-| KM U HR UM | Lectura en la que se realizó la última mantención |
-| UN UM | Unidad de esa lectura, KM o HR |
-| FECHA UM | Fecha de última mantención |
-| INTERVALO | Frecuencia de mantención en KM o HR |
-| UN IN | Unidad del intervalo; debe coincidir con UN UM |
-
-Los intervalos antiguos guardados en el navegador ya no se utilizan. Las actualizaciones de mantención de PruebaForm tampoco reemplazan estos campos del maestro. Este maestro refleja su estado actual; no contiene un historial de las mantenciones anteriores.
-
-**Próxima mantención = KM U HR UM + INTERVALO. SALDO = próxima mantención − última lectura semanal disponible.** Se identifica la semana y la fecha de la lectura usada. Si una semana posterior contiene un reporte inválido, se muestra REVISAR en lugar de retroceder silenciosamente a un reporte válido anterior.
-
-| Estado | Condición | Color |
-| --- | --- | --- |
-| Mantención Vigente | SALDO ≥ INTERVALO × 0,1 | Verde |
-| Próxima a vencer | −INTERVALO × 0,1 ≤ SALDO < INTERVALO × 0,1 | Amarillo |
-| Mantención Vencida | SALDO < −INTERVALO × 0,1 | Rojo |
-| REVISAR | Datos faltantes, unidad incompatible, lectura anterior a UM, retroceso de medidor u otra inconsistencia indicada | Gris |
-
-Se respetan los límites de la fórmula entregada: exactamente +10% es verde y exactamente −10% es amarillo. Si solo falta el reporte, puede mostrarse el objetivo UM + intervalo, pero no se inventa el saldo ni un estado favorable. Las fechas nativas de Excel se interpretan tal como están almacenadas; los textos de fecha se interpretan como día/mes/año. No se corrigen automáticamente fechas UM futuras.
-
-### Gráficos y fecha proyectada
-
-Selecciona una patente en el gráfico o pulsa su nombre en la tabla. Se muestran la lectura por semana, la línea del objetivo de próxima mantención y el consumo diario entre lecturas. Los huecos se mantienen visibles; el consumo entre dos observaciones abarca sus días reales aunque falten semanas intermedias. Valores con otra unidad no se mezclan en el gráfico.
-
-**Uso diario = (última lectura − primera lectura) / días reales entre sus fechas. Fecha proyectada = fecha de última lectura + redondeo hacia arriba de (SALDO / uso diario).** La estimación usa las lecturas semanales del período seleccionado. No es una fecha comprometida ni prueba de una mantención realizada. Si el objetivo ya fue alcanzado, puede resultar una fecha pasada, marcada como estimada. Cambiar el período puede cambiar el ritmo estimado y la proyección.
-
-Se necesitan dos lecturas válidas, avance de fechas y consumo positivo. Si hay descenso del medidor, unidad incompatible, datos de mantención incompletos o consumo cero, no se proyecta y se muestra el motivo. El saldo usa la última lectura disponible, no una lectura extrapolada al día de hoy.
-
-La búsqueda, región y estado filtran tabla, indicadores, selector de gráficos y CSV. La configuración de inclusión del panel Reportabilidad es independiente y no filtra KM-HR. El CSV conserva los valores semanales y los campos de cálculo.
+Las fórmulas del Excel se leen por su último valor guardado. Guarda y sincroniza el libro antes de consultar; el portal no recalcula ni modifica el archivo. Reinicia Iniciar_Panel.bat y recarga con Ctrl+F5 tras cambiar el código.
 
 ## Organización de páginas y recursos
 
 ### Reporte de mantención y Calendarización
 
-El inicio tiene cuatro paneles con archivos y direcciones independientes: **Reportabilidad**, **Seguimiento KM-HR**, **Resumen de mantención** y **Calendario de mantención**. Resumen y Calendario tienen cada uno su sección desplegable **Configuraciones**. Comparten los cálculos y período semanal de Seguimiento KM-HR: define semana 1 y la última fecha de referencia, y pulsa **Consultar Excel**. Cada patente del maestro se cuenta una sola vez. Las regiones incluidas y la definición de STAND BY se mantienen compartidas entre Resumen y Calendario mediante el almacenamiento del navegador; se recuperan al cargar la página.
+El inicio tiene cuatro paneles con archivos y direcciones independientes: **Reportabilidad**, **Seguimiento KM-HR**, **Resumen de mantención** y **Calendario de mantención**. Las configuraciones se administran en el panel independiente **Configuraciones**. Comparten los cálculos de Seguimiento KM-HR. El Resumen abre en el mes actual y permite elegir el **mes de lecturas**, la **región** y el **CeCo**. Cambiar el mes consulta las columnas de fechas de ese mes y recalcula los estados; agosto de 2026 comienza el día 4. Región y CeCo filtran tarjetas, subtotales, total, detalle y CSV; la lista de CeCo depende de la región elegida. Si el mes no tiene columnas de lectura, se informa y no se permite exportar resultados anteriores. El Calendario conserva su selección de semana 1 y última fecha de referencia. Cada patente del maestro se cuenta una sola vez. Las regiones incluidas se mantienen compartidas entre Resumen y Calendario mediante el almacenamiento del navegador; se recuperan al cargar la página.
 
-El resumen agrupa **región → CeCo**, con columnas de mantención vencida, próxima a vencer, vigente, STAND BY, REVISAR y total. Las primeras tres categorías usan la fórmula de saldo del panel KM-HR. Los subtotales y el total general se recalculan según las regiones incluidas.
+El resumen agrupa **región → CeCo**, con columnas de mantención vencida, próxima a vencer, vigente, STAND BY y total. Las primeras tres categorías usan la fórmula de saldo del panel KM-HR. Los subtotales y el total general se recalculan según las regiones incluidas.
 
-**STAND BY:** se obtiene de `Status actual del equipo` del último reporte elegido en las ventanas semanales. En **Configuraciones** puedes elegir qué estados deben equivaler a STAND BY; la lista muestra los estados encontrados y sus cantidades. Inicialmente solo se reconocen los textos explícitos `STAND BY`, `STANDBY` y `STAND-BY`. El Excel recibido no contiene esos valores literales, por lo que inicialmente puede haber cero STAND BY. No se asume que «Fuera de servicio», «En Mantención» o «En proceso de traspaso» signifiquen STAND BY: selecciona los que correspondan a tu criterio. Los vacíos no se convierten en STAND BY.
+**STAND BY:** nuevo nombre de los casos antes marcados REVISAR. La clasificación es fija y no depende de STATUS EQUIPO ni de configuraciones guardadas.
 
-STAND BY tiene prioridad en el resumen sobre la clasificación de saldo, de modo que un equipo no se cuente dos veces. El cálculo de mantenimiento original se conserva en KM-HR. El detalle de patentes del resumen muestra estado operativo, fecha de reporte y motivo de revisión para comprobar el origen.
+El detalle de patentes conserva el estado operativo, la fecha de reporte y el motivo del caso.
 
-El indicador **% no vencidas** equivale a `(vigentes + próximas + STAND BY) / (total − REVISAR) × 100`. Coincide con la proporción de la imagen cuando no hay casos REVISAR. No mide exclusivamente el estado verde; se etiqueta como «no vencidas» para evitar esa confusión. Si no hay equipos clasificables, se muestra —. Los casos REVISAR sí permanecen en el total general.
+El indicador **% no vencidas** equivale a `(vigentes + próximas) / (total − STAND BY) × 100`. Los casos STAND BY permanecen en el total general y se excluyen del porcentaje, conservando el tratamiento de los antiguos casos REVISAR. Si no hay equipos clasificables, se muestra —.
 
-En **Configuraciones**, desmarca las regiones que no quieres incluir. La selección se aplica al resumen, calendario y sus CSV; se guarda en el navegador, de forma independiente de la configuración de Reportabilidad. «Incluir todas» y «Excluir todas» permiten cambiar la selección completa.
+En **Configuraciones**, desmarca las regiones que no quieres incluir. La selección se aplica al resumen, calendario y sus CSV; se guarda en el navegador, junto con Reportabilidad, Seguimiento KM-HR y Programa Mantención. «Incluir todas» y «Excluir todas» permiten cambiar la selección completa.
 
 En **Calendario de mantención**:
 
@@ -169,9 +142,9 @@ Para habilitar esta nueva estructura, detén el servidor con **Ctrl+C**, vuelve 
 
 ## Regla de conteo
 
-Para una fecha **D**, se buscan los reportes cuya **Hora de finalización** esté entre **D − 3 días** y **D + 1 día**, ambos incluidos. Son cinco días calendario completos. Por ejemplo, el 22-09-2026 consulta desde el 19-09-2026 a las 00:00 hasta el final del 23-09-2026. Se interpreta la fecha registrada en Excel, sin conversión de zona horaria. El reporte muestra la fecha elegida y un resultado consolidado, **sin columnas diarias**.
+Reportabilidad usa los **martes**, desde la **semana 1 del 04-08-2026**. Para cada martes **D**, cuenta formularios cuya **Hora de finalización** esté entre **D − 1 día** y **D + 3 días**, ambos incluidos: lunes a viernes completos. La semana 1 incluye del 03 al 07 de agosto; la semana 2, del 10 al 14. El selector permite martes y abre el martes de la semana actual (lunes a domingo, incluso si hoy es lunes). La API ajusta cualquier fecha al martes de esa misma semana y rechaza semanas anteriores a la del 04-08-2026. El reporte muestra semana, martes y ventana de lectura, sin columnas diarias. La tabla y el CSV incorporan el porcentaje de las tres semanas anteriores y el promedio aritmético de la semana seleccionada y esas semanas. Al inicio de agosto se usan solo las semanas existentes desde el 04-08-2026, sin inventar períodos anteriores. Las semanas sin reportes cuentan como cero cuando hay base; sin base se muestra —. Reportabilidad presenta dos gráficos lado a lado, con el mismo formato de Seguimiento KM-HR: evolución de hasta ocho semanas (la seleccionada y siete anteriores, desde el 04-08-2026), con marcas del eje Y cada 25 %, y barras de cumplimiento total por región en la semana seleccionada. Ambos gráficos muestran regiones inicialmente y, al seleccionar una región, sus CeCo. Pasar el mouse por barras, líneas, puntos o leyenda destaca la misma serie en ambos gráficos y atenúa las demás. Un clic fija o quita esa selección; Escape también la limpia. Pulsar una región de la tabla aplica su filtro; pulsar un CeCo muestra toda su región y lo destaca en ambos gráficos. El porcentaje regional se calcula a partir de la suma de reportadas y del total de sus CeCo. Las barras distinguen ceros de casos sin base y admiten porcentajes superiores al 100 %. Ambos gráficos respetan filtros y exclusiones, se ajustan al ancho disponible sin desplazamiento horizontal y se apilan en pantallas pequeñas. La tabla y el CSV conservan las tres semanas anteriores y el promedio de cuatro semanas. Respeta la búsqueda y las exclusiones, al igual que los subtotales y promedios. Cada porcentaje regional se calcula sumando reportadas y base de sus CeCo; no se promedian los porcentajes de CeCo. Todas las semanas se comparan con el maestro actual, y la semana en curso puede estar incompleta hasta el viernes. Se interpreta la fecha registrada en Excel, sin conversión de zona horaria. Esta ventana corresponde a los formularios ADC de Reportabilidad; Seguimiento KM-HR conserva las fechas de las columnas de su hoja.
 
-Se cuentan **patentes distintas por CeCo**, usando `PATENTE` de PruebaForm. Una patente repetida en varios formularios o días del período cuenta una sola vez dentro del mismo CeCo. No se filtra por tipo de formulario. Los valores vacíos, `REVISAR`, `-`, `N/A`, `NA`, `SIN PATENTE` y `NO APLICA` se excluyen y se informan. No se intenta reconstruir esos valores a partir de otras columnas. Se normalizan mayúsculas, tildes, espacios, puntos y guiones para reconocer repeticiones.
+Se cuentan **patentes distintas por CeCo**, usando `PATENTE` de Sheet1. Una patente repetida en varios formularios o días del período cuenta una sola vez dentro del mismo CeCo. Solo se cuentan formularios semanales ADC. Los valores vacíos, `REVISAR`, `-`, `N/A`, `NA`, `SIN PATENTE` y `NO APLICA` se excluyen y se informan. No se intenta reconstruir esos valores a partir de otras columnas. Se normalizan mayúsculas, tildes, espacios, puntos y guiones para reconocer repeticiones.
 
 La comparación utiliza estas columnas:
 
@@ -179,7 +152,7 @@ La comparación utiliza estas columnas:
 | --- | --- |
 | Reportadas | Patentes distintas del CeCo encontradas en el período |
 | % respecto del total | Reportadas ÷ total de patentes del CeCo × 100 |
-| Total patentes | Patentes distintas de `BD ACTIVOS MOBILES.xlsx`, agrupadas por `NOMBRE CeCo ACTUAL` |
+| Total patentes | Patentes distintas de la hoja `BD ACTIVOS MOVILES`, agrupadas por `NOMBRE CeCo ACTUAL` |
 
 El total del maestro no se filtra por fecha. Usa su asignación actual de CeCo, incluye registros con región vacía y elimina patentes repetidas dentro del mismo CeCo. Si el total es cero, el porcentaje aparece como **—**, no como 0%. Los CeCo del maestro aparecen aunque tengan cero reportes.
 
@@ -191,7 +164,7 @@ Se utiliza la primera hoja cuya primera fila contenga las columnas requeridas. S
 
 ## Clasificación por región
 
-1. Se cruza `CeCo (Centro de costo)` de PruebaForm con `NOMBRE CeCo ACTUAL` del maestro y se toma `REGION ACTUAL`. Los nombres se normalizan por mayúsculas, espacios y tildes.
+1. Se cruza `CeCo (Centro de costo)` de Sheet1 con `NOMBRE CeCo ACTUAL` del maestro y se toma `REGION ACTUAL`. Los nombres se normalizan por mayúsculas, espacios y tildes.
 2. Se usa una región única por CeCo para mantener juntas las patentes del maestro y las reportadas. Los valores válidos de región comienzan con `REGION `.
 3. Si no existe una región válida, aparece **SIN REGIÓN**. Si el maestro asigna varias regiones al mismo CeCo, también se muestra **SIN REGIÓN** y una advertencia. No se adivinan asignaciones.
 4. Los CeCo vacíos aparecen como **SIN CECO**, dentro de **SIN REGIÓN**. No se infieren desde la patente.
@@ -207,3 +180,22 @@ Se reproduce la jerarquía **región → CeCo**, con **Reportadas | % respecto d
 Los avisos de calidad corresponden al período completo (salvo las fechas inválidas del archivo y las patentes inválidas del maestro), aunque se apliquen filtros visuales.
 
 Después de actualizar los archivos del panel, detén el servidor anterior con `Ctrl+C`, vuelve a ejecutar **Iniciar_Panel.bat** y recarga la página para utilizar la nueva lógica.
+
+## Programa Mantención
+
+Acceso desde la portada y la navegación de paneles. Lee la hoja `PROGRAMA` del libro configurado con `--excel`, usando las columnas REGION ACTUAL, NOMBRE CeCo ACTUAL, PATENTE, FECHA PROYECTADA y ESTADO. Filtra por mes y año de fecha proyectada, sin usar la fecha de ejecución.
+
+Muestra programadas, realizadas, regularizadas, no realizadas, N/A y sin clasificar por región y CeCo. Cuenta patentes únicas dentro de cada región/CeCo/mes; los duplicados contradictorios quedan sin clasificar. Cumplimiento = realizadas / (programadas − N/A). Las regularizadas no suman cumplimiento. Verde ≥90%, amarillo ≥70% y rojo <70%; sin aplicables se muestra —. Los totales recalculan el porcentaje a partir de los conteos, sin promediar porcentajes.
+
+API: `/api/programa-mantencion?mes=2026-09`. Pruebas: `venv_mtto\Scripts\python.exe -m unittest discover -s test`, desde la carpeta del panel.
+
+El panel incluye gráficos de cumplimiento mensual, programadas frente a realizadas por mes y torta de los cuatro estados del mes seleccionado. El historial usa todos los meses con patentes válidas en PROGRAMA y agrupa por fecha proyectada; no representa el mes de ejecución. Los casos sin estado válido permanecen en el total y denominador, con aviso, pero no tienen columna ni tarjeta y se excluyen de la torta. Los porcentajes de la torta usan solo los cuatro estados reconocidos.
+
+
+## Configuración unificada del portal
+
+El sexto acceso, **Configuraciones**, reúne las preferencias de todos los reportes. La selección de regiones afecta los filtros, gráficos, tablas, totales y descargas de Reportabilidad, Seguimiento KM-HR, Resumen, Calendario y Programa, incluido el historial. Las exclusiones antiguas de regiones se unen al migrar; los CeCo excluidos de Reportabilidad se conservan en su sección específica.
+
+Se pueden ocultar individualmente 14 gráficos y tablas distribuidos entre los cinco paneles. Ocultar una vista no elimina sus datos de las descargas. «Mostrar todos» recupera las vistas. Los cambios se guardan en el navegador y se sincronizan entre pestañas de la misma dirección. Los nuevos nombres de región se incluyen por defecto. «Actualizar regiones desde Excel» reúne las regiones de las tres fuentes y avisa si alguna consulta falla.
+
+Reinicia el servidor y recarga con Ctrl+F5 para habilitar las nuevas rutas. Los controles de consulta, fechas y búsquedas permanecen dentro de cada reporte. Todos comparten navegación, filtros, tarjetas, tablas y diseño adaptable.
