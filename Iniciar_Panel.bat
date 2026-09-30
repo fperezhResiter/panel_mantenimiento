@@ -6,7 +6,7 @@ if errorlevel 1 goto error_carpeta
 
 if not exist "venv_mtto\Scripts\activate.bat" (
     echo ERROR: No se encontro venv_mtto en la carpeta del panel.
-    echo Crea el entorno siguiendo los pasos de README.md.
+    echo Ejecuta Iniciar_Primera_Vez.bat para preparar el entorno.
     goto error
 )
 
