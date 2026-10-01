@@ -28,9 +28,9 @@ Portal local con página de inicio y acceso a los paneles. Conserva el estilo vi
 
 1. Conserva la estructura completa del portal, incluyendo las carpetas `app` y `web`, los archivos `.bat`, `reportabilidad.py` y `requirements.txt`.
 2. La primera vez, instala Python 3.10 o superior con el lanzador `py` o Python en PATH y haz doble clic en **Iniciar_Primera_Vez.bat**. Necesita Internet. Crea `venv_mtto` si falta, prepara y actualiza pip, instala `requirements.txt` dentro de ese entorno y verifica las dependencias y la carga del servidor. Puedes repetirlo; reutiliza el entorno existente. Si está dañado, pide renombrarlo como respaldo.
-3. Cuando indique **Preparación completada**, ejecuta **Iniciar_Panel.bat**. Para el uso diario solo necesitas este segundo archivo. El preparador instala las dependencias del portal; el conector independiente de SharePoint conserva su propia configuración e instalación.
+3. Cuando indique **Preparación completada**, ejecuta **Iniciar.bat** (o **Iniciar_Panel.bat**). Para el uso diario solo necesitas este segundo archivo. El preparador instala las dependencias del portal; el conector independiente de SharePoint conserva su propia configuración e instalación.
 4. Espera el mensaje **Panel disponible en http://127.0.0.1:8765**.
-5. Abre <http://127.0.0.1:8765> en tu navegador. En el inicio selecciona **Reportabilidad**, elige la fecha y pulsa **Consultar Excel**. El enlace **Inicio** permite volver a la portada; también puedes pasar de un panel a otro desde la navegación superior.
+5. Haz doble clic en **Panel.html** o abre <http://127.0.0.1:8765> en tu navegador. Ambas opciones abren el mismo portal. En el inicio selecciona **Reportabilidad**, elige la fecha y pulsa **Consultar Excel**. El enlace **Inicio** permite volver a la portada; también puedes pasar de un panel a otro desde la navegación superior.
 6. Mantén la ventana del `.bat` abierta mientras trabajas. Para detener el servidor pulsa `Ctrl+C`; si Windows pregunta si deseas terminar el trabajo por lotes, confirma con `S`.
 
 El `.bat` utiliza explícitamente `venv_mtto\Scripts\python.exe`, por lo que no depende de otro Python activo. El navegador se abre manualmente. No inicies varias copias del servidor en el mismo puerto.
@@ -59,7 +59,7 @@ python reportabilidad.py
 
 Para ejecutar desde PowerShell sin cambiar su política de ejecución, usa `.\Iniciar_Panel.bat` o `.\venv_mtto\Scripts\python.exe reportabilidad.py`.
 
-Abrir el HTML con doble clic muestra instrucciones, pero no permite consultar Python.
+Abrir Panel.html con doble clic redirige al servidor local en el puerto 8765. Primero ejecuta Iniciar.bat y espera el mensaje de disponibilidad. Si utilizas otro puerto, abre el enlace que muestra la consola. En CMD clásico puede ser necesario copiar y pegar el enlace en el navegador; Windows Terminal permite abrirlo con Ctrl+clic.
 
 Selecciona la fecha y pulsa **Consultar Excel**. Para actualizar los datos, guarda y sincroniza el Excel y vuelve a consultar. El servidor lee la copia local disponible, no descarga datos de Microsoft Forms ni fuerza la sincronización de SharePoint/OneDrive. Si Excel impide la lectura, cierra el libro y reintenta.
 
