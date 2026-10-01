@@ -26,7 +26,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo Iniciando el panel. Cuando aparezca Panel disponible, abre la URL indicada.
+echo Iniciando el panel. Cuando aparezca Panel disponible, abre Panel.html o la URL indicada.
 echo Manten esta ventana abierta. Para detener el servidor pulsa Ctrl+C.
 echo.
 "%PANEL_PYTHON%" reportabilidad.py %*

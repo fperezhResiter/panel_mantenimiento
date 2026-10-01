@@ -1,25 +1,102 @@
 <!doctype html>
 <html lang="es">
+
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Reportabilidad — Resiter Minería</title>
-<link rel="stylesheet" href="../css/panel.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Reportabilidad — Resiter Minería</title>
+    <link rel="stylesheet" href="../css/panel.css">
+  <script src="../js/abrir_portal.js"></script>
 </head>
+
 <body data-panel="reportabilidad">
-<header><div class="logo">RESITER<span> / </span>MINERÍA</div><h1>Panel de reportabilidad</h1><a class="volver-inicio" href="Panel.html">← Inicio</a></header>
-<nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html" aria-current="page">Reportabilidad</a><a href="Panel_Seguimiento_KM_HR.html">Seguimiento KM-HR</a><a href="Panel_Resumen_Mantencion.html">Resumen de mantención</a><a href="Panel_Calendario_Mantencion.html">Calendario de mantención</a><a href="Panel_Programa_Mantencion.html">Programa Mantención</a><a href="Panel_Configuraciones.html">Configuraciones</a></nav>
+    <header>
+        <div class="logo">RESITER<span> / </span>MINERÍA</div>
+        <h1>Panel de reportabilidad</h1><a class="volver-inicio" href="../../Panel.html">← Inicio</a>
+    </header>
+    <nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html"
+            aria-current="page">Reportabilidad</a><a href="Panel_Seguimiento_KM_HR.html">Seguimiento KM-HR</a><a
+            href="Panel_Resumen_Mantencion.html">Resumen de mantención</a><a
+            href="Panel_Calendario_Mantencion.html">Calendario de mantención</a><a
+            href="Panel_Programa_Mantencion.html">Programa Mantención</a><a
+            href="Panel_Configuraciones.html">Configuraciones</a></nav>
 
-<form id="formulario" class="filtros"><label>Fecha de referencia<input id="fecha" type="date" required></label><button class="pri" id="consultar">Consultar Excel</button><label>Región<select id="region"><option value="">Todas las regiones</option></select></label><label>Buscar CeCo<input id="buscar" type="search" placeholder="Nombre del centro de costo"></label><button id="exportar" type="button" disabled>Exportar CSV</button></form>
-<main>
+    <form id="formulario" class="filtros"><label>Fecha de referencia<input id="fecha" type="date"
+                required></label><button class="pri" id="consultar">Consultar Excel</button><label>Región<select
+                id="region">
+                <option value="">Todas las regiones</option>
+            </select></label><label>Buscar CeCo<input id="buscar" type="search"
+                placeholder="Nombre del centro de costo"></label><button id="exportar" type="button" disabled>Exportar
+            CSV</button></form>
+    <main>
 
-<section id="vista-reporte">
-<div class="intro"><div><h2>Reportabilidad de patentes</h2><p id="periodo">Selecciona una fecha para consultar el reporte.</p></div><span class="badge">Patentes distintas por CeCo</span></div>
-<div id="estado" role="status" aria-live="polite"></div><div id="avisos" hidden></div>
-<section id="resultados" hidden>
-<div class="leyenda" aria-label="Rangos del semáforo"><span class="semaforo verde">Verde: 90 % o más</span><span class="semaforo amarillo">Amarillo: desde 75 % y menos de 90 %</span><span class="semaforo rojo">Rojo: menos de 75 %</span><span class="semaforo neutro">Sin base: total igual a 0</span></div><p id="resumen-config"></p>
-<div class="kpis"><div class="kpi"><b id="reportadas">—</b><span>Patentes reportadas</span></div><div class="kpi"><b id="total">—</b><span>Total patentes del maestro</span></div><div class="kpi"><b id="porcentaje">—</b><span>Reportadas / total</span></div><div class="kpi"><b id="cecos">—</b><span>Centros de costo</span></div></div>
-<section class="tarjeta reporte-evolucion" data-grupo-vistas><div class="reporte-graficos-grid"><figure data-vista="reportabilidad.evolucion"><figcaption id="reporte-grafico-titulo">Cumplimiento semanal por región</figcaption><div id="reporte-grafico" class="scroll"></div><div id="reporte-leyenda" class="leyenda"></div></figure><figure data-vista="reportabilidad.barras"><figcaption id="reporte-barras-titulo">Cumplimiento por CeCo</figcaption><div id="reporte-barras" class="scroll"></div></figure></div><p class="nota">La evolución muestra hasta ocho semanas: la seleccionada y siete anteriores, con marcas cada 25 %. Las barras muestran el cumplimiento total por región en la semana seleccionada. Al elegir una región, ambos gráficos se desglosan por CeCo. Pasa el mouse sobre una serie para destacarla en ambos gráficos. Pulsa para fijarla; vuelve a pulsar o usa Escape para quitar la selección. En la tabla, pulsa una región para filtrarla o un CeCo para mostrar su región y destacarlo. Ambos gráficos respetan los filtros. La tabla conserva las tres semanas anteriores y el promedio de cuatro semanas. Todas las semanas usan el maestro actual; la semana en curso puede estar incompleta hasta el viernes.</p></section>
-<section class="tarjeta" data-vista="reportabilidad.tabla"><div class="titulo"><h3>Detalle por región y CeCo</h3><div class="config-acciones"><button id="mostrar-regiones" type="button">Mostrar todas las regiones</button><button id="expandir" type="button">Contraer regiones</button></div></div><div class="scroll"><table><caption class="nota">Patentes distintas reportadas frente al total de patentes del maestro por CeCo.</caption><thead id="cabecera"></thead><tbody id="detalle"></tbody><tfoot id="pie"></tfoot></table></div><div class="nota">Una patente cuenta una sola vez por CeCo en todo el período. Los subtotales suman los CeCo. El porcentaje compara cantidades; no acredita que todas las patentes reportadas pertenezcan al maestro.</div></section>
-</section></section><footer id="fuente">Fuente: Control de Equipos Móviles – Minería.xlsx · Sheet1 / BD ACTIVOS MOVILES</footer>
-</main>
-<script src="../js/configuracion.js" defer></script><script src="../js/reportabilidad.js" defer></script></body></html>
+        <section id="vista-reporte">
+            <div class="intro">
+                <div>
+                    <h2>Reportabilidad de patentes</h2>
+                    <p id="periodo">Selecciona una fecha para consultar el reporte.</p>
+                </div><span class="badge">Patentes distintas por CeCo</span>
+            </div>
+            <div id="estado" role="status" aria-live="polite"></div>
+            <div id="avisos" hidden></div>
+            <section id="resultados" hidden>
+                <div class="leyenda" aria-label="Rangos del semáforo"><span class="semaforo verde">Verde: 90 % o
+                        más</span><span class="semaforo amarillo">Amarillo: desde 75 % y menos de 90 %</span><span
+                        class="semaforo rojo">Rojo: menos de 75 %</span><span class="semaforo neutro">Sin base: total
+                        igual a 0</span></div>
+                <p id="resumen-config"></p>
+                <div class="kpis">
+                    <div class="kpi"><b id="reportadas">—</b><span>Patentes reportadas</span></div>
+                    <div class="kpi"><b id="total">—</b><span>Total patentes del maestro</span></div>
+                    <div class="kpi"><b id="porcentaje">—</b><span>Reportadas / total</span></div>
+                    <div class="kpi"><b id="cecos">—</b><span>Centros de costo</span></div>
+                </div>
+                <section class="tarjeta reporte-evolucion" data-grupo-vistas>
+                    <div class="reporte-graficos-grid">
+                        <figure data-vista="reportabilidad.evolucion">
+                            <figcaption id="reporte-grafico-titulo">Cumplimiento semanal por región</figcaption>
+                            <div id="reporte-grafico" class="scroll"></div>
+                            <div id="reporte-leyenda" class="leyenda"></div>
+                        </figure>
+                        <figure data-vista="reportabilidad.barras">
+                            <figcaption id="reporte-barras-titulo">Cumplimiento por CeCo</figcaption>
+                            <div id="reporte-barras" class="scroll"></div>
+                        </figure>
+                    </div>
+                    <p class="nota">La evolución muestra hasta ocho semanas: la seleccionada y siete anteriores, con
+                        marcas cada 25 %. Las barras muestran el cumplimiento total por región en la semana
+                        seleccionada. Al elegir una región, ambos gráficos se desglosan por CeCo. Pasa el mouse sobre
+                        una serie para destacarla en ambos gráficos. Pulsa para fijarla; vuelve a pulsar o usa Escape
+                        para quitar la selección. En la tabla, pulsa una región para filtrarla o un CeCo para mostrar su
+                        región y destacarlo. Ambos gráficos respetan los filtros. La tabla conserva las tres semanas
+                        anteriores y el promedio de cuatro semanas. Todas las semanas usan el maestro actual; la semana
+                        en curso puede estar incompleta hasta el viernes.</p>
+                </section>
+                <section class="tarjeta" data-vista="reportabilidad.tabla">
+                    <div class="titulo">
+                        <h3>Detalle por región y CeCo</h3>
+                        <div class="config-acciones"><button id="mostrar-regiones" type="button">Mostrar todas las
+                                regiones</button><button id="expandir" type="button">Contraer regiones</button></div>
+                    </div>
+                    <div class="scroll">
+                        <table>
+                            <caption class="nota">Patentes distintas reportadas frente al total de patentes del maestro
+                                por CeCo.</caption>
+                            <thead id="cabecera"></thead>
+                            <tbody id="detalle"></tbody>
+                            <tfoot id="pie"></tfoot>
+                        </table>
+                    </div>
+                    <div class="nota">Una patente cuenta una sola vez por CeCo en todo el período. Los subtotales suman
+                        los CeCo. El porcentaje compara cantidades; no acredita que todas las patentes reportadas
+                        pertenezcan al maestro.</div>
+                </section>
+            </section>
+        </section>
+        <footer id="fuente">Fuente: Control de Equipos Móviles – Minería.xlsx · Sheet1 / BD ACTIVOS MOVILES</footer>
+    </main>
+    <script src="../js/configuracion.js" defer></script>
+    <script src="../js/reportabilidad.js" defer></script>
+</body>
+
+</html>

@@ -1,10 +1,93 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Resumen de mantención — Resiter Minería</title><link rel="stylesheet" href="../css/panel.css"><link rel="stylesheet" href="../css/mantenciones.css"></head><body data-panel="resumen"><header><div class="logo">RESITER<span> / </span>MINERÍA</div><h1>Resumen de mantención</h1><a class="volver-inicio" href="Panel.html">← Inicio</a></header><nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html">Reportabilidad</a><a href="Panel_Seguimiento_KM_HR.html">Seguimiento KM-HR</a><a href="Panel_Resumen_Mantencion.html" aria-current="page">Resumen de mantención</a><a href="Panel_Calendario_Mantencion.html">Calendario de mantención</a><a href="Panel_Programa_Mantencion.html">Programa Mantención</a><a href="Panel_Configuraciones.html">Configuraciones</a></nav><form id="mt-form" class="filtros"><label>Mes de lecturas<input id="mt-mes-resumen" type="month" min="2026-08" required></label><button id="mt-consultar" class="pri">Consultar Excel</button><label>Región<select id="mt-region-resumen"><option value="">Todas las regiones incluidas</option></select></label><label>CeCo<select id="mt-ceco-resumen"><option value="">Todos los CeCo</option></select></label></form><main><p id="mt-mensaje" role="status" aria-live="polite"></p><p id="mt-alcance" class="nota"></p><section id="mt-resumen">
-<div class="intro"><div><h2>Mantenciones por región y CeCo</h2><p>Cantidad de patentes por estado, sin duplicar equipos.</p></div><button id="mt-exportar-resumen" type="button" disabled>Descargar resumen CSV</button></div>
+<!doctype html>
+<html lang="es">
 
-<div id="mt-kpis" class="kpis"></div>
-<section class="tarjeta" data-vista="resumen.tabla"><div class="scroll"><table class="mt-tabla"><caption class="nota">STAND BY reúne los casos antes marcados REVISAR, sin clasificación calculable.</caption><thead><tr><th>Región / CeCo</th><th class="mt-rojo">Mantención<br>Vencida</th><th class="mt-amarillo">Próxima a<br>vencer</th><th class="mt-verde">Mantención<br>Vigente</th><th class="mt-gris">STAND BY</th><th>Total general</th><th>% no vencidas</th></tr></thead><tbody id="mt-detalle"></tbody><tfoot id="mt-totales"></tfoot></table></div></section>
-<p class="nota">% no vencidas = (vigentes + próximas a vencer) / patentes clasificadas. STAND BY se muestra en el total, pero se excluye de este porcentaje. Si no hay patentes clasificadas aparece —.</p>
-<details class="tarjeta mt-ayuda" data-vista="resumen.patentes"><summary>Detalle de patentes incluidas</summary><div class="scroll"><table><thead><tr><th>Patente</th><th>Región</th><th>CeCo</th><th>Estado de mantención</th><th>Estado del equipo reportado</th><th>Fecha de reporte</th><th>Motivo de revisión</th></tr></thead><tbody id="mt-patentes"></tbody></table></div></details>
-</section>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Resumen de mantención — Resiter Minería</title>
+    <link rel="stylesheet" href="../css/panel.css">
+    <link rel="stylesheet" href="../css/mantenciones.css">
+  <script src="../js/abrir_portal.js"></script>
+</head>
 
-<footer>Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR · Cálculos de Seguimiento KM-HR</footer></main><script src="../js/configuracion.js" defer></script><script src="../js/mantenciones.js" defer></script></body></html>
+<body data-panel="resumen">
+    <header>
+        <div class="logo">RESITER<span> / </span>MINERÍA</div>
+        <h1>Resumen de mantención</h1><a class="volver-inicio" href="../../Panel.html">← Inicio</a>
+    </header>
+    <nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html">Reportabilidad</a><a
+            href="Panel_Seguimiento_KM_HR.html">Seguimiento KM-HR</a><a href="Panel_Resumen_Mantencion.html"
+            aria-current="page">Resumen de mantención</a><a href="Panel_Calendario_Mantencion.html">Calendario de
+            mantención</a><a href="Panel_Programa_Mantencion.html">Programa Mantención</a><a
+            href="Panel_Configuraciones.html">Configuraciones</a></nav>
+    <form id="mt-form" class="filtros"><label>Mes de lecturas<input id="mt-mes-resumen" type="month" min="2026-08"
+                required></label><button id="mt-consultar" class="pri">Consultar Excel</button><label>Región<select
+                id="mt-region-resumen">
+                <option value="">Todas las regiones incluidas</option>
+            </select></label><label>CeCo<select id="mt-ceco-resumen">
+                <option value="">Todos los CeCo</option>
+            </select></label></form>
+    <main>
+        <p id="mt-mensaje" role="status" aria-live="polite"></p>
+        <p id="mt-alcance" class="nota"></p>
+        <section id="mt-resumen">
+            <div class="intro">
+                <div>
+                    <h2>Mantenciones por región y CeCo</h2>
+                    <p>Cantidad de patentes por estado, sin duplicar equipos.</p>
+                </div><button id="mt-exportar-resumen" type="button" disabled>Descargar resumen CSV</button>
+            </div>
+
+            <div id="mt-kpis" class="kpis"></div>
+            <section class="tarjeta" data-vista="resumen.tabla">
+                <div class="scroll">
+                    <table class="mt-tabla">
+                        <caption class="nota">STAND BY reúne los casos antes marcados REVISAR, sin clasificación
+                            calculable.</caption>
+                        <thead>
+                            <tr>
+                                <th>Región / CeCo</th>
+                                <th class="mt-rojo">Mantención<br>Vencida</th>
+                                <th class="mt-amarillo">Próxima a<br>vencer</th>
+                                <th class="mt-verde">Mantención<br>Vigente</th>
+                                <th class="mt-gris">STAND BY</th>
+                                <th>Total general</th>
+                                <th>% no vencidas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mt-detalle"></tbody>
+                        <tfoot id="mt-totales"></tfoot>
+                    </table>
+                </div>
+            </section>
+            <p class="nota">% no vencidas = (vigentes + próximas a vencer) / patentes clasificadas. STAND BY se muestra
+                en el total, pero se excluye de este porcentaje. Si no hay patentes clasificadas aparece —.</p>
+            <details class="tarjeta mt-ayuda" data-vista="resumen.patentes">
+                <summary>Detalle de patentes incluidas</summary>
+                <div class="scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Patente</th>
+                                <th>Región</th>
+                                <th>CeCo</th>
+                                <th>Estado de mantención</th>
+                                <th>Estado del equipo reportado</th>
+                                <th>Fecha de reporte</th>
+                                <th>Motivo de revisión</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mt-patentes"></tbody>
+                    </table>
+                </div>
+            </details>
+        </section>
+
+        <footer>Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR · Cálculos de Seguimiento KM-HR
+        </footer>
+    </main>
+    <script src="../js/configuracion.js" defer></script>
+    <script src="../js/mantenciones.js" defer></script>
+</body>
+
+</html>

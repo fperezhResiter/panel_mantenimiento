@@ -5,8 +5,8 @@ ARCHIVOS_WEB = {
     '/js/configuraciones_panel.js': ('web/js/configuraciones_panel.js', 'text/javascript; charset=utf-8'),
     '/Panel_Programa_Mantencion.html': ('web/pages/Panel_Programa_Mantencion.html', 'text/html; charset=utf-8'),
     '/js/programa.js': ('web/js/programa.js', 'text/javascript; charset=utf-8'),
-    '/': ('web/pages/Panel.html', 'text/html; charset=utf-8'),
-    '/Panel.html': ('web/pages/Panel.html', 'text/html; charset=utf-8'),
+    '/': ('Panel.html', 'text/html; charset=utf-8'),
+    '/Panel.html': ('Panel.html', 'text/html; charset=utf-8'),
     '/Panel_Reportabilidad.html': ('web/pages/Panel_Reportabilidad.html', 'text/html; charset=utf-8'),
     '/Panel_repostabilidad.html': ('web/pages/Panel_Reportabilidad.html', 'text/html; charset=utf-8'),
     '/Panel_Seguimiento_KM_HR.html': ('web/pages/Panel_Seguimiento_KM_HR.html', 'text/html; charset=utf-8'),
@@ -26,5 +26,10 @@ ARCHIVOS_WEB = {
     '/js/mantenciones.js': ('web/js/mantenciones.js', 'text/javascript; charset=utf-8'),
     '/js/calendario_descarga.js': ('web/js/calendario_descarga.js', 'text/javascript; charset=utf-8'),
 }
+
+# Rutas reales usadas por los enlaces relativos; conserva los accesos anteriores.
+ARCHIVOS_WEB['/js/abrir_portal.js'] = ('web/js/abrir_portal.js', 'text/javascript; charset=utf-8')
+for archivo, tipo in list(ARCHIVOS_WEB.values()):
+    ARCHIVOS_WEB['/' + archivo] = (archivo, tipo)
 
 

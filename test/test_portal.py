@@ -69,17 +69,17 @@ class PortalTest(unittest.TestCase):
 
     def test_enlaces_y_separacion(self):
         for nombre in ['Panel_Programa_Mantencion.html', 'Panel.html', 'Panel_Reportabilidad.html', 'Panel_Seguimiento_KM_HR.html', 'Panel_Mantenciones.html', 'Panel_Resumen_Mantencion.html', 'Panel_Calendario_Mantencion.html']:
-            html = (BASE / 'web/pages' / nombre).read_text(encoding='utf-8')
+            html = (BASE / ARCHIVOS_WEB['/' + nombre][0]).read_text(encoding='utf-8')
             self.assertNotIn('<style>', html)
             self.assertNotIn('<script>', html)
             for enlace in re.findall(r'(?:href|src)="([^"]+)"', html):
                 self.assertIn(urlsplit(urljoin('http://localhost/' + nombre, enlace)).path, ARCHIVOS_WEB)
 
     def test_cinco_paneles_independientes(self):
-        inicio = (BASE / 'web/pages/Panel.html').read_text(encoding='utf-8')
+        inicio = (BASE / 'Panel.html').read_text(encoding='utf-8')
         enlaces = re.findall(r'class="panel-enlace" href="([^"]+)"', inicio)
         self.assertEqual(len(set(enlaces)), 6)
-        self.assertIn('Panel_Configuraciones.html', enlaces)
+        self.assertIn('web/pages/Panel_Configuraciones.html', enlaces)
         self.assertTrue(all('#' not in enlace for enlace in enlaces))
         resumen = (BASE / 'web/pages/Panel_Resumen_Mantencion.html').read_text(encoding='utf-8')
         calendario = (BASE / 'web/pages/Panel_Calendario_Mantencion.html').read_text(encoding='utf-8')

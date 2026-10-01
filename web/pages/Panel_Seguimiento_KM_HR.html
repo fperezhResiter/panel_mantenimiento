@@ -4,9 +4,10 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Seguimiento semanal KM-HR — Resiter Minería</title>
   <link rel="stylesheet" href="../css/panel.css">
+  <script src="../js/abrir_portal.js"></script>
 </head>
 <body data-panel="seguimiento">
-  <header><div class="logo">RESITER<span> / </span>MINERÍA</div><h1>Seguimiento KM-HR</h1><a class="volver-inicio" href="Panel.html">← Inicio</a></header>
+  <header><div class="logo">RESITER<span> / </span>MINERÍA</div><h1>Seguimiento KM-HR</h1><a class="volver-inicio" href="../../Panel.html">← Inicio</a></header>
   <nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html">Reportabilidad</a><a href="Panel_Seguimiento_KM_HR.html" aria-current="page">Seguimiento KM-HR</a><a href="Panel_Resumen_Mantencion.html">Resumen de mantención</a><a href="Panel_Calendario_Mantencion.html">Calendario de mantención</a><a href="Panel_Programa_Mantencion.html">Programa Mantención</a><a href="Panel_Configuraciones.html">Configuraciones</a></nav>
     <form id="km-form" class="filtros"><label>Fecha semana 1<input id="km-inicio" type="date" value="2026-08-04" required></label><label>Semanas hasta<input id="km-fecha" type="date" required></label><button class="pri" id="km-consultar">Consultar Excel</button><label>Buscar patente o CeCo<input id="km-buscar" type="search" placeholder="Patente o centro de costo"></label><label>Región<select id="km-region"><option value="">Todas</option></select></label><label>Status mantención<select id="km-estado"><option value="">Todos</option><option>Mantención Vigente</option><option>Próxima a vencer</option><option>Mantención Vencida</option><option>STAND BY</option></select></label><button type="button" id="km-exportar" disabled>Exportar CSV</button></form>
   <main>
