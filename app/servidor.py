@@ -1,17 +1,27 @@
 """Servidor HTTP local del portal."""
 import argparse
 import json
+import os
 import socket
 from datetime import date, datetime
 from pathlib import Path
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlsplit
+from dotenv import load_dotenv
 from .rutas import ARCHIVOS_WEB
 from .reportes import crear_reporte
 from .api import API_RUTAS
 
 BASE = Path(__file__).resolve().parent.parent
-LIBRO_EQUIPOS = Path(r'C:\Users\fperezh\RESITER S.A\CL - Gestion Mineria - Documentos\06. Mantenimiento\Forms\Control de Equipos Móviles – Minería.xlsx')
+BASE_DOCUMENTOS = Path(__file__).resolve().parents[4]
+load_dotenv(BASE / ".env", encoding="utf-8-sig")
+LIBRO_EQUIPOS = Path(
+    os.environ.get("LIBRO_EQUIPOS")
+    or BASE_DOCUMENTOS
+    / "06. Mantenimiento"
+    / "Forms"
+    / "Control de Equipos Móviles – Minería.xlsx"
+)
 
 class ServidorPanel(ThreadingHTTPServer):
     """Evita que dos instancias atiendan el mismo puerto en Windows."""
@@ -26,7 +36,6 @@ class ServidorPanel(ThreadingHTTPServer):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    #"C:\Users\fperezh\RESITER S.A\CL - Gestion Mineria - Documentos\06. Mantenimiento\Forms\Control de Equipos Móviles – Minería.xlsx"
     
     parser.add_argument('--excel', type=Path, default=LIBRO_EQUIPOS,
                         help='Libro de formularios (hoja Sheet1).')

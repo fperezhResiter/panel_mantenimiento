@@ -22,7 +22,7 @@ Portal local con página de inicio y acceso a los paneles. Conserva el estilo vi
 - `reportabilidad.py`: servidor local y cálculo de reportabilidad.
 - Hoja `Sheet1` del libro Control de Equipos Móviles – Minería.xlsx: formularios.
 - Hoja `BD ACTIVOS MOVILES` del mismo libro: maestro de activos.
-- `requirements.txt`: dependencia Python.
+- `requirements.txt`: dependencias Python (`openpyxl` y `python-dotenv`).
 
 ## Inicio en Windows con doble clic
 
@@ -71,6 +71,20 @@ Puedes indicar otros archivos o puerto:
 
 En ese caso abre <http://127.0.0.1:8766>. Solo se escucha en este equipo (`127.0.0.1`).
 
+### Ruta local del Excel (.env)
+
+La ruta específica de cada equipo se configura en `.env`, junto a `reportabilidad.py`. Este archivo está excluido de Git. La plantilla `.env.example` sí se puede compartir: cópiala como `.env` y completa `LIBRO_EQUIPOS` con la ruta absoluta de tu Excel entre comillas simples, por ejemplo:
+
+```dotenv
+LIBRO_EQUIPOS='C:\Datos\Control de Equipos Móviles – Minería.xlsx'
+```
+
+`BASE` sigue siendo la carpeta del portal. Si `LIBRO_EQUIPOS` no está definido o queda vacío, el servidor utiliza `Path(__file__).resolve().parents[4] / "06. Mantenimiento" / "Forms" / "Control de Equipos Móviles – Minería.xlsx"`, calculado desde `app/servidor.py`. Esta alternativa depende de conservar la estructura de carpetas del otro equipo.
+
+Los argumentos `--excel` y `--maestro` tienen prioridad sobre esa configuración. Una variable de entorno del sistema `LIBRO_EQUIPOS` tiene prioridad sobre `.env`. Reinicia el servidor después de cambiar la ruta. El servidor no publica `.env` entre sus recursos web.
+
+Tras esta actualización, ejecuta `Iniciar_Primera_Vez.bat` para instalar también `python-dotenv` en `venv_mtto`.
+
 ### Si no inicia
 
 - **Servidor anterior o incompatible / error toLocaleString / NaN:** el HTML se actualizó, pero sigue ejecutándose el Python anterior. Detén la ventana del servidor con `Ctrl+C`, ejecuta de nuevo `Iniciar_Panel.bat` y recarga con `Ctrl+F5`. No basta con recargar el navegador: Python necesita reiniciarse. El panel verifica la versión de los datos antes de mostrar resultados.
@@ -95,7 +109,7 @@ Los filtros de búsqueda y región se aplican además de la configuración. El C
 
 ## Seguimiento KM-HR: próximas mantenciones
 
-El portal usa `C:\Users\fperezh\RESITER S.A\CL - Gestion Mineria - Documentos\06. Mantenimiento\Forms\Control de Equipos Móviles – Minería.xlsx`:
+El portal usa el libro configurado mediante `LIBRO_EQUIPOS` en `.env` o la ruta relativa predeterminada:
 
 - `Sheet1`: formularios para Reportabilidad.
 - `BD ACTIVOS MOVILES`: clasificación y base de activos para Reportabilidad.
