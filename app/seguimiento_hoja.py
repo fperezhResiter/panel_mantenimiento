@@ -68,6 +68,7 @@ def crear_seguimiento(excel, maestro, corte, inicio=date(2026, 8, 4), incluir_es
                 region = region or region_maestro
             unidad = unidad_control(valor('UN UM'))
             fecha_um = convertir_fecha(valor('FECHA UM'), libro.epoch)
+            fecha_real = convertir_fecha(valor('FECHA PROYECTADA REAL'), libro.epoch)
             lecturas = []
             for n, (dia, i) in enumerate(fechas, 1):
                 bruto = fila[i] if i < len(fila) else None
@@ -83,6 +84,7 @@ def crear_seguimiento(excel, maestro, corte, inicio=date(2026, 8, 4), incluir_es
             e = {'patente': p, 'region': region or 'SIN REGIÓN', 'ceco': ceco or 'SIN CECO',
                  'ultima_mantencion': numero(valor('KM U HR UM')), 'unidad': unidad,
                  'fecha_mantencion': fecha_um.isoformat() if fecha_um else None,
+                 'fecha_proyectada_real': fecha_real.isoformat() if fecha_real else None,
                  'intervalo': numero(valor('INTERVALO')), 'unidad_intervalo': unidad_control(valor('UN IN')),
                  'lecturas': lecturas, 'conflicto_maestro': False,
                  'comentario_tania': str(valor('COMENTARIO TANIA') or '').strip(),
@@ -92,7 +94,7 @@ def crear_seguimiento(excel, maestro, corte, inicio=date(2026, 8, 4), incluir_es
             if p in equipos:
                 anterior = equipos[p]
                 campos = ('region', 'ceco', 'ultima_mantencion', 'unidad', 'fecha_mantencion',
-                          'intervalo', 'unidad_intervalo', 'estado_equipo')
+                          'intervalo', 'unidad_intervalo', 'estado_equipo', 'fecha_proyectada_real')
                 if any(anterior[k] != e[k] for k in campos) or [l['valor'] if l else None for l in anterior['lecturas']] != [l['valor'] if l else None for l in lecturas]:
                     anterior['conflicto_maestro'] = True
                 continue
@@ -101,7 +103,8 @@ def crear_seguimiento(excel, maestro, corte, inicio=date(2026, 8, 4), incluir_es
             e['calculo'] = calcular_equipo(e)
         avisos = ['Lecturas tomadas de las columnas con fecha de Seguimiento KM-HR. '
                   'La última mantención y el estado del equipo reflejan el estado actual de la hoja. '
-                  'La fecha proyectada se calcula en el portal; no se usa FECHA PROYECTADA del Excel.']
+                  'La fecha proyectada se calcula en el portal; no se usa FECHA PROYECTADA del Excel. '
+                  'El calendario prioriza FECHA PROYECTADA REAL cuando contiene una fecha válida.']
         if ceros:
             avisos.append(f'{ceros} celdas con cero se interpretaron como semanas sin reporte.')
         conflictos = sum(e['conflicto_maestro'] for e in equipos.values())
