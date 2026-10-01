@@ -1,43 +1,53 @@
 @echo off
 setlocal
 title Panel de reportabilidad - Resiter Mineria
+
 pushd "%~dp0"
 if errorlevel 1 goto error_carpeta
 
-if not exist "venv_mtto\Scripts\activate.bat" (
-    echo ERROR: No se encontro venv_mtto en la carpeta del panel.
-    echo Ejecuta Iniciar_Primera_Vez.bat para preparar el entorno.
-    goto error
+echo Buscando Python 3.10 o superior...
+
+py -3 -c "import sys; sys.exit(sys.version_info < (3,10))" >nul 2>&1
+if not errorlevel 1 (
+    set "PYTHON_CMD=py -3"
+    goto validar
 )
 
-echo Activando venv_mtto...
-call "venv_mtto\Scripts\activate.bat"
-if errorlevel 1 goto error
-set "PANEL_PYTHON=%~dp0venv_mtto\Scripts\python.exe"
-"%PANEL_PYTHON%" -c "import sys; assert sys.version_info >= (3,10), 'Se requiere Python 3.10 o superior'"
-if errorlevel 1 goto error
+python -c "import sys; sys.exit(sys.version_info < (3,10))" >nul 2>&1
+if not errorlevel 1 (
+    set "PYTHON_CMD=python"
+    goto validar
+)
 
-"%PANEL_PYTHON%" -c "import openpyxl, dotenv" >nul 2>&1
+echo ERROR: No se encontro Python 3.10 o superior.
+goto error
+
+:validar
+%PYTHON_CMD% -c "import openpyxl, dotenv" >nul 2>&1
 if errorlevel 1 (
-    echo ERROR: Faltan dependencias en venv_mtto. Ejecuta Iniciar_Primera_Vez.bat.
-    echo Ejecuta este comando desde la carpeta del proyecto:
-    echo venv_mtto\Scripts\python.exe -m pip install -r requirements.txt
+    echo ERROR: Faltan dependencias.
+    echo Ejecuta Iniciar_Primera_Vez.bat.
     goto error
 )
 
 echo.
-echo Iniciando el panel. Cuando aparezca Panel disponible, abre Panel.html o la URL indicada.
-echo Manten esta ventana abierta. Para detener el servidor pulsa Ctrl+C.
+echo Iniciando el panel.
+echo Cuando aparezca "Panel disponible", abre Panel.html o la URL indicada.
+echo Mantén esta ventana abierta.
+echo Para detener el servidor pulsa Ctrl+C.
 echo.
-"%PANEL_PYTHON%" reportabilidad.py %*
+
+%PYTHON_CMD% reportabilidad.py %*
+
 if errorlevel 1 goto error
+
 popd
 endlocal
 exit /b 0
 
 :error
 echo.
-echo No se pudo iniciar el panel. Revisa el mensaje anterior y README.md.
+echo No se pudo iniciar el panel.
 pause
 popd
 endlocal
