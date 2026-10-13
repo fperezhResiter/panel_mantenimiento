@@ -7,9 +7,9 @@
   <script src="../js/abrir_portal.js"></script>
 </head>
 <body data-panel="seguimiento">
-  <header><div class="logo">RESITER<span> / </span>MINERÍA</div><h1>Seguimiento KM-HR</h1><a class="volver-inicio" href="../../Panel.html">← Inicio</a></header>
+  <header><img class="logo" src="../img/logo_sin_fondo_resiter.png" alt="Resiter"><h1>Seguimiento KM-HR</h1><a class="volver-inicio" href="../../Panel.html">← Inicio</a></header>
   <nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html">Reportabilidad</a><a href="Panel_Seguimiento_KM_HR.html" aria-current="page">Seguimiento KM-HR</a><a href="Panel_Resumen_Mantencion.html">Resumen de mantención</a><a href="Panel_Calendario_Mantencion.html">Calendario de mantención</a><a href="Panel_Programa_Mantencion.html">Programa Mantención</a><a href="Panel_Configuraciones.html">Configuraciones</a></nav>
-    <form id="km-form" class="filtros"><label>Fecha semana 1<input id="km-inicio" type="date" value="2026-08-04" required></label><label>Semanas hasta<input id="km-fecha" type="date" required></label><button class="pri" id="km-consultar">Consultar Excel</button><label>Buscar patente o CeCo<input id="km-buscar" type="search" placeholder="Patente o centro de costo"></label><label>Región<select id="km-region"><option value="">Todas</option></select></label><label>Status mantención<select id="km-estado"><option value="">Todos</option><option>Mantención Vigente</option><option>Próxima a vencer</option><option>Mantención Vencida</option><option>STAND BY</option></select></label><button type="button" id="km-exportar" disabled>Exportar CSV</button></form>
+    <form id="km-form" class="filtros"><label>Fecha semana 1<input id="km-inicio" type="date" value="2026-08-04" required></label><label>Semanas hasta<input id="km-fecha" type="date" required></label><button class="pri" id="km-consultar">Consultar</button><label>Buscar patente<input id="km-buscar" type="search" placeholder="Patente"></label><label>Región<select id="km-region"><option value="">Todas</option></select></label><label>CeCo<select id="km-ceco"><option value="">Todos los CeCo</option></select></label><label>Status mantención<select id="km-estado"><option value="">Todos</option><option>Mantención Vigente</option><option>Próxima a vencer</option><option>Mantención Vencida</option><option>STAND BY</option></select></label><button type="button" id="km-exportar" disabled>Exportar CSV</button><button id="descargar-pdf" type="button" data-pdf-omitir>Descargar PDF</button><span id="pdf-estado" role="status" aria-live="polite" data-pdf-omitir></span></form>
   <main>
     <div class="intro"><div><h2>Seguimiento semanal y mantenciones</h2><p>Datos de Seguimiento KM-HR · proyección calculada según uso.</p></div><span class="badge">Lecturas por fecha de columna</span></div>
 
@@ -25,5 +25,9 @@
     <footer id="km-fuente">Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR</footer>
   </main>
   <script src="../js/configuracion.js" defer></script><script src="../js/seguimiento_km_hr.js" defer></script>
+  <script src="../js/base_datos.js" defer></script>
+<script src="../vendor/pdf-lib.min.js" defer></script>
+<script src="../vendor/html2canvas.min.js" defer></script>
+<script src="../js/panel_pdf.js" defer></script>
 </body>
 </html>

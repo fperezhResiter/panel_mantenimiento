@@ -12,7 +12,7 @@
 
 <body data-panel="resumen">
     <header>
-        <div class="logo">RESITER<span> / </span>MINERÍA</div>
+        <img class="logo" src="../img/logo_sin_fondo_resiter.png" alt="Resiter">
         <h1>Resumen de mantención</h1><a class="volver-inicio" href="../../Panel.html">← Inicio</a>
     </header>
     <nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html">Reportabilidad</a><a
@@ -21,12 +21,12 @@
             mantención</a><a href="Panel_Programa_Mantencion.html">Programa Mantención</a><a
             href="Panel_Configuraciones.html">Configuraciones</a></nav>
     <form id="mt-form" class="filtros"><label>Mes de lecturas<input id="mt-mes-resumen" type="month" min="2026-08"
-                required></label><button id="mt-consultar" class="pri">Consultar Excel</button><label>Región<select
+                required></label><button id="mt-consultar" class="pri">Consultar</button><label>Región<select
                 id="mt-region-resumen">
                 <option value="">Todas las regiones incluidas</option>
             </select></label><label>CeCo<select id="mt-ceco-resumen">
                 <option value="">Todos los CeCo</option>
-            </select></label></form>
+            </select></label><button id="descargar-pdf" type="button" data-pdf-omitir>Descargar PDF</button><span id="pdf-estado" role="status" aria-live="polite" data-pdf-omitir></span></form>
     <main>
         <p id="mt-mensaje" role="status" aria-live="polite"></p>
         <p id="mt-alcance" class="nota"></p>
@@ -88,6 +88,10 @@
     </main>
     <script src="../js/configuracion.js" defer></script>
     <script src="../js/mantenciones.js" defer></script>
+  <script src="../js/base_datos.js" defer></script>
+<script src="../vendor/pdf-lib.min.js" defer></script>
+<script src="../vendor/html2canvas.min.js" defer></script>
+<script src="../js/panel_pdf.js" defer></script>
 </body>
 
 </html>

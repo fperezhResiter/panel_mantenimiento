@@ -28,10 +28,10 @@ const elementos=new Map();
 const document={body:{dataset:{panel:'calendario'}},getElementById:id=>{if(!elementos.has(id))elementos.set(id,new Elemento());return elementos.get(id);},createElement:()=>new Elemento()};
 const descargas=[];
 const datos={version:2,incluye_estado_equipo:true,equipos,inicio:'2026-09-01',fecha:'2026-09-08',semanas:[{fecha:'2026-09-08'}],advertencias:[]};
-const contexto=vm.createContext({document,window:{addEventListener(){}},PortalConfig:{registrar(){},incluida:()=>true},location:{protocol:'http:'},Option:function(t,v){this.text=t;this.value=v;},URLSearchParams,Blob,URL:{createObjectURL:b=>{descargas.push(b);return 'blob:prueba';},revokeObjectURL(){}},fetch:async()=>({ok:true,json:async()=>datos})});
+const contexto=vm.createContext({document,window:{addEventListener(){}},PortalConfig:{registrar(){},incluida:()=>true},location:{protocol:'http:'},Option:function(t,v){this.text=t;this.value=v;},URLSearchParams,Blob,URL:{createObjectURL:b=>{descargas.push(b);return 'blob:prueba';},revokeObjectURL(){}},PanelPDF:{descargar:async({html,nombre})=>{assert(nombre.endsWith(".pdf"));descargas.push(new Blob([html]));}},fetch:async()=>({ok:true,json:async()=>datos})});
 for(const nombre of ['calendario_descarga.js','mantenciones.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../web/js',nombre),'utf8'),contexto);
 const el=id=>document.getElementById(id);
-const casilla=patente=>el('mt-agenda').children.flatMap(tr=>tr.children).flatMap(td=>td.children).find(n=>n['aria-label']===`Incluir ${patente} en descargas HTML y CSV`);
+const casilla=patente=>el('mt-agenda').children.flatMap(tr=>tr.children).flatMap(td=>td.children).find(n=>n['aria-label']===`Incluir ${patente} en descargas PDF por región y CSV`);
 (async()=>{
  await new Promise(resolve=>setImmediate(resolve));
  el('mt-mes').value='2026-10';el('mt-region-cal').value='REGION BHP';el('mt-region-cal').onchange();
@@ -49,5 +49,5 @@ const casilla=patente=>el('mt-agenda').children.flatMap(tr=>tr.children).flatMap
  el('mt-exportar-informe').onclick();el('mt-exportar-calendario').onclick();
  assert((await descargas.at(-2).text()).includes('Sin mantenciones proyectadas'));
  assert.equal((await descargas.at(-1).text()).split('\r\n').length,1);
- console.log('OK: fechas prioritarias, filtros, casillas y descargas HTML/CSV.');
+ console.log('OK: fechas prioritarias, filtros, casillas y descargas PDF/CSV.');
 })().catch(error=>{console.error(error);process.exitCode=1;});

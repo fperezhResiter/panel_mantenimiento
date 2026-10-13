@@ -97,6 +97,13 @@ function mtActualizar(){if(!mtDatos)return;mtIncluidos=mtDatos.equipos.filter(e=
   selectorCeco.value=cecos.includes(cecoPrevio)?cecoPrevio:'';
   mtIncluidos=mtIncluidos.filter(e=>!selectorCeco.value||e.ceco===selectorCeco.value);
  }
+ if(mtEsCalendario){
+  mtIncluidos=mtIncluidos.filter(e=>!mt$('mt-region-cal').value||e.region===mt$('mt-region-cal').value);
+  const selector=mt$('mt-ceco-cal'),previo=selector.value;
+  const cecos=[...new Set(mtIncluidos.map(e=>e.ceco))].sort((a,b)=>a.localeCompare(b,'es',{numeric:true}));
+  selector.replaceChildren(new Option('Todos los CeCo',''));cecos.forEach(c=>selector.add(new Option(c,c)));selector.value=cecos.includes(previo)?previo:'';
+  mtIncluidos=mtIncluidos.filter(e=>!selector.value||e.ceco===selector.value);
+ }
  mt$('mt-alcance').textContent=`${new Set(mtIncluidos.map(e=>e.region)).size} regiones y ${mtIncluidos.length} patentes incluidas. ${mtEsCalendario?'':`Mes de lecturas: ${mtDatos.fecha.slice(0,7)}. `}Lecturas disponibles: ${mtFecha(mtDatos.inicio)} a ${mtFecha(mtDatos.semanas.at(-1).fecha)}. La última mantención y el estado operativo corresponden al estado actual del Excel.`;
  mtResumen();mtDia='';mtCalendario();}
 function mtCalendario(){
@@ -112,7 +119,7 @@ function mtCalendario(){
 function mtSeleccionDescarga(){return equiposCalendarioMt(mtMes,mtExcluidasDescarga);}
 function mtNotaDescarga(){
  const region=mt$('mt-region-cal').value;
- mt$('mt-informe-nota').textContent=`${mtSeleccionDescarga().length} de ${mtMes.length} patentes del mes y región seleccionados se incluirán en las descargas HTML y CSV. `+(region?`El HTML incluye el calendario y la tabla de ${region}.`:'Elige una región para habilitar el HTML.');
+ mt$('mt-informe-nota').textContent=`${mtSeleccionDescarga().length} de ${mtMes.length} patentes del mes y región seleccionados se incluirán en las descargas PDF por región y CSV. `+(region?`El PDF incluye el calendario y la tabla de ${region}.`:'Elige una región para habilitar el PDF.');
 }
 function mtAgenda(){
  mt$('mt-agenda').replaceChildren();
@@ -124,7 +131,7 @@ function mtAgenda(){
   if(e.region!==region){region=e.region;const r=document.createElement('tr');r.className='region';mtCelda(r,region).colSpan=7;mt$('mt-agenda').append(r);}
   const tr=document.createElement('tr'),casilla=document.createElement('input');
   casilla.type='checkbox';casilla.checked=!mtExcluidasDescarga.has(e.patente);
-  casilla.setAttribute('aria-label',`Incluir ${e.patente} en descargas HTML y CSV`);
+  casilla.setAttribute('aria-label',`Incluir ${e.patente} en descargas PDF por región y CSV`);
   casilla.onchange=()=>{if(casilla.checked)mtExcluidasDescarga.delete(e.patente);else mtExcluidasDescarga.add(e.patente);mtNotaDescarga();};
   mtCelda(tr,'').append(casilla);
   [e.patente,e.ceco,e.unidad||'—',mtFecha(e.calculo.fecha_proyectada),mtNumero(e.calculo.proxima)].forEach(v=>mtCelda(tr,v));
@@ -133,16 +140,16 @@ function mtAgenda(){
  if(!eventos.length){const tr=document.createElement('tr');mtCelda(tr,'No hay mantenciones proyectadas para el mes y las regiones seleccionadas.').colSpan=7;mt$('mt-agenda').append(tr);}
 }
 function descargarMt(filas,nombre){const url=URL.createObjectURL(new Blob([csvMt(filas)],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=nombre;a.click();URL.revokeObjectURL(url);}
-if(mtEsCalendario)mt$('mt-exportar-informe').onclick=()=>{const region=mt$('mt-region-cal').value,mes=mt$('mt-mes').value;if(!mtDatos||!region||!mesValidoMt(mes))return;const html=informeCalendarioMt(mtSeleccionDescarga(),mes,region,mtDatos.inicio,mtDatos.semanas.at(-1).fecha);const url=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=`Calendario_y_Patentes_${region.replace(/[^\p{L}\p{N}_-]/gu,'_')}_${mes}.html`;a.click();URL.revokeObjectURL(url);};
+if(mtEsCalendario)mt$('mt-exportar-informe').onclick=()=>{const region=mt$('mt-region-cal').value,mes=mt$('mt-mes').value;if(!mtDatos||!region||!mesValidoMt(mes))return;const html=informeCalendarioMt(mtSeleccionDescarga(),mes,region,mtDatos.inicio,mtDatos.semanas.at(-1).fecha);return PanelPDF.descargar({html,nombre:`Calendario_y_Patentes_${region.replace(/[^\p{L}\p{N}_-]/gu,'_')}_${mes}.pdf`,titulo:`Calendario ${region} · ${mes}`});};
 if(!mtEsCalendario)mt$('mt-exportar-resumen').onclick=()=>{if(!mtDatos)return;const filas=[['Tipo','Región','CeCo',...MT_ESTADOS,'Total general','% no vencidas','Fecha referencia']];const agregar=(tipo,region,ceco,c)=>filas.push([tipo,region,ceco,...c.estados,c.total,c.porcentaje,mtDatos.fecha]);for(const r of mtGrupos){agregar('Subtotal región',r.region,'',r.conteo);for(const c of r.cecos)agregar('CeCo',r.region,c.ceco,c.conteo);}agregar('Total general','','',conteoMt(mtIncluidos));descargarMt(filas,`Reporte_Mantencion_${mtDatos.fecha}.csv`);};
 if(mtEsCalendario)mt$('mt-exportar-calendario').onclick=()=>{if(!mtDatos)return;const filas=[['Fecha proyectada','Patente','Región','CeCo','Unidad','Próxima mantención','Estado','Fecha de última lectura']];mtSeleccionDescarga().forEach(e=>filas.push([e.calculo.fecha_proyectada,e.patente,e.region,e.ceco,e.unidad,e.calculo.proxima,estadoMt(e),e.calculo.fecha_lectura]));descargarMt(filas,`Calendario_Mantenciones_${mt$('mt-mes').value}.csv`);};
 
-if(mtEsCalendario){mt$('mt-mes').onchange=mt$('mt-region-cal').onchange=()=>{mtDia='';mtCalendario();};mt$('mt-todo-mes').onclick=()=>{mtDia='';mtCalendario();};}
+if(mtEsCalendario){mt$('mt-mes').onchange=()=>{mtDia='';mtCalendario();};mt$('mt-region-cal').onchange=mt$('mt-ceco-cal').onchange=mtActualizar;mt$('mt-todo-mes').onclick=()=>{mtDia='';mtCalendario();};}
 if(!mtEsCalendario){mt$('mt-region-resumen').onchange=()=>{mt$('mt-ceco-resumen').value='';mtActualizar();};mt$('mt-ceco-resumen').onchange=mtActualizar;mt$('mt-mes-resumen').onchange=consultarMt;}
 function cambiarMesMt(delta){const mes=mt$('mt-mes').value;if(!mesValidoMt(mes))return;const [y,m]=mes.split('-').map(Number),d=new Date(Date.UTC(y,m-1+delta,1));mt$('mt-mes').value=d.toISOString().slice(0,7);mtDia='';mtCalendario();}
 if(mtEsCalendario){mt$('mt-mes-anterior').onclick=()=>cambiarMesMt(-1);mt$('mt-mes-siguiente').onclick=()=>cambiarMesMt(1);}
 async function consultarMt(event){event?.preventDefault();const consulta=++mtConsulta;mtDatos=null;mtIncluidos=[];mtMes=[];mtDia='';mt$('mt-consultar').disabled=true;for(const id of ['mt-exportar-resumen','mt-exportar-calendario','mt-exportar-informe'])if(mt$(id))mt$(id).disabled=true;for(const id of ['mt-detalle','mt-totales','mt-kpis','mt-patentes','mt-cal-grid','mt-agenda'])mt$(id)?.replaceChildren();for(const id of ['mt-alcance','mt-cal-nota','mt-dia-titulo','mt-informe-nota'])if(mt$(id))mt$(id).textContent='';mtConfiguracion();mt$('mt-mensaje').textContent='Consultando estados de mantención y fechas proyectadas…';
- try{if(location.protocol==='file:')throw new Error('Abre el portal desde http://127.0.0.1:8765.');const periodo=mtEsCalendario?{inicio:mt$('mt-inicio').value,fecha:mt$('mt-fecha').value}:periodoMesMt(mt$('mt-mes-resumen').value);const q=new URLSearchParams(periodo),r=await fetch('/api/mantenciones?'+q,{cache:'no-store'});if(r.status===404)throw new Error('Reinicia Iniciar_Panel.bat para habilitar las nuevas vistas.');const datos=await r.json();if(consulta!==mtConsulta)return;if(!r.ok)throw new Error(datos.error||'No se pudo leer el Excel.');if(datos.version!==2||!datos.incluye_estado_equipo)throw new Error('El servidor usa una versión anterior. Reinicia Iniciar_Panel.bat.');mtDatos=datos;mtConfiguracion();mtActualizar();if(!mtEsCalendario)mt$('mt-exportar-resumen').disabled=false;mt$('mt-mensaje').textContent='Consulta completada. '+datos.advertencias.join(' ');
+ try{if(location.protocol==='file:')throw new Error('Abre el portal desde http://127.0.0.1:8765.');const periodo=mtEsCalendario?{inicio:mt$('mt-inicio').value,fecha:mt$('mt-fecha').value}:periodoMesMt(mt$('mt-mes-resumen').value);const q=new URLSearchParams(periodo),r=await fetch('/api/mantenciones?'+q,{cache:'no-store'});if(r.status===404)throw new Error('Reinicia Iniciar_Panel.bat para habilitar las nuevas vistas.');const datos=await r.json();if(consulta!==mtConsulta)return;if(!r.ok)throw new Error(datos.error||'No se pudo consultar la BD.');if(datos.version!==2||!datos.incluye_estado_equipo)throw new Error('El servidor usa una versión anterior. Reinicia Iniciar_Panel.bat.');mtDatos=datos;mtConfiguracion();mtActualizar();if(!mtEsCalendario)mt$('mt-exportar-resumen').disabled=false;mt$('mt-mensaje').textContent='Consulta completada. '+datos.advertencias.join(' ');
  }catch(error){if(consulta===mtConsulta)mt$('mt-mensaje').textContent=error.message;}finally{if(consulta===mtConsulta)mt$('mt-consultar').disabled=false;}}
 const hoyMt=new Date(),fechaHoyMt=`${hoyMt.getFullYear()}-${String(hoyMt.getMonth()+1).padStart(2,'0')}-${String(hoyMt.getDate()).padStart(2,'0')}`;if(mtEsCalendario){mt$('mt-fecha').value=fechaHoyMt;mt$('mt-mes').value=fechaHoyMt.slice(0,7);}else mt$('mt-mes-resumen').value=fechaHoyMt.slice(0,7);mt$('mt-form').onsubmit=consultarMt;consultarMt();
 }

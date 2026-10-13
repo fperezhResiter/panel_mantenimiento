@@ -12,6 +12,13 @@ function conectarSerie(elemento,nombre){
 function elegirTabla(region,ceco=null){$('region').value=region;$('buscar').value='';plegadas.delete(region);serieFija=ceco;serieHover=null;render();}
 function seleccionados(regiones){return regiones.filter(r=>PortalConfig.incluida(r.region)).map(r=>({...r,cecos:r.cecos.filter(c=>PortalConfig.cecoIncluido(c.ceco))})).filter(r=>r.cecos.length);}
 function actualizarRegiones(){if(!reporte)return;const previa=$('region').value;const incluidas=seleccionados(reporte.regiones);$('region').replaceChildren(new Option('Todas las regiones incluidas',''));incluidas.forEach(r=>$('region').add(new Option(r.region,r.region)));if(incluidas.some(r=>r.region===previa))$('region').value=previa;}
+function actualizarCecos(regiones){
+ const selector=$('buscar'),previo=selector.value;
+ const cecos=[...new Set(regiones.filter(r=>!$('region').value||r.region===$('region').value).flatMap(r=>r.cecos.map(c=>c.ceco)))].sort((a,b)=>a.localeCompare(b,'es',{numeric:true}));
+ selector.replaceChildren(new Option('Todos los CeCo',''));
+ cecos.forEach(ceco=>selector.add(new Option(ceco,ceco)));
+ selector.value=cecos.includes(previo)?previo:'';
+}
 function mostrarConfiguracion(){if(reporte)PortalConfig.registrar(reporte.regiones.map(r=>r.region),reporte.regiones.flatMap(r=>r.cecos.map(c=>c.ceco)));}
 window.addEventListener('portal-config',()=>{actualizarRegiones();render();});
 const hoy=new Date();hoy.setDate(hoy.getDate()+1-(hoy.getDay()+6)%7);
@@ -72,10 +79,11 @@ function graficoBarrasCumplimiento(){
 }
 function render(){
  if(!reporte)return;
- const busqueda=$('buscar').value.trim().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toUpperCase();
  const incluidas=seleccionados(reporte.regiones);
- visibles=incluidas.filter(r=>!$('region').value||r.region===$('region').value).map(r=>({...r,cecos:r.cecos.filter(c=>c.ceco.normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(busqueda))})).filter(r=>r.cecos.length);
- $('resumen-config').textContent=`Configuración: ${incluidas.length} de ${reporte.regiones.length} regiones y ${incluidas.reduce((n,r)=>n+r.cecos.length,0)} de ${reporte.regiones.reduce((n,r)=>n+r.cecos.length,0)} CeCo incluidos. Los filtros de región y búsqueda se aplican además de esta selección. Los avisos de calidad corresponden al archivo consultado completo.`;
+ actualizarCecos(incluidas);
+ const ceco=$('buscar').value;
+ visibles=incluidas.filter(r=>!$('region').value||r.region===$('region').value).map(r=>({...r,cecos:r.cecos.filter(c=>!ceco||c.ceco===ceco)})).filter(r=>r.cecos.length);
+ $('resumen-config').textContent=`Configuración: ${incluidas.length} de ${reporte.regiones.length} regiones y ${incluidas.reduce((n,r)=>n+r.cecos.length,0)} de ${reporte.regiones.reduce((n,r)=>n+r.cecos.length,0)} CeCo incluidos. Los filtros de región y CeCo se aplican además de esta selección. Los avisos de calidad corresponden al archivo consultado completo.`;
  $('cabecera').replaceChildren();const head=document.createElement('tr');['Región / nombre CeCo','Reportadas','% semana seleccionada','Total patentes',...reporte.semanas.slice(0,-1).map(s=>`S${s.numero} · ${fechaCorta(s.fecha)} (%)`),`Promedio ${reporte.semanas.length} semanas`].forEach(t=>celda(head,t,'th'));$('cabecera').append(head);
  $('detalle').replaceChildren();let total=0,reportadas=0,cecos=0;
  for(const r of visibles){const sum=r.cecos.reduce((a,c)=>a+c.total,0), report=r.cecos.reduce((a,c)=>a+c.reportadas,0);total+=sum;reportadas+=report;cecos+=r.cecos.filter(c=>c.ceco!=='SIN CECO').length;
@@ -87,10 +95,10 @@ function render(){
  $('total').textContent=fmt(total);$('reportadas').textContent=fmt(reportadas);pintarPorcentaje($('porcentaje'),reportadas,total);$('cecos').textContent=fmt(cecos);$('expandir').textContent=visibles.length&&visibles.every(r=>plegadas.has(r.region))?'Expandir regiones':'Contraer regiones';
 }
 async function consultar(event){
- event?.preventDefault();$('consultar').disabled=true;$('exportar').disabled=true;$('resultados').hidden=true;$('avisos').hidden=true;$('estado').className='';$('estado').textContent='Leyendo Excel y calculando reportabilidad…';reporte=null;mostrarConfiguracion();
+ event?.preventDefault();$('consultar').disabled=true;$('exportar').disabled=true;$('resultados').hidden=true;$('avisos').hidden=true;$('estado').className='';$('estado').textContent='Consultando BD y calculando reportabilidad…';reporte=null;mostrarConfiguracion();
  try{
-  if(location.protocol==='file:')throw new Error('Inicia reportabilidad.py y abre http://127.0.0.1:8765 para conectar este panel al Excel.');
-  const respuesta=await fetch('/api/reporte?fecha='+encodeURIComponent($('fecha').value),{cache:'no-store'});const datos=await respuesta.json();if(!respuesta.ok)throw new Error(datos.error||'No se pudo consultar el Excel.');validarReporte(datos);reporte=datos;plegadas.clear();
+  if(location.protocol==='file:')throw new Error('Inicia reportabilidad.py y abre http://127.0.0.1:8765 para conectar este panel a la BD.');
+  const respuesta=await fetch('/api/reporte?fecha='+encodeURIComponent($('fecha').value),{cache:'no-store'});const datos=await respuesta.json();if(!respuesta.ok)throw new Error(datos.error||'No se pudo consultar la BD.');validarReporte(datos);reporte=datos;plegadas.clear();
   actualizarRegiones();mostrarConfiguracion();
   $('fecha').value=datos.fecha;
   $('periodo').textContent=`Semana ${datos.semana} · Martes ${fechaCorta(datos.fecha)} · Lecturas del ${fechaCorta(datos.inicio)} al ${fechaCorta(datos.fin)} (−1 / +3 días, ambos incluidos)`;
@@ -100,7 +108,7 @@ async function consultar(event){
   render();$('resultados').hidden=false;$('exportar').disabled=false;
  }catch(error){reporte=null;visibles=[];$('resultados').hidden=true;$('avisos').hidden=true;$('exportar').disabled=true;$('estado').className='error';$('estado').textContent=error.message;}finally{$('consultar').disabled=false;}
 }
-$('formulario').onsubmit=consultar;$('region').onchange=()=>{serieFija=null;serieHover=null;render();};$('buscar').oninput=render;
+$('formulario').onsubmit=consultar;$('region').onchange=()=>{serieFija=null;serieHover=null;render();};$('buscar').onchange=()=>{serieFija=null;serieHover=null;render();};
 $('expandir').onclick=()=>{const todas=visibles.every(r=>plegadas.has(r.region));visibles.forEach(r=>todas?plegadas.delete(r.region):plegadas.add(r.region));render();};
 $('mostrar-regiones').onclick=()=>{$('region').value='';$('buscar').value='';serieFija=null;serieHover=null;plegadas.clear();render();};
 $('exportar').onclick=()=>{if(!reporte)return;const rows=[['Fecha de referencia','Región','CeCo','Reportadas','% respecto del total','Total patentes','Semáforo','Reportadas fuera del maestro',...reporte.semanas.slice(0,-1).map(s=>`S${s.numero} ${s.fecha} (%)`),`Promedio ${reporte.semanas.length} semanas (%)`]];visibles.forEach(r=>r.cecos.forEach(c=>{const valores=serieCumplimiento([c]);rows.push([reporte.fecha,r.region,c.ceco,c.reportadas,porcentaje(c.reportadas,c.total),c.total,estadoSemaforo(c.reportadas,c.total).nombre,c.fuera_maestro,...valores.slice(0,-1).map(formatoIndice),formatoIndice(promedioCumplimiento(valores))]);}));const csv=rows.map(row=>row.map(v=>'"'+String(typeof v==='string'&&/^[=+@-]/.test(v)?"'"+v:v).replaceAll('"','""')+'"').join(';')).join('\r\n');const url=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`Reportabilidad_${reporte.fecha}.csv`;a.click();URL.revokeObjectURL(url);};

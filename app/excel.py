@@ -13,7 +13,7 @@ def normalizar(valor):
 
 
 def leer_tabla(ruta, columnas, nombre_hoja=None):
-    libro = load_workbook(ruta, read_only=True, data_only=True)
+    libro = abrir_libro(ruta)
     try:
         hojas = list(libro)
         if nombre_hoja:
@@ -32,6 +32,13 @@ def leer_tabla(ruta, columnas, nombre_hoja=None):
         raise ValueError(f'{ruta.name}: no se encontraron las columnas {", ".join(columnas)} en la primera fila de {destino}.')
     finally:
         libro.close()
+
+
+def abrir_libro(ruta):
+    # Las consultas HTTP reciben una instantánea de SQLite, sin abrir Excel.
+    if hasattr(ruta, 'hojas'):
+        return ruta
+    return load_workbook(ruta, read_only=True, data_only=True)
 
 
 def convertir_fecha(valor, epoch):

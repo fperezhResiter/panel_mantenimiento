@@ -11,10 +11,11 @@ from dotenv import load_dotenv
 from .rutas import ARCHIVOS_WEB
 from .reportes import crear_reporte
 from .api import API_RUTAS
+from .base_datos import actualizar_base_datos, leer_fuentes, estado_base_datos
 
 BASE = Path(__file__).resolve().parent.parent
 BASE_DOCUMENTOS = Path(__file__).resolve().parents[4]
-load_dotenv(BASE / ".env", encoding="utf-8-sig")
+load_dotenv(BASE / "config" / ".env", encoding="utf-8-sig")
 LIBRO_EQUIPOS = Path(
     os.environ.get("LIBRO_EQUIPOS")
     or BASE_DOCUMENTOS
@@ -42,6 +43,8 @@ def main():
     parser.add_argument('--maestro', type=Path, default=LIBRO_EQUIPOS,
                         help='Libro de activos (hoja BD ACTIVOS MOVILES).')
     parser.add_argument('--puerto', type=int, default=8765)
+    parser.add_argument('--bd', type=Path, default=BASE / 'Datos' / 'mantenimiento.sqlite3',
+                        help='Base SQLite que consultan los paneles.')
     args = parser.parse_args()
 
     class Handler(BaseHTTPRequestHandler):
@@ -63,17 +66,58 @@ def main():
                     self.responder(404, b'Archivo del panel no disponible.', 'text/plain; charset=utf-8')
                     return
                 self.responder(200, contenido, tipo)
+            elif url.path == '/api/bd':
+                try:
+                    datos = estado_base_datos(args.bd)
+                    self.responder(200, json.dumps(datos, ensure_ascii=False).encode(), 'application/json; charset=utf-8')
+                except (ValueError, OSError) as error:
+                    self.responder(400, json.dumps({'error': str(error)}).encode(), 'application/json')
+                except Exception:
+                    self.responder(500, b'{"error":"BD no disponible. Ejecuta Actualizar_BD.bat."}', 'application/json')
             elif url.path in API_RUTAS:
                 try:
-                    datos = API_RUTAS[url.path](args.excel, args.maestro, parse_qs(url.query))
+                    excel_bd, maestro_bd, estado = leer_fuentes(args.bd)
+                    datos = API_RUTAS[url.path](excel_bd, maestro_bd, parse_qs(url.query))
+                    datos['bd_actualizada'] = estado['actualizado']
+                    if 'actualizado' in datos:
+                        datos['actualizado'] = estado['actualizado']
                     self.responder(200, json.dumps(datos, ensure_ascii=False).encode(), 'application/json; charset=utf-8')
                 except (ValueError, OverflowError) as error:
                     self.responder(400, json.dumps({'error': str(error)}).encode(), 'application/json')
                 except Exception as error:
-                    mensaje = f'No se pudo leer el Excel ({type(error).__name__}). Verifique los archivos, su disponibilidad local y sus permisos.'
+                    mensaje = f'No se pudo consultar la BD ({type(error).__name__}). Ejecuta Actualizar_BD.bat y vuelve a consultar.'
                     self.responder(500, json.dumps({'error': mensaje}).encode(), 'application/json')
             else:
                 self.responder(404, b'No encontrado', 'text/plain')
+
+        def do_POST(self):
+            try:
+                longitud = int(self.headers.get('Content-Length', '0'))
+            except ValueError:
+                longitud = -1
+            if not 0 <= longitud <= 1024:
+                self.responder(400, b'{"error":"Solicitud invalida."}', 'application/json')
+                return
+            self.rfile.read(longitud)
+            if urlsplit(self.path).path != '/api/bd/actualizar':
+                self.responder(404, b'No encontrado', 'text/plain')
+                return
+            # Solo el panel local puede solicitar una carga; no acepta rutas del navegador.
+            host = self.headers.get('Host', '')
+            origen = self.headers.get('Origin')
+            esperado = f'127.0.0.1:{self.server.server_address[1]}'
+            host_valido = host in (esperado, f'localhost:{self.server.server_address[1]}')
+            if (not host_valido or (origen and origen != 'http://' + host)
+                    or self.headers.get('Sec-Fetch-Site') == 'cross-site'
+                    or self.headers.get_content_type() != 'application/json'):
+                self.responder(403, b'{"error":"Solicitud no permitida."}', 'application/json')
+                return
+            try:
+                datos = actualizar_base_datos(args.excel, args.maestro, args.bd)
+                self.responder(200, json.dumps(datos, ensure_ascii=False).encode(), 'application/json; charset=utf-8')
+            except Exception as error:
+                datos = {'error': f'No se pudo actualizar la BD: {error}. Se conserva la base anterior.'}
+                self.responder(500, json.dumps(datos, ensure_ascii=False).encode(), 'application/json; charset=utf-8')
 
     try:
         servidor = ServidorPanel(('127.0.0.1', args.puerto), Handler)

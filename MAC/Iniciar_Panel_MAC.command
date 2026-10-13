@@ -1,20 +1,10 @@
 #!/bin/bash
 
-cd "$(dirname "$0")" || {
+cd "$(dirname "$0")/.." || {
     echo "ERROR: No se pudo acceder a la carpeta del panel."
     read -p "Presiona Enter para cerrar..."
     exit 1
 }
-
-if [ ! -f "requirements.txt" ] || \
-   [ ! -f "reportabilidad.py" ] || \
-   [ ! -f "app/servidor.py" ]; then
-    echo "ERROR: Faltan archivos del portal."
-    read -p "Presiona Enter para cerrar..."
-    exit 1
-fi
-
-echo "Buscando Python 3.10 o superior..."
 
 if command -v python3 >/dev/null 2>&1; then
     PYTHON_CMD="python3"
@@ -31,24 +21,24 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo
-echo "Actualizando pip..."
-$PYTHON_CMD -m pip install --upgrade pip
-
-echo
-echo "Instalando dependencias..."
-$PYTHON_CMD -m pip install -r requirements.txt
+$PYTHON_CMD -c "import openpyxl, dotenv" >/dev/null 2>&1
 
 if [ $? -ne 0 ]; then
-    echo
-    echo "ERROR: No se pudieron instalar las dependencias."
+    echo "ERROR: Faltan dependencias."
+    echo "Ejecuta MAC/Iniciar_Primera_vez_MAC.command"
     read -p "Presiona Enter para cerrar..."
     exit 1
 fi
 
 echo
-echo "Preparacion completada."
-echo "Para abrir el portal ejecuta Iniciar_Panel.command"
+echo "Iniciando el panel..."
+echo
+echo "Cuando aparezca 'Panel disponible', abre Panel.html o la URL indicada."
+echo
+echo "Mantén esta ventana abierta."
+echo "Para detener el servidor presiona Control + C."
+echo
+
+$PYTHON_CMD -B scripts/reportabilidad.py "$@"
 
 read -p "Presiona Enter para cerrar..."
-`

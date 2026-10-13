@@ -38,7 +38,35 @@
   function cambiarSeleccion(nueva) {
     seleccion = nueva;
     $('region-programa').value = seleccion.region || '';
+    $('ceco-programa').value = '';
     if (datosActuales) renderizar(datosActuales);
+  }
+  function prepararCecos(datos) {
+    const selector = $('ceco-programa'), previo = selector.value;
+    const nombres = [...new Set([datos, ...(datos.historico || [])].flatMap(m => (m.regiones || [])
+      .filter(r => !seleccion.region || r.region === seleccion.region).flatMap(r => r.cecos.map(c => c.ceco))))]
+      .sort((a,b) => a.localeCompare(b, 'es', {numeric: true}));
+    selector.replaceChildren(new Option('Todos los CeCo', ''));
+    nombres.forEach(c => selector.add(new Option(c, c)));
+    selector.value = nombres.includes(previo) ? previo : '';
+  }
+  function filtrarCeco(datos) {
+    const ceco = $('ceco-programa').value;
+    if (!ceco) return datos;
+    function sumar(elementos) {
+      const totales = {};
+      for (const campo of [...campos, 'sin_clasificar']) totales[campo] = elementos.reduce((s,e) => s + (e[campo] || 0), 0);
+      const aplicables = totales.total - totales.na;
+      return {...totales, porcentaje: aplicables ? totales.realizadas / aplicables * 100 : null};
+    }
+    function filtrar(resumen) {
+      const regiones = (resumen.regiones || []).map(r => {
+        const cecos = r.cecos.filter(c => c.ceco === ceco);
+        return {...r, ...sumar(cecos), cecos};
+      }).filter(r => r.cecos.length);
+      return {...resumen, ...sumar(regiones), regiones};
+    }
+    return {...filtrar(datos), historico: (datos.historico || []).map(filtrar)};
   }
   function datosRegion(datos) {
     if (!seleccion.region) return datos;
@@ -146,7 +174,7 @@
     historial(datos, true);
     historial(datos, false);
     datos = datosRegion(datos);
-    $('titulo-torta').textContent = `Estados · ${nombreMes(datos.mes)} ${datos.mes.slice(0,4)} · ${seleccion.region || 'Todas las regiones'}`;
+    $('titulo-torta').textContent = `Estados · ${nombreMes(datos.mes)} ${datos.mes.slice(0,4)} · ${seleccion.region || 'Todas las regiones'}${$('ceco-programa').value ? ' · ' + $('ceco-programa').value : ''}`;
     const estados = [['Realizadas', datos.realizadas], ['No realizadas', datos.no_realizadas], ['Regularizadas', datos.regularizadas], ['N/A', datos.na]];
     const total = estados.reduce((s, e) => s + e[1], 0);
     $('leyenda-estados').replaceChildren();
@@ -201,6 +229,8 @@
   }
   function renderizar(fuente) {
     fuente = aplicarConfiguracion(fuente);
+    prepararCecos(fuente);
+    fuente = filtrarCeco(fuente);
     const visibles = nombresRegiones(fuente).length;
     $('programa-alcance').textContent = visibles ? `${visibles} regiones incluidas. Los gráficos y totales consideran solo las regiones configuradas.` : 'No hay regiones incluidas. Abre Configuraciones para seleccionar las regiones que quieres mostrar.';
     const datos = datosRegion(fuente);
@@ -222,7 +252,7 @@
         $('kpis').append(tarjeta);
       }
       graficos(fuente);
-      $('periodo').textContent = `${nombreMes(datos.mes)} ${datos.mes.slice(0,4)} · ${seleccion.region || 'Todas las regiones'}`;
+      $('periodo').textContent = `${nombreMes(datos.mes)} ${datos.mes.slice(0,4)} · ${seleccion.region || 'Todas las regiones'}${$('ceco-programa').value ? ' · ' + $('ceco-programa').value : ''}`;
   }
   async function consultar(event) {
     event?.preventDefault();
@@ -230,6 +260,7 @@
     $('consultar').disabled = true;
     $('mes').disabled = true;
     $('region-programa').disabled = true;
+    $('ceco-programa').disabled = true;
     $('resultados').hidden = true;
     $('avisos').hidden = true;
     $('estado').className = '';
@@ -254,10 +285,12 @@
       $('consultar').disabled = false;
       $('mes').disabled = false;
       $('region-programa').disabled = false;
+      $('ceco-programa').disabled = false;
     }
   }
   $('programa-form').addEventListener('submit', consultar);
   $('mes').addEventListener('change', consultar);
   $('region-programa').addEventListener('change', () => cambiarSeleccion($('region-programa').value ? {nivel: 'cecos', region: $('region-programa').value} : {nivel: 'total'}));
+  $('ceco-programa').addEventListener('change', () => { if (datosActuales) renderizar(datosActuales); });
   consultar();
 })();

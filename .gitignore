@@ -1,7 +1,0 @@
-.env
-__pycache__/
-connection_sharepoint_output.json
-
-# Entorno virtual 
-venv_mtto/
-

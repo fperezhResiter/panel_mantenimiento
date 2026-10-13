@@ -8,7 +8,7 @@
 </head>
 <body data-panel="calendario">
 <header>
-    <div class="logo">RESITER<span> / </span>MINERÍA</div>
+    <img class="logo" src="../img/logo_sin_fondo_resiter.png" alt="Resiter">
     <h1>Calendario de mantención</h1>
     <a class="volver-inicio" href="../../Panel.html">← Inicio</a>
 </header>
@@ -21,12 +21,13 @@
 <form id="mt-form" class="filtros">
     <label>Fecha semana 1<input id="mt-inicio" type="date" value="2026-08-04" required></label>
     <label>Lecturas semanales hasta<input id="mt-fecha" type="date" required></label>
-    <button id="mt-consultar" class="pri">Consultar Excel</button>
+    <button id="mt-consultar" class="pri">Consultar</button>
     <label>Mes de mantención<input id="mt-mes" type="month" required></label>
     <label>Región<select id="mt-region-cal"><option value="">Todas las regiones incluidas</option></select></label>
+    <label>CeCo<select id="mt-ceco-cal"><option value="">Todos los CeCo</option></select></label>
     <button id="mt-mes-anterior" type="button" aria-label="Mes anterior">← Mes anterior</button>
     <button id="mt-mes-siguiente" type="button" aria-label="Mes siguiente">Mes siguiente →</button>
-</form>
+<button id="descargar-pdf" type="button" data-pdf-omitir>Descargar PDF</button><span id="pdf-estado" role="status" aria-live="polite" data-pdf-omitir></span></form>
 <main>
     <p id="mt-mensaje" role="status" aria-live="polite"></p>
     <p id="mt-alcance" class="nota"></p>
@@ -37,7 +38,7 @@
         <p>Solo patentes con fecha proyectada dentro del mes elegido.</p>
     </div>
     <div class="config-acciones">
-        <button id="mt-exportar-informe" type="button" disabled>Descargar calendario + tabla de la región (HTML)</button>
+        <button id="mt-exportar-informe" type="button" disabled>Descargar calendario + tabla de la región</button>
     </div>
     <button id="mt-exportar-calendario" type="button" disabled>Descargar tabla CSV</button>
 </div>
@@ -57,11 +58,15 @@
         </table>
     </div>
 </section>
-<p class="nota">Los días destacados tienen mantenciones proyectadas. Pulsa un día para ver su detalle. Las descargas HTML y CSV incluyen solo las patentes marcadas del mes y la región seleccionados, aunque se esté viendo un solo día. Desmarca «Incluir en descarga» para excluir una patente de ambos archivos. La selección se conserva al cambiar filtros o consultar Excel y se restablece al recargar la página. Los equipos STAND BY con proyección se incluyen; valida su fecha si su ritmo de uso cambió.</p>
+<p class="nota">Los días destacados tienen mantenciones proyectadas. Pulsa un día para ver su detalle. Las descargas PDF por región y CSV incluyen solo las patentes marcadas del mes y la región seleccionados, aunque se esté viendo un solo día. Desmarca «Incluir en descarga» para excluir una patente de ambos archivos. La selección se conserva al cambiar filtros o consultar BD y se restablece al recargar la página. Los equipos STAND BY con proyección se incluyen; valida su fecha si su ritmo de uso cambió.</p>
 </section>
 
 <footer>Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR · Cálculos de Seguimiento KM-HR</footer>
 </main>
 <script src="../js/configuracion.js" defer></script><script src="../js/calendario_descarga.js" defer></script>
 <script src="../js/mantenciones.js" defer></script>
+  <script src="../js/base_datos.js" defer></script>
+<script src="../vendor/pdf-lib.min.js" defer></script>
+<script src="../vendor/html2canvas.min.js" defer></script>
+<script src="../js/panel_pdf.js" defer></script>
 </body></html>

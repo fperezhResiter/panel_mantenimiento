@@ -12,7 +12,7 @@
     $('config-regiones').replaceChildren();
     const regiones = [...new Set([...estado.catalogo, ...estado.regiones])].sort();
     for (const region of regiones) casilla($('config-regiones'), region, 'regiones', region, config.incluida(region));
-    if (!regiones.length) $('config-regiones').textContent = 'Carga las regiones desde Excel para configurar la selección.';
+    if (!regiones.length) $('config-regiones').textContent = 'Carga las regiones desde la BD para configurar la selección.';
     $('config-todas').disabled = $('config-ninguna').disabled = !regiones.length;
     $('config-vistas').replaceChildren();
     for (const [id, [titulo, vistas]] of Object.entries(config.paneles)) {
@@ -32,7 +32,7 @@
     const urls = ['/api/reporte?fecha='+fecha, '/api/seguimiento-km-hr?inicio=2026-08-04&fecha='+fecha, '/api/programa-mantencion?mes='+fecha.slice(0,7)];
     const resultados = await Promise.allSettled(urls.map(async url => {
       const respuesta = await fetch(url, {cache:'no-store'}), datos = await respuesta.json();
-      if (!respuesta.ok) throw new Error(datos.error || 'No se pudo consultar el Excel.');
+      if (!respuesta.ok) throw new Error(datos.error || 'No se pudo consultar la BD.');
       config.registrar([...(datos.regiones || []).map(r=>r.region), ...(datos.equipos || []).map(e=>e.region), ...(datos.historico || []).flatMap(m=>(m.regiones || []).map(r=>r.region))], url.includes('/api/reporte?') ? (datos.regiones || []).flatMap(r=>r.cecos.map(c=>c.ceco)) : []);
     }));
     const errores = resultados.filter(r=>r.status==='rejected');

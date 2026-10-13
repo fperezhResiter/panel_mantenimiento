@@ -36,16 +36,16 @@ function informeCalendarioMt(equipos,mes,region,inicio,referencia)
     <style>
     *{box-sizing:border-box}body{font:14px/1.45 Arial,sans-serif;color:#1b2a3a;
     margin:30px auto;max-width:1150px;
-    padding:0 20px}h1,h2{color:#073762}header{border-bottom:3px solid #0e81c5;
-    margin-bottom:22px}p{color:#526373}.etiqueta{color:#0e81c5;
+    padding:0 20px}h1,h2{color:#073762}header h1{font-size:26px;margin:8px 0}header h2{font-size:20px;margin:6px 0}header p{margin:6px 0}header{border-bottom:3px solid #0e81c5;
+    margin-bottom:12px}p{color:#526373}.etiqueta{color:#0e81c5;
     font-weight:bold;
     letter-spacing:1px}table{width:100%;
     border-collapse:collapse;
-    margin:16px 0 28px}th,td{border:1px solid #ccd9e4;
+    margin:12px 0 16px}th,td{border:1px solid #ccd9e4;
     padding:8px;
     vertical-align:top;
     text-align:left}th{background:#e3edf7;
-    color:#073762}.calendario{table-layout:fixed}.calendario th{text-align:center}.calendario td{height:105px}.calendario b{font-size:19px}.calendario strong,.calendario span{display:block;font-size:11px;margin-top:6px;overflow-wrap:anywhere}.programado{background:#e4f2fc;
+    color:#073762}.calendario{table-layout:fixed}.calendario th{text-align:center}.calendario td{height:75px}.calendario b{font-size:19px}.calendario strong,.calendario span{display:block;font-size:11px;margin-top:6px;overflow-wrap:anywhere}.programado{background:#e4f2fc;
     border:2px solid #0e81c5}.vacio{background:#f6f7f9}.detalle{font-size:12px}.detalle td{overflow-wrap:anywhere}footer{border-top:1px solid #ccd9e4;padding-top:12px;
     color:#526373;font-size:12px}@media print{@page{size:A4 landscape;margin:12mm}body{margin:0;padding:0;max-width:none}.instruccion{display:none}.tabla-patentes{break-before:page}.detalle thead{display:table-header-group}.detalle tr{break-inside:avoid}.programado{print-color-adjust:exact;-webkit-print-color-adjust:exact}.calendario td{height:90px}}@media(max-width:650px){body{padding:0 8px}.calendario td{padding:4px}.calendario span{font-size:10px}.detalle{font-size:10px}}
     </style>
@@ -57,7 +57,7 @@ function informeCalendarioMt(equipos,mes,region,inicio,referencia)
     <p>${eventos.length} patentes con fecha proyectada en el mes.</p>
     <p>Lecturas: semana 1 ${esc(fecha(inicio))} · hasta referencia ${esc(fecha(referencia))}, según las columnas con fecha del Excel.</p>
     </header>
-    <p class="instruccion">Este archivo se puede consultar sin conexión. Para imprimirlo o guardarlo como PDF usa la opción Imprimir de tu navegador.</p>
+
     <table class="calendario">
         <caption>Los días destacados tienen mantenciones proyectadas.</caption>
         <thead>

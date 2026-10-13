@@ -1,99 +1,94 @@
 # Portal de mantenimiento — Resiter Minería
 
-Portal local con página de inicio y acceso a los paneles. Conserva el estilo visual de `Panel_PUMA.html`. Reportabilidad consulta a Python, que lee los Excel en cada consulta sin modificarlos.
+Portal local con página de inicio y acceso a los paneles. Los reportes consultan una BD SQLite; Python recarga sus datos desde los Excel sin modificarlos.
 
-## Archivos
+## Estructura de carpetas
 
-- `Iniciar_Primera_Vez.bat`: crea o reutiliza `venv_mtto`, prepara pip, instala las dependencias y comprueba la carga del servidor.
-- `Iniciar_Panel.bat`: activa `venv_mtto`, comprueba las dependencias y ejecuta el servidor Python.
-- `venv_mtto/`: entorno virtual de Python que utiliza el panel.
-- `Panel.html`: página inicial con acceso a los paneles, disponible también en `/`.
-- `Panel_Reportabilidad.html`: estructura HTML del panel de reportabilidad, con semáforo y configuraciones.
-- `panel.css`: estilos compartidos del portal y sus paneles.
-- `reportabilidad.js`: lógica de consultas, semáforo, filtros, selección de CeCo y exportación CSV.
-- `Panel_Seguimiento_KM_HR.html`: panel de próximas mantenciones según kilometraje y horómetro.
-- `seguimiento_km_hr.js`: tabla semanal, filtros, gráficos por patente y exportación CSV de KM-HR.
-- `seguimiento_km_hr.py`: cruce del maestro con reportes semanales, saldo, estado y fecha proyectada.
-- `Panel_Resumen_Mantencion.html`: panel independiente del resumen por región/CeCo, con configuración de regiones.
-- `Panel_Calendario_Mantencion.html`: panel independiente del calendario mensual, tabla de patentes y descargas por región.
-- `mantenciones.js` y `mantenciones.css`: lógica y estilos compartidos por Resumen y Calendario, sin combinar sus páginas.
-- `calendario_descarga.js`: genera el informe descargable con calendario y tabla de patentes de una región.
-- `Panel_Mantenciones.html`: acceso de compatibilidad con enlaces a los dos paneles nuevos.
-- `reportabilidad.py`: servidor local y cálculo de reportabilidad.
-- Hoja `Sheet1` del libro Control de Equipos Móviles – Minería.xlsx: formularios.
-- Hoja `BD ACTIVOS MOVILES` del mismo libro: maestro de activos.
-- `requirements.txt`: dependencias Python (`openpyxl` y `python-dotenv`).
+```text
+panel_mantenimiento/
+  Iniciar_Panel.bat
+  Iniciar_Primera_Vez.bat
+  manual_usuario.md
+  Panel.html
+  README.md
+  app/                     Servidor, API y cálculos de los reportes
+  config/
+    .env.example           Plantilla de la ruta local del Excel
+    requirements.txt       Dependencias Python
+  scripts/
+    reportabilidad.py      Punto de entrada del servidor
+  MAC/
+    Iniciar_Panel_MAC.command
+    Iniciar_Primera_vez_MAC.command
+  tests/                   Pruebas Python y JavaScript
+  web/
+    pages/                 Páginas de los paneles
+    css/                   Estilos compartidos
+    js/                    Lógica de los paneles
+```
+
+Los archivos `.gitignore` se encuentran dentro de las carpetas que contienen configuración local o archivos generados. Conserva las carpetas completas al copiar el proyecto.
 
 ## Inicio en Windows con doble clic
 
-1. Conserva la estructura completa del portal, incluyendo las carpetas `app` y `web`, los archivos `.bat`, `reportabilidad.py` y `requirements.txt`.
-2. La primera vez, instala Python 3.10 o superior con el lanzador `py` o Python en PATH y haz doble clic en **Iniciar_Primera_Vez.bat**. Necesita Internet. Crea `venv_mtto` si falta, prepara y actualiza pip, instala `requirements.txt` dentro de ese entorno y verifica las dependencias y la carga del servidor. Puedes repetirlo; reutiliza el entorno existente. Si está dañado, pide renombrarlo como respaldo.
-3. Cuando indique **Preparación completada**, ejecuta **Iniciar.bat** (o **Iniciar_Panel.bat**). Para el uso diario solo necesitas este segundo archivo. El preparador instala las dependencias del portal; el conector independiente de SharePoint conserva su propia configuración e instalación.
+1. Instala Python 3.10 o superior con el lanzador `py` o Python en PATH.
+2. La primera vez, ejecuta **Iniciar_Primera_Vez.bat**. Necesita Internet, actualiza pip, instala `config/requirements.txt` y verifica las dependencias y la carga del servidor.
+3. Cuando indique **Preparación completada**, ejecuta **Actualizar_BD.bat** para crear la base y luego **Iniciar_Panel.bat**. Este es el archivo para el uso diario.
 4. Espera el mensaje **Panel disponible en http://127.0.0.1:8765**.
-5. Haz doble clic en **Panel.html** o abre <http://127.0.0.1:8765> en tu navegador. Ambas opciones abren el mismo portal. En el inicio selecciona **Reportabilidad**, elige la fecha y pulsa **Consultar Excel**. El enlace **Inicio** permite volver a la portada; también puedes pasar de un panel a otro desde la navegación superior.
+5. Abre **Panel.html** o <http://127.0.0.1:8765> y selecciona el panel que deseas consultar.
 6. Mantén la ventana del `.bat` abierta mientras trabajas. Para detener el servidor pulsa `Ctrl+C`; si Windows pregunta si deseas terminar el trabajo por lotes, confirma con `S`.
 
-El `.bat` utiliza explícitamente `venv_mtto\Scripts\python.exe`, por lo que no depende de otro Python activo. El navegador se abre manualmente. No inicies varias copias del servidor en el mismo puerto.
+Los lanzadores utilizan Python 3.10 o superior instalado en el equipo y funcionan aunque se ejecuten desde otra carpeta. No inicies varias copias del servidor en el mismo puerto.
 
-### Preparación manual alternativa del entorno
+## Inicio en Mac
 
-Necesitas Python 3.10 o superior instalado. Si `venv_mtto` ya existe y funciona, omite estos pasos. Si falta, abre PowerShell en la carpeta del proyecto y ejecuta:
+1. Instala Python 3.10 o superior, disponible como `python3`.
+2. La primera vez, abre `MAC/Iniciar_Primera_vez_MAC.command` para preparar las dependencias.
+3. Para el uso diario, abre `MAC/Iniciar_Panel_MAC.command`.
+4. Espera **Panel disponible** y abre `Panel.html` o la URL indicada. Mantén la terminal abierta y usa `Control+C` para detener el servidor.
+
+Los `.command` cambian a la carpeta principal antes de instalar o iniciar. Si el sistema exige permiso de ejecución, desde la carpeta del proyecto ejecuta `chmod +x MAC/*.command`.
+
+## Ejecución manual alternativa
+
+Desde PowerShell, en la carpeta del proyecto:
 
 ```powershell
-py -m venv venv_mtto
-.\venv_mtto\Scripts\python.exe -m pip install -r requirements.txt
-.\Iniciar_Panel.bat
+python -m pip install -r config/requirements.txt
+python -B scripts/reportabilidad.py
 ```
 
-Los entornos virtuales no deben trasladarse desde otro equipo: créalos en la ubicación final del proyecto. Si el entorno existente está dañado, conserva una copia renombrándolo antes de crear uno nuevo llamado `venv_mtto`.
-
-### Ejecución manual alternativa en CMD
-
-Desde una ventana de **Símbolo del sistema (CMD)** ubicada en esta carpeta:
-
-```bat
-call venv_mtto\Scripts\activate.bat
-python -m pip install -r requirements.txt
-python reportabilidad.py
-```
-
-Para ejecutar desde PowerShell sin cambiar su política de ejecución, usa `.\Iniciar_Panel.bat` o `.\venv_mtto\Scripts\python.exe reportabilidad.py`.
-
-Abrir Panel.html con doble clic redirige al servidor local en el puerto 8765. Primero ejecuta Iniciar.bat y espera el mensaje de disponibilidad. Si utilizas otro puerto, abre el enlace que muestra la consola. En CMD clásico puede ser necesario copiar y pegar el enlace en el navegador; Windows Terminal permite abrirlo con Ctrl+clic.
-
-Selecciona la fecha y pulsa **Consultar Excel**. Para actualizar los datos, guarda y sincroniza el Excel y vuelve a consultar. El servidor lee la copia local disponible, no descarga datos de Microsoft Forms ni fuerza la sincronización de SharePoint/OneDrive. Si Excel impide la lectura, cierra el libro y reintenta.
-
-Puedes indicar otros archivos o puerto:
+En Mac, usa `python3` en lugar de `python`. También puedes indicar otros archivos o puerto con el lanzador:
 
 ```powershell
 .\Iniciar_Panel.bat --excel "C:\Datos\Control.xlsx" --maestro "C:\Datos\Control.xlsx" --puerto 8766
 ```
 
-En ese caso abre <http://127.0.0.1:8766>. Solo se escucha en este equipo (`127.0.0.1`).
+En ese caso abre <http://127.0.0.1:8766>. Abrir `Panel.html` con doble clic dirige al puerto 8765. Solo se escucha en este equipo (`127.0.0.1`).
 
-### Ruta local del Excel (.env)
+Selecciona la fecha y pulsa **Consultar BD**. Para actualizar los datos, guarda y sincroniza el Excel y pulsa **Actualizar BD** o ejecuta **Actualizar_BD.bat**. El servidor lee la copia local disponible, no descarga datos de Microsoft Forms ni fuerza la sincronización de SharePoint/OneDrive. Si Excel impide la lectura, cierra el libro y reintenta.
 
-La ruta específica de cada equipo se configura en `.env`, junto a `reportabilidad.py`. Este archivo está excluido de Git. La plantilla `.env.example` sí se puede compartir: cópiala como `.env` y completa `LIBRO_EQUIPOS` con la ruta absoluta de tu Excel entre comillas simples, por ejemplo:
+### Ruta local del Excel
+
+Copia `config/.env.example` como `config/.env` y completa `LIBRO_EQUIPOS` con la ruta absoluta del Excel entre comillas simples:
 
 ```dotenv
 LIBRO_EQUIPOS='C:\Datos\Control de Equipos Móviles – Minería.xlsx'
 ```
 
-`BASE` sigue siendo la carpeta del portal. Si `LIBRO_EQUIPOS` no está definido o queda vacío, el servidor utiliza `Path(__file__).resolve().parents[4] / "06. Mantenimiento" / "Forms" / "Control de Equipos Móviles – Minería.xlsx"`, calculado desde `app/servidor.py`. Esta alternativa depende de conservar la estructura de carpetas del otro equipo.
+`config/.env` está excluido de Git. Una variable de entorno del sistema `LIBRO_EQUIPOS` tiene prioridad sobre ese archivo, y los argumentos `--excel` y `--maestro` tienen prioridad sobre ambos. Reinicia el servidor después de cambiar la configuración. El servidor no publica la configuración ni el código Python.
 
-Los argumentos `--excel` y `--maestro` tienen prioridad sobre esa configuración. Una variable de entorno del sistema `LIBRO_EQUIPOS` tiene prioridad sobre `.env`. Reinicia el servidor después de cambiar la ruta. El servidor no publica `.env` entre sus recursos web.
+Si la variable está vacía, se conserva la ruta predeterminada calculada desde `app/servidor.py`: `Path(__file__).resolve().parents[4] / "06. Mantenimiento" / "Forms" / "Control de Equipos Móviles – Minería.xlsx"`. Esta alternativa depende de conservar la ubicación del proyecto dentro de la carpeta de documentos.
 
-Tras esta actualización, ejecuta `Iniciar_Primera_Vez.bat` para instalar también `python-dotenv` en `venv_mtto`.
+### Problemas frecuentes
 
-### Si no inicia
-
-- **Servidor anterior o incompatible / error toLocaleString / NaN:** el HTML se actualizó, pero sigue ejecutándose el Python anterior. Detén la ventana del servidor con `Ctrl+C`, ejecuta de nuevo `Iniciar_Panel.bat` y recarga con `Ctrl+F5`. No basta con recargar el navegador: Python necesita reiniciarse. El panel verifica la versión de los datos antes de mostrar resultados.
-- **No se encontró venv_mtto:** ejecuta `Iniciar_Primera_Vez.bat`.
-- **Error al instalar dependencias:** revisa la conexión a Internet y los permisos de tu equipo; vuelve a ejecutar `Iniciar_Primera_Vez.bat`.
-- **Puerto en uso / WinError 10048:** detén la ventana anterior del panel o inicia con `.\Iniciar_Panel.bat --puerto 8766`.
-- El servidor reserva el puerto para una sola instancia. La consola indica **Reporte v2** al iniciar. Si el aviso persiste después de reiniciar, puede quedar otro proceso anterior activo en una ventana distinta.
-- **No se pudo leer el Excel:** verifica que los archivos estén disponibles localmente y sincronizados; si están bloqueados por Excel, ciérralos y reintenta.
-- **La página no responde:** confirma que la ventana del `.bat` siga abierta y que estés usando la URL y puerto indicados en ella.
+- **Python no encontrado:** instala Python 3.10 o superior y agrégalo al PATH.
+- **Faltan dependencias:** ejecuta `Iniciar_Primera_Vez.bat` o `MAC/Iniciar_Primera_vez_MAC.command`.
+- **Error al instalar dependencias:** revisa la conexión a Internet y los permisos del equipo.
+- **Puerto en uso:** detén la instancia anterior o inicia con `--puerto 8766` y abre la URL indicada.
+- **No se pudo leer el Excel:** comprueba la ruta en `config/.env`, la disponibilidad local del archivo y la sincronización.
+- **La página no responde:** comprueba que la ventana del servidor siga abierta y estés usando su puerto.
+- **Los cambios del código no aparecen:** detén el servidor con `Ctrl+C`, vuelve a iniciarlo y recarga con `Ctrl+F5`.
 
 ## Semáforo y configuración
  
@@ -109,7 +104,7 @@ Los filtros de búsqueda y región se aplican además de la configuración. El C
 
 ## Seguimiento KM-HR: próximas mantenciones
 
-El portal usa el libro configurado mediante `LIBRO_EQUIPOS` en `.env` o la ruta relativa predeterminada:
+El portal usa el libro configurado mediante `LIBRO_EQUIPOS` en `config/.env` o la ruta relativa predeterminada:
 
 - `Sheet1`: formularios para Reportabilidad.
 - `BD ACTIVOS MOVILES`: clasificación y base de activos para Reportabilidad.
@@ -121,7 +116,7 @@ La hoja aporta KM U HR UM, UN UM, FECHA UM, INTERVALO y UN IN. El portal calcula
 
 Uso diario = (última lectura − primera lectura) / días entre las fechas de esas columnas. Fecha proyectada = fecha de última lectura + saldo / uso diario, redondeando días hacia arriba. Con menos de dos lecturas válidas, consumo no positivo, retrocesos, unidades incompatibles o datos de mantención incompletos, no se proyecta. El estado del equipo y la última mantención reflejan el estado actual de la hoja; no se inventa una fecha de actualización del estado.
 
-Las fórmulas del Excel se leen por su último valor guardado. Guarda y sincroniza el libro antes de consultar; el portal no recalcula ni modifica el archivo. Reinicia Iniciar_Panel.bat y recarga con Ctrl+F5 tras cambiar el código.
+Las fórmulas del Excel se importan por su último valor guardado. Guarda y sincroniza el libro antes de actualizar la BD; el portal no recalcula ni modifica el archivo. Reinicia Iniciar_Panel.bat y recarga con Ctrl+F5 tras cambiar el código.
 
 ## Organización de páginas y recursos
 
@@ -144,14 +139,15 @@ En **Calendario de mantención**:
 1. Elige el mes de mantención y, opcionalmente, una región entre las incluidas.
 2. Solo aparecen patentes cuya **fecha proyectada** esté dentro de ese mes. El calendario prioriza **FECHA PROYECTADA REAL** de **Seguimiento KM-HR** cuando contiene una fecha válida, incluso sin proyección calculable por uso. Si la columna no existe o la celda está vacía o es inválida, se usa la fecha calculada. Esta prioridad se aplica al calendario, la agenda y ambas descargas. Elegir otro mes no modifica el período de lecturas usado para estimar las fechas.
 3. Los días con mantenciones aparecen destacados con la cantidad de patentes. Pulsa un día para ver su detalle, o **Ver todo el mes** para volver a la agenda completa.
-4. La agenda se agrupa por región y muestra patente, CeCo, unidad KM/HR, fecha proyectada, lectura objetivo y estado. La columna **Incluir en descarga** permite marcar o desmarcar cada patente para ambas descargas; todas parten marcadas. La selección se conserva al cambiar de mes, región o día y al consultar Excel, y se restablece al recargar la página. Las patentes desmarcadas siguen visibles en el panel para poder volver a seleccionarlas.
+4. La agenda se agrupa por región y muestra patente, CeCo, unidad KM/HR, fecha proyectada, lectura objetivo y estado. La columna **Incluir en descarga** permite marcar o desmarcar cada patente para ambas descargas; todas parten marcadas. La selección se conserva al cambiar de mes, región o día y al consultar BD, y se restablece al recargar la página. Las patentes desmarcadas siguen visibles en el panel para poder volver a seleccionarlas.
 5. **Descargar tabla CSV** exporta las patentes marcadas del mes y región elegidos, incluso si el detalle está filtrado por un día. Incluye fechas ISO (`aaaa-mm-dd`) para ordenar y filtrar en Excel.
-6. Para descargar **el calendario junto con la tabla de patentes de una región**, elige una región específica y pulsa **Descargar calendario + tabla de la región (HTML)**. El archivo incluye el calendario mensual con días destacados y una tabla completa con fecha proyectada, patente, región, CeCo, unidad, próxima mantención y estado. Incluye solo las patentes marcadas de todo el mes, aunque se esté viendo un solo día. Si no hay eventos seleccionados, conserva el calendario y señala que no hay mantenciones proyectadas.
-7. Abre ese archivo HTML sin conexión o compártelo. Es autónomo y no necesita el servidor ni archivos CSS/JS adicionales. Puedes usar **Imprimir** en el navegador para imprimirlo o guardarlo como PDF: el calendario y la tabla tienen formato de impresión. La descarga directa es HTML; el CSV conserva la tabla como datos sin colores.
+6. Para descargar **el calendario junto con la tabla de patentes de una región**, elige una región específica y pulsa **Descargar calendario + tabla de la región (PDF)**. El archivo incluye el calendario mensual con días destacados y una tabla completa con fecha proyectada, patente, región, CeCo, unidad, próxima mantención y estado. Incluye solo las patentes marcadas de todo el mes, aunque se esté viendo un solo día. Si no hay eventos seleccionados, conserva el calendario y señala que no hay mantenciones proyectadas.
+7. Abre el PDF sin conexión o compártelo. El calendario mensual completo ocupa la primera página y la tabla continúa en las siguientes. La descarga directa es PDF; el CSV conserva la tabla como datos sin colores.
+8. Todos los paneles incluyen **Descargar PDF**, que captura la vista con sus filtros, gráficos y tablas visibles. Conserva las secciones ocultas y los detalles cerrados. Las tablas con desplazamiento se incluyen completas. Las bibliotecas PDF se sirven localmente desde `web/vendor`, sin conexión a Internet.
 
 Los equipos sin fecha real válida ni fecha calculable se omiten del calendario y se informa su cantidad. No se rellenan fechas para equipos sin datos. Las proyecciones no son órdenes de trabajo confirmadas. Si un equipo STAND BY conserva una proyección de uso válida, se incluye con esa etiqueta; revisa su fecha si su utilización cambió. El resumen también se puede descargar en CSV, con una columna «Tipo» que distingue detalle CeCo, subtotales de región y total general.
 
-`Panel.html` es la portada, servida también en `/`. `Panel_Reportabilidad.html` conserva el nombre existente; la ruta `/Panel_repostabilidad.html` también abre ese panel. Cada HTML carga `panel.css`; Reportabilidad y KM-HR cargan sus propios archivos JavaScript. No hace falta JavaScript en la portada. El servidor publica únicamente las páginas y recursos declarados en `ARCHIVOS_WEB`, no los Excel ni el código Python.
+`Panel.html` es la portada, servida también en `/`. `Panel_Reportabilidad.html` conserva el nombre existente; la ruta `/Panel_repostabilidad.html` también abre ese panel. Cada HTML carga `panel.css`; Reportabilidad y KM-HR cargan sus propios archivos JavaScript. La portada incluye el control compartido de actualización de BD. El servidor publica únicamente las páginas y recursos declarados en `ARCHIVOS_WEB`, no los Excel ni el código Python.
 
 Para habilitar esta nueva estructura, detén el servidor con **Ctrl+C**, vuelve a ejecutar **Iniciar_Panel.bat** y abre <http://127.0.0.1:8765>. Recarga con **Ctrl+F5**. El reinicio es necesario porque ahora Python sirve nuevas páginas, CSS, JavaScript y la API KM-HR.
 
@@ -202,7 +198,7 @@ Acceso desde la portada y la navegación de paneles. Lee la hoja `PROGRAMA` del 
 
 Muestra programadas, realizadas, regularizadas, no realizadas, N/A y sin clasificar por región y CeCo. Cuenta patentes únicas dentro de cada región/CeCo/mes; los duplicados contradictorios quedan sin clasificar. Cumplimiento = realizadas / (programadas − N/A). Las regularizadas no suman cumplimiento. Verde ≥90%, amarillo ≥70% y rojo <70%; sin aplicables se muestra —. Los totales recalculan el porcentaje a partir de los conteos, sin promediar porcentajes.
 
-API: `/api/programa-mantencion?mes=2026-09`. Pruebas: `venv_mtto\Scripts\python.exe -m unittest discover -s test`, desde la carpeta del panel.
+API: `/api/programa-mantencion?mes=2026-09`. Pruebas: `python -B -m unittest discover -s tests`, desde la carpeta del panel.
 
 El panel incluye gráficos de cumplimiento mensual, programadas frente a realizadas por mes y torta de los cuatro estados del mes seleccionado. El historial usa todos los meses con patentes válidas en PROGRAMA y agrupa por fecha proyectada; no representa el mes de ejecución. Los casos sin estado válido permanecen en el total y denominador, con aviso, pero no tienen columna ni tarjeta y se excluyen de la torta. Los porcentajes de la torta usan solo los cuatro estados reconocidos.
 
@@ -211,6 +207,28 @@ El panel incluye gráficos de cumplimiento mensual, programadas frente a realiza
 
 El sexto acceso, **Configuraciones**, reúne las preferencias de todos los reportes. La selección de regiones afecta los filtros, gráficos, tablas, totales y descargas de Reportabilidad, Seguimiento KM-HR, Resumen, Calendario y Programa, incluido el historial. Las exclusiones antiguas de regiones se unen al migrar; los CeCo excluidos de Reportabilidad se conservan en su sección específica.
 
-Se pueden ocultar individualmente 14 gráficos y tablas distribuidos entre los cinco paneles. Ocultar una vista no elimina sus datos de las descargas. «Mostrar todos» recupera las vistas. Los cambios se guardan en el navegador y se sincronizan entre pestañas de la misma dirección. Los nuevos nombres de región se incluyen por defecto. «Actualizar regiones desde Excel» reúne las regiones de las tres fuentes y avisa si alguna consulta falla.
+Se pueden ocultar individualmente 14 gráficos y tablas distribuidos entre los cinco paneles. Ocultar una vista no elimina sus datos de las descargas. «Mostrar todos» recupera las vistas. Los cambios se guardan en el navegador y se sincronizan entre pestañas de la misma dirección. Los nuevos nombres de región se incluyen por defecto. «Actualizar regiones desde BD» reúne las regiones de las tres fuentes y avisa si alguna consulta falla.
 
 Reinicia el servidor y recarga con Ctrl+F5 para habilitar las nuevas rutas. Los controles de consulta, fechas y búsquedas permanecen dentro de cada reporte. Todos comparten navegación, filtros, tarjetas, tablas y diseño adaptable.
+
+
+## Base de datos y actualización
+
+`Datos/mantenimiento.sqlite3` conserva las cuatro hojas necesarias: `Sheet1`, `BD ACTIVOS MOVILES`, `Seguimiento KM-HR` y `PROGRAMA`. Sus tablas son `fuentes`, `hojas`, `filas` y `metadatos`. Preserva fechas nativas, números, celdas vacías, orden de filas y calendario de Excel. Los cálculos existentes se aplican a esta copia para permitir consultar cualquier período disponible sin abrir los Excel. La base generada se excluye de Git.
+
+1. Guarda y sincroniza los Excel.
+2. Ejecuta **Actualizar_BD.bat** o pulsa **Actualizar BD** en el portal abierto con **Iniciar_Panel.bat**.
+3. El botón recarga la página al terminar; si usaste el `.bat`, recarga el navegador. **Consultar BD** cambia el período del reporte sin importar otra vez los Excel.
+
+Una carga valida las hojas y columnas necesarias y reemplaza la BD completa solo al terminar correctamente. Si faltan hojas, el archivo cambia durante la lectura o falla la importación, se conserva la base anterior. Se muestran fecha de carga y errores en el panel. La primera carga es obligatoria: el servidor puede abrir sin BD, pero los reportes indicarán que debe crearse.
+
+La actualización usa `LIBRO_EQUIPOS` de `config/.env`, igual que el servidor. Para fuentes personalizadas, utiliza los mismos argumentos en ambos lanzadores:
+
+```powershell
+.\Actualizar_BD.bat --excel "C:\Datos\Control.xlsx" --maestro "C:\Datos\Activos.xlsx" --bd "Datos\mantenimiento.sqlite3"
+.\Iniciar_Panel.bat --excel "C:\Datos\Control.xlsx" --maestro "C:\Datos\Activos.xlsx" --bd "Datos\mantenimiento.sqlite3"
+```
+
+Alternativa: `python -B -m app.actualizar_BD`. En Mac: `MAC/Actualizar_BD_MAC.command`.
+
+El navegador solicita `POST /api/bd/actualizar`; el servidor ejecuta el mismo importador Python del `.bat`. `GET /api/bd` informa la fecha de carga. Las API de reportes consultan únicamente SQLite y añaden `bd_actualizada`. El navegador no ejecuta directamente archivos `.bat`; necesita el servidor local. La BD no se publica como descarga HTTP.

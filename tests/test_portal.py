@@ -8,9 +8,10 @@ import tempfile
 from pathlib import Path
 from openpyxl import Workbook
 from urllib.error import HTTPError
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 
 from app.servidor import BASE, ARCHIVOS_WEB
+from app.base_datos import actualizar_base_datos
 from urllib.parse import urljoin, urlsplit
 
 
@@ -31,11 +32,15 @@ class PortalTest(unittest.TestCase):
                      'INTERVALO', 'UN IN', 'STATUS EQUIPO', '01-09-2026', '08-09-2026', '15-09-2026', '22-09-2026'])
         hoja.append(['ABCD12', 'REGION BHP', 'CECO A', 1000, 'Kms', '01-08-2026', 500, 'Kms',
                      'Operativo', 1100, 1200, 1300, 1400])
+        programa = libro.create_sheet('PROGRAMA')
+        programa.append(['REGION ACTUAL', 'NOMBRE CeCo ACTUAL', 'PATENTE', 'FECHA PROYECTADA', 'ESTADO'])
         libro.save(fuente)
         libro.close()
+        bd = Path(cls.temp.name) / 'mantenimiento.sqlite3'
+        actualizar_base_datos(fuente, fuente, bd)
         cls.proceso = subprocess.Popen(
-            [sys.executable, '-u', str(BASE / 'reportabilidad.py'), '--puerto', '0',
-             '--excel', str(fuente), '--maestro', str(fuente)],
+            [sys.executable, '-B', '-u', str(BASE / 'scripts/reportabilidad.py'), '--puerto', '0',
+             '--excel', str(fuente), '--maestro', str(fuente), '--bd', str(bd)],
             cwd=BASE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
         cls.addClassCleanup(cls.detener)
         inicio = cls.proceso.stdout.readline()
@@ -62,7 +67,9 @@ class PortalTest(unittest.TestCase):
                 self.assertEqual(respuesta.read(), (BASE / archivo).read_bytes())
 
     def test_no_publica_excel_ni_codigo_python(self):
-        for ruta in ['/PruebaForm.xlsx', '/reportabilidad.py', '/../README.md']:
+        for ruta in ['/PruebaForm.xlsx', '/reportabilidad.py', '/scripts/reportabilidad.py',
+                     '/config/.env', '/config/.env.example', '/config/requirements.txt',
+                     '/../README.md']:
             with self.subTest(ruta=ruta), self.assertRaises(HTTPError) as error:
                 urlopen(self.url + ruta, timeout=5)
             self.assertEqual(error.exception.code, 404)
@@ -101,6 +108,31 @@ class PortalTest(unittest.TestCase):
         self.assertTrue(datos['incluye_estado_equipo'])
         self.assertTrue(all('estado_equipo' in e for e in datos['equipos']))
         self.assertTrue(any(e['estado_equipo'] == 'OPERATIVO' for e in datos['equipos']))
+
+    def test_actualizar_bd_desde_panel(self):
+        solicitud = Request(self.url + '/api/bd/actualizar', data=b'{}',
+                            headers={'Content-Type': 'application/json', 'Origin': self.url})
+        with urlopen(solicitud, timeout=15) as respuesta:
+            estado = json.load(respuesta)
+        self.assertEqual(len(estado['hojas']), 4)
+        with urlopen(self.url + '/api/reporte?fecha=2026-09-22', timeout=15) as respuesta:
+            datos = json.load(respuesta)
+        self.assertEqual(datos['bd_actualizada'], estado['actualizado'])
+
+    def test_actualizacion_rechaza_otros_origenes(self):
+        for headers in [{'Content-Type': 'application/json', 'Origin': 'http://otro-sitio.example'},
+                        {'Content-Type': 'text/plain'}]:
+            solicitud = Request(self.url + '/api/bd/actualizar', data=b'{}', headers=headers)
+            with self.assertRaises(HTTPError) as error:
+                urlopen(solicitud, timeout=5)
+            self.assertEqual(error.exception.code, 403)
+            error.exception.close()
+
+    def test_bd_no_se_publica(self):
+        with self.assertRaises(HTTPError) as error:
+            urlopen(self.url + '/Datos/mantenimiento.sqlite3', timeout=5)
+        self.assertEqual(error.exception.code, 404)
+        error.exception.close()
 
 
 if __name__ == '__main__':

@@ -1,7 +1,6 @@
 """Adaptación de la matriz Seguimiento KM-HR al cálculo del portal."""
 from datetime import date
-from openpyxl import load_workbook
-from .excel import normalizar, convertir_fecha, patente_valida, leer_tabla
+from .excel import normalizar, convertir_fecha, patente_valida, leer_tabla, abrir_libro
 from .seguimiento import numero, unidad_control, calcular_equipo
 
 
@@ -17,7 +16,7 @@ def crear_seguimiento(excel, maestro, corte, inicio=date(2026, 8, 4), incluir_es
         p = patente_valida(patente)
         if p:
             ubicaciones.setdefault(p, set()).add((normalizar(ceco), normalizar(region)))
-    libro = load_workbook(excel, read_only=True, data_only=True)
+    libro = abrir_libro(excel)
     try:
         hoja = next((h for h in libro if normalizar(h.title) == 'SEGUIMIENTO KM-HR'), None)
         if hoja is None:

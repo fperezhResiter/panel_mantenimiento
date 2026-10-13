@@ -1,5 +1,7 @@
 """Registro explícito de recursos publicados; no expone los Excel."""
 ARCHIVOS_WEB = {
+    '/img/logo_resiter.png': ('web/img/logo_resiter.png', 'image/png'),
+    '/img/logo_sin_fondo_resiter.png': ('web/img/logo_sin_fondo_resiter.png', 'image/png'),
     '/Panel_Configuraciones.html': ('web/pages/Panel_Configuraciones.html', 'text/html; charset=utf-8'),
     '/js/configuracion.js': ('web/js/configuracion.js', 'text/javascript; charset=utf-8'),
     '/js/configuraciones_panel.js': ('web/js/configuraciones_panel.js', 'text/javascript; charset=utf-8'),
@@ -29,6 +31,10 @@ ARCHIVOS_WEB = {
 
 # Rutas reales usadas por los enlaces relativos; conserva los accesos anteriores.
 ARCHIVOS_WEB['/js/abrir_portal.js'] = ('web/js/abrir_portal.js', 'text/javascript; charset=utf-8')
+ARCHIVOS_WEB['/js/base_datos.js'] = ('web/js/base_datos.js', 'text/javascript; charset=utf-8')
+ARCHIVOS_WEB['/js/panel_pdf.js'] = ('web/js/panel_pdf.js', 'text/javascript; charset=utf-8')
+ARCHIVOS_WEB['/vendor/pdf-lib.min.js'] = ('web/vendor/pdf-lib.min.js', 'text/javascript; charset=utf-8')
+ARCHIVOS_WEB['/vendor/html2canvas.min.js'] = ('web/vendor/html2canvas.min.js', 'text/javascript; charset=utf-8')
 for archivo, tipo in list(ARCHIVOS_WEB.values()):
     ARCHIVOS_WEB['/' + archivo] = (archivo, tipo)
 
