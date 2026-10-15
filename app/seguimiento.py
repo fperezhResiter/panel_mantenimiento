@@ -21,7 +21,7 @@ def unidad_control(valor):
 
 def estado_mantencion(saldo, intervalo):
     if saldo is None or intervalo is None or intervalo <= 0:
-        return 'STAND BY', 'neutro'
+        return 'No operativo', 'neutro'
     if saldo >= intervalo * .1:
         return 'Mantención Vigente', 'verde'
     if saldo >= intervalo * -.1:
@@ -36,7 +36,7 @@ def calcular_equipo(equipo):
     resultado = {'actual': ultima['valor'] if ultima else None,
                  'fecha_lectura': ultima['fecha_lectura'] if ultima else None,
                  'semana_actual': ultima['semana'] if ultima else None,
-                 'proxima': None, 'saldo': None, 'estado': 'STAND BY', 'clase': 'neutro',
+                 'proxima': None, 'saldo': None, 'estado': 'No operativo', 'clase': 'neutro',
                  'motivo': '', 'ritmo_diario': None, 'fecha_proyectada': None,
                  'motivo_proyeccion': '', 'variaciones': []}
     problemas = []
@@ -80,7 +80,7 @@ def calcular_equipo(equipo):
         resultado['estado'], resultado['clase'] = estado_mantencion(resultado['saldo'], intervalo)
     resultado['motivo'] = '; '.join(problemas)
     if problemas:
-        resultado['motivo_proyeccion'] = 'Resolver los datos marcados STAND BY'
+        resultado['motivo_proyeccion'] = 'Resolver los datos marcados No operativo'
     elif len(validas) < 2:
         resultado['motivo_proyeccion'] = 'Se necesitan al menos dos lecturas semanales'
     else:
@@ -223,7 +223,7 @@ def crear_seguimiento(excel, maestro, corte, inicio=date(2026, 8, 4), incluir_es
         avisos.append(f'{len(fuera)} identificadores reportados no pertenecen al maestro y no se incluyen.')
     conflictos = sum(e['conflicto_maestro'] for e in equipos.values())
     if conflictos:
-        avisos.append(f'{conflictos} patentes repetidas con datos distintos en el maestro: STAND BY.')
+        avisos.append(f'{conflictos} patentes repetidas con datos distintos en el maestro: No operativo.')
     return {'version': 2, 'fecha': corte.isoformat(), 'inicio': inicio.isoformat(), 'semanas': semanas,
             'equipos': sorted(equipos.values(), key=lambda e: (e['region'], e['ceco'], e['patente'])),
             'advertencias': avisos, 'fuente': excel.name, 'maestro': maestro.name, 'hoja': hoja,

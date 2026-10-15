@@ -1,1 +1,98 @@
 .mt-tabla th,.mt-tabla td{white-space:normal;min-width:95px}.mt-tabla th:first-child,.mt-tabla td:first-child{min-width:240px}.mt-tabla .mt-rojo{background:#ffd7d7;color:#922121}.mt-tabla .mt-amarillo{background:#fff4be;color:#715000}.mt-tabla .mt-verde{background:#def4dc;color:#235b24}.mt-tabla .mt-gris{background:#e7eaee;color:#404c59}.mt-tabla .region td{background:#cde2f3;color:var(--navy)}.mt-ceco td:first-child{padding-left:32px}.mt-ayuda{margin-top:20px;padding:15px}.mt-ayuda summary{cursor:pointer;color:var(--navy);font-weight:bold}.mt-opciones{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px;background:white;padding:18px;border:1px solid var(--linea);border-radius:8px;margin:16px 0}.mt-opciones label{flex-direction:row;align-items:center;color:var(--tinta)}.mt-cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;margin:18px 0}.mt-cal-nombre{text-align:center;font-size:12px;font-weight:bold;color:var(--gris)}.mt-cal-dia{min-height:105px;background:white;border:1px solid var(--linea);border-radius:8px;padding:10px;text-align:left;display:flex;flex-direction:column;gap:6px;font-size:15px}.mt-cal-dia:disabled{cursor:default;opacity:1}.mt-cal-dia.programado{border-color:var(--azul);background:#e4f2fc;color:var(--navy)}.mt-cal-dia[aria-pressed=true]{outline:3px solid var(--azul);outline-offset:1px}.mt-cal-dia small{font-size:11px;line-height:1.4}.mt-cal-dia b{font-size:17px}.mt-cal-vacio{min-height:105px}.mt-dia-filtro{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:18px 0}.mt-cal-dia.hoy b{text-decoration:underline;text-underline-offset:4px}#mt-kpis{margin:18px 0}#mt-alcance{padding-left:0}.mt-resumen-estado{font-size:12px}.mt-tabla tfoot td{white-space:nowrap}@media(max-width:650px){.mt-cal-grid{gap:3px}.mt-cal-dia{padding:5px;min-height:85px}.mt-cal-dia small{font-size:10px}.mt-cal-vacio{min-height:85px}.mt-cal-dia .mt-ejemplos{display:none}}@media print{.mt-cal-dia{min-height:85px}#mt-configuracion{display:none!important}.mt-cal-dia.programado{border:2px solid #0E81C5}}
+.mt-cal-nombre { min-width: 0; overflow-wrap: anywhere; }
+.mt-cal-dia { min-width: 0; overflow-wrap: anywhere; }
+@media screen {
+  html[data-tema="claro"] .mt-cal-dia:is(:hover, :focus-visible):not(:disabled) {
+    border-color: var(--navy);
+    box-shadow: inset 0 0 0 1px var(--navy), 0 2px 6px #07376218;
+  }
+}
+#mt-agenda tr[hidden]{display:none}
+.mt-leyenda-porcentaje { padding: 14px 18px 0; }
+.mt-leyenda-porcentaje > p { margin: 0 0 8px; color: var(--tinta); }
+@media screen, print {
+  body:is([data-panel="resumen"], [data-panel="calendario"]) {
+    --mt-fila: #fff;
+    --mt-alterna: #e3f0fa;
+    --mt-grupo: #b9d7ec;
+    --mt-unidad: #d5e7f5;
+    --mt-linea: #e3edf6;
+    --mt-borde: #b8cddd;
+    --mt-borde-grupo: #91afc5;
+    --mt-hover: #c4dff3;
+    --mt-grupo-hover: #9dc5e2;
+  }
+  body[data-panel="resumen"] #mt-resumen table :is(td, th) {
+    border: 1px solid var(--mt-borde);
+  }
+  body[data-panel="resumen"] :is(#mt-detalle, #mt-patentes) > tr:not(.region) > td:not(:where(.mt-rojo, .mt-amarillo, .mt-verde, .mt-gris)) {
+    background-color: var(--mt-fila);
+  }
+  body[data-panel="resumen"] :is(#mt-detalle, #mt-patentes) > tr:nth-child(even of :where(:not(.region):not([hidden]))) > td:not(:where(.mt-rojo, .mt-amarillo, .mt-verde, .mt-gris)) {
+    background-color: var(--mt-alterna);
+  }
+  body[data-panel="resumen"] #mt-detalle > tr.region > td {
+    background-color: var(--mt-grupo);
+    border-top: 2px solid var(--mt-borde-grupo);
+    border-bottom: 2px solid var(--mt-borde-grupo);
+  }
+}
+@media screen {
+  html[data-tema="oscuro"] body:is([data-panel="resumen"], [data-panel="calendario"]) {
+    --mt-fila: #10263a;
+    --mt-alterna: #19354e;
+    --mt-grupo: #214a67;
+    --mt-unidad: #1c3d57;
+    --mt-linea: #18334b;
+    --mt-borde: #3c5d78;
+    --mt-borde-grupo: #63839c;
+    --mt-hover: #2b506d;
+    --mt-grupo-hover: #326481;
+  }
+  body[data-panel="resumen"] :is(#mt-detalle, #mt-patentes) > tr:not(.region):is(:hover, :focus-within) > td:not(:where(.mt-rojo, .mt-amarillo, .mt-verde, .mt-gris)) {
+    background-color: var(--mt-hover);
+  }
+  body[data-panel="resumen"] #mt-detalle > tr.region:is(:hover, :focus-within) > td {
+    background-color: var(--mt-grupo-hover);
+  }
+  body[data-panel="resumen"] :is(#mt-detalle, #mt-patentes) > tr:is(:hover, :focus-within) > td {
+    border-top-color: var(--azul);
+    border-bottom-color: var(--azul);
+  }
+  body[data-panel="resumen"] :is(#mt-detalle, #mt-patentes) > tr:is(:hover, :focus-within) > td:first-child {
+    box-shadow: inset 3px 0 var(--azul);
+  }
+}
+#mt-agenda tr.mt-agenda-unidad td{background:#eaf1f7;color:var(--navy);font-weight:bold;padding-left:30px}#mt-agenda tr.zona-linea td{padding-left:48px}
+@media screen, print {
+  body[data-panel="calendario"] #mt-calendario table :is(td, th) {
+    border: 1px solid var(--mt-borde);
+  }
+  body[data-panel="calendario"] #mt-agenda > tr > td {
+    background-color: var(--mt-fila);
+  }
+  body[data-panel="calendario"] #mt-agenda > tr:nth-child(even of :where(:not(.region):not(.mt-agenda-unidad):not(.zona-linea):not([hidden]))) > td {
+    background-color: var(--mt-alterna);
+  }
+  body[data-panel="calendario"] #mt-agenda > tr:is(.region, .mt-agenda-unidad, .zona-linea) > td {
+    border-top: 2px solid var(--mt-borde-grupo);
+    border-bottom: 2px solid var(--mt-borde-grupo);
+  }
+  body[data-panel="calendario"] #mt-agenda > tr.region > td { background-color: var(--mt-grupo); }
+  body[data-panel="calendario"] #mt-agenda > tr.mt-agenda-unidad > td { background-color: var(--mt-unidad); }
+  body[data-panel="calendario"] #mt-agenda > tr.zona-linea > td { background-color: var(--mt-linea); }
+}
+@media screen {
+  body[data-panel="calendario"] #mt-agenda > tr:is(:hover, :focus-within) > td {
+    background-color: var(--mt-hover);
+    border-top-color: var(--azul);
+    border-bottom-color: var(--azul);
+  }
+  body[data-panel="calendario"] #mt-agenda > tr:is(.region, .mt-agenda-unidad, .zona-linea):is(:hover, :focus-within) > td {
+    background-color: var(--mt-grupo-hover);
+  }
+  body[data-panel="calendario"] #mt-agenda > tr:is(:hover, :focus-within) > td:first-child {
+    box-shadow: inset 3px 0 var(--azul);
+  }
+}
+.mt-acciones-grupos{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px}.mt-acciones-grupos button[hidden],.mt-tabla tr[hidden]{display:none}.mt-grupo-boton{display:block;width:100%;border:0;background:transparent;color:inherit;font:inherit;font-weight:bold;text-align:left;padding:0;cursor:pointer}.mt-grupo-boton:focus-visible{outline:2px solid var(--azul);outline-offset:3px}.mt-tabla tr.zona-linea td:first-child{padding-left:50px}@media print{.mt-acciones-grupos{display:none}}

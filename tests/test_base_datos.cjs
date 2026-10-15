@@ -6,9 +6,11 @@ const vm = require('node:vm');
 async function escenario(exito) {
   const elementos = [], llamadas = [];
   let recargas = 0;
-  const main = {prepend: elemento => elementos.push(elemento)};
+  const botones = [];
+  const header = {append: elemento => elementos.push(elemento)};
+  const inicio = {closest:()=>({}),before:boton=>{botones.push(boton);elementos[0].children=elementos[0].children.filter(n=>n!==boton);}};
   const document = {
-    querySelector: () => main,
+    querySelector: selector => selector === 'header' ? header : selector === 'header .volver-inicio' ? inicio : null,
     createElement: () => ({
       children: [], eventos: {}, setAttribute() {},
       append(...hijos) { this.children.push(...hijos); },
@@ -22,10 +24,12 @@ async function escenario(exito) {
       : {actualizado: '2026-10-13T11:00:00-03:00'}};
   };
   vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../web/js/base_datos.js'), 'utf8'), {
-    document, fetch, Date, location: {reload: () => recargas++}
+    document, fetch, PortalDatos: {consulta:false, consultar:fetch}, Date, location: {reload: () => recargas++}
   });
   await new Promise(resolve => setImmediate(resolve));
-  const [boton, estado] = elementos[0].children;
+  const boton = botones[0], estado = elementos[0].children[0];
+  assert.equal(elementos[0].className,'publicacion-header');
+  assert.equal(boton.id,'bd-actualizar');
   assert.match(estado.textContent, /BD actualizada/);
   await boton.eventos.click();
   assert.equal(llamadas[1].url, '/api/bd/actualizar');
@@ -40,5 +44,16 @@ async function escenario(exito) {
 (async () => {
   await escenario(true);
   await escenario(false);
+  const hijos=[];
+  const header={append:el=>hijos.push(el)};
+  const document={querySelector:selector=>selector==='header'?header:null,createElement:()=>({children:[],setAttribute(){},append(...n){this.children.push(...n);},addEventListener(){}})};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../web/js/base_datos.js'),'utf8'),{
+    document,PortalDatos:{consulta:true,consultar:async()=>({ok:true,json:async()=>({actualizado:'2026-10-13T11:00:00-03:00'})})},Date
+  });
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(hijos[0].id,'bd-barra');assert.equal(hijos[0].className,'publicacion-header');
+  assert.equal(hijos[0].children[0].hidden,true);
+  assert.match(hijos[0].children[1].textContent,/Última publicación:/);
+  assert(!hijos[0].children[1].textContent.includes('Consulta sin servidor'));
   console.log('OK: botón Actualizar BD, recarga y error recuperable.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

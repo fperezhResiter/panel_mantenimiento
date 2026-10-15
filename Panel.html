@@ -4,32 +4,38 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Portal de mantenimiento — Resiter Minería</title>
-  <link rel="stylesheet" href="web/css/panel.css">
+  <link rel="stylesheet" href="web/css/panel.css?v=20261015-12">
   <script src="web/js/abrir_portal.js"></script>
+  <script src="web/datos/publicacion.js"></script>
+  <script src="web/js/datos_panel.js"></script>
+<!-- INICIO CONTROLES UNIVERSALES -->
+<link rel="stylesheet" href="web/css/controles-comunes.css">
+<script src="web/js/controles-comunes.js" data-menu="../../Panel Universal.html"></script>
+<!-- FIN CONTROLES UNIVERSALES -->
 </head>
 <body>
-  <header><img class="logo" src="web/img/logo_sin_fondo_resiter.png" alt="Resiter"><h1>Portal de mantenimiento</h1><small>Inicio</small></header>
+  <header><img class="logo" src="web/img/logo_sin_fondo_resiter.png" alt="Resiter"><h1>Mantenimiento</h1><small>Inicio</small></header>
   <main>
     <div class="intro portal-intro"><div><p class="eyebrow">GESTIÓN DE MANTENIMIENTO</p><h2>Paneles de seguimiento</h2><p>Selecciona el panel que quieres consultar.</p></div></div>
     <div class="paneles">
       <a class="panel-enlace" href="web/pages/Panel_Reportabilidad.html">
-        <span class="panel-icono" aria-hidden="true">01</span><span class="badge">Disponible</span>
-        <h3>Reportabilidad</h3><p>Patentes reportadas por región y CeCo, comparación con el maestro, semáforo y configuración de centros incluidos.</p><span class="panel-accion">Abrir Reportabilidad →</span>
+        <div class="panel-cabecera"><span class="panel-icono" aria-hidden="true">01</span><span class="badge">Disponible</span></div>
+        <h3>Reportabilidad</h3><p>Patentes reportadas por región y Unidad, comparación con el maestro, semáforo y configuración de centros incluidos.</p><span class="panel-accion">Abrir panel →</span>
       </a>
       <a class="panel-enlace" href="web/pages/Panel_Seguimiento_KM_HR.html">
-        <span class="panel-icono" aria-hidden="true">02</span><span class="badge">Disponible</span>
-        <h3>Seguimiento KM-HR</h3><p>Lecturas semanales, saldo de mantención, gráficos por patente y fecha proyectada según uso.</p><span class="panel-accion">Abrir Seguimiento KM-HR →</span>
+        <div class="panel-cabecera"><span class="panel-icono" aria-hidden="true">02</span><span class="badge">Disponible</span></div>
+        <h3>Seguimiento KM-HR</h3><p>Lecturas semanales, saldo de mantención, gráficos por patente y fecha proyectada según uso.</p><span class="panel-accion">Abrir panel →</span>
       </a>
       <a class="panel-enlace" href="web/pages/Panel_Resumen_Mantencion.html">
-        <span class="panel-icono" aria-hidden="true">03</span><span class="badge">Disponible</span>
-        <h3>Resumen de mantención</h3><p>Resumen por región y CeCo de mantenciones vencidas, próximas, vigentes y equipos STAND BY.</p><span class="panel-accion">Abrir reporte →</span>
+        <div class="panel-cabecera"><span class="panel-icono" aria-hidden="true">03</span><span class="badge">Disponible</span></div>
+        <h3>Resumen de mantención</h3><p>Resumen por región y Unidad de mantenciones vencidas, próximas, vigentes y equipos No operativo.</p><span class="panel-accion">Abrir panel →</span>
       </a>
       <a class="panel-enlace" href="web/pages/Panel_Calendario_Mantencion.html">
-        <span class="panel-icono" aria-hidden="true">04</span><span class="badge">Disponible</span>
-        <h3>Calendario de mantención</h3><p>Calendario mensual de fechas proyectadas, detalle de patentes por región y descarga del calendario con su tabla de patentes.</p><span class="panel-accion">Abrir calendario →</span>
+        <div class="panel-cabecera"><span class="panel-icono" aria-hidden="true">04</span><span class="badge">Disponible</span></div>
+        <h3>Calendario de mantención</h3><p>Calendario mensual de fechas proyectadas, detalle de patentes por región y descarga del calendario con su tabla de patentes.</p><span class="panel-accion">Abrir panel →</span>
       </a>
-    <a class="panel-enlace" href="web/pages/Panel_Programa_Mantencion.html"><span class="panel-icono" aria-hidden="true">05</span><span class="badge">Disponible</span><h3>Programa Mantención</h3><p>Programa mensual por región y CeCo: realizadas, regularizadas, no realizadas, N/A y cumplimiento con semáforo.</p><span class="panel-accion">Abrir programa →</span></a>
-      <a class="panel-enlace" href="web/pages/Panel_Configuraciones.html"><span class="panel-icono" aria-hidden="true">06</span><h3>Configuraciones</h3><p>Regiones compartidas y selección de gráficos y tablas de cada panel.</p><span class="panel-accion">Abrir configuraciones →</span></a>
+    <a class="panel-enlace" href="web/pages/Panel_Programa_Mantencion.html"><div class="panel-cabecera"><span class="panel-icono" aria-hidden="true">05</span><span class="badge">Disponible</span></div><h3>Programa de mantención</h3><p>Programa mensual por región y Unidad: realizadas, regularizadas, no realizadas, N/A y cumplimiento con semáforo.</p><span class="panel-accion">Abrir panel →</span></a>
+      <a class="panel-enlace" href="web/pages/Panel_Configuraciones.html"><div class="panel-cabecera"><span class="panel-icono" aria-hidden="true">06</span></div><h3>Configuraciones</h3><p>Regiones compartidas y selección de gráficos y tablas de cada panel.</p><span class="panel-accion">Abrir panel →</span></a>
     </div>
     <footer>Resiter Minería · Portal de mantenimiento</footer>
   </main>

@@ -32,10 +32,19 @@ ARCHIVOS_WEB = {
 # Rutas reales usadas por los enlaces relativos; conserva los accesos anteriores.
 ARCHIVOS_WEB['/js/abrir_portal.js'] = ('web/js/abrir_portal.js', 'text/javascript; charset=utf-8')
 ARCHIVOS_WEB['/js/base_datos.js'] = ('web/js/base_datos.js', 'text/javascript; charset=utf-8')
+ARCHIVOS_WEB['/js/datos_panel.js'] = ('web/js/datos_panel.js', 'text/javascript; charset=utf-8')
+ARCHIVOS_WEB['/datos/publicacion.js'] = ('web/datos/publicacion.js', 'text/javascript; charset=utf-8')
 ARCHIVOS_WEB['/js/panel_pdf.js'] = ('web/js/panel_pdf.js', 'text/javascript; charset=utf-8')
 ARCHIVOS_WEB['/vendor/pdf-lib.min.js'] = ('web/vendor/pdf-lib.min.js', 'text/javascript; charset=utf-8')
 ARCHIVOS_WEB['/vendor/html2canvas.min.js'] = ('web/vendor/html2canvas.min.js', 'text/javascript; charset=utf-8')
+ARCHIVOS_WEB['/js/zonas.js'] = ('web/js/zonas.js', 'text/javascript; charset=utf-8')
+ARCHIVOS_WEB['/datos/unidades_zonas.json'] = ('config/unidades_zonas.json', 'application/json; charset=utf-8')
 for archivo, tipo in list(ARCHIVOS_WEB.values()):
     ARCHIVOS_WEB['/' + archivo] = (archivo, tipo)
 
 
+
+# Menú y publicaciones de consulta; nunca publica motores, BD ni fuentes.
+from pathlib import Path
+from .rutas_menu import registrar_menu
+registrar_menu(ARCHIVOS_WEB, Path(__file__).resolve().parent.parent)

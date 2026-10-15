@@ -1,10 +1,8 @@
-// Los archivos locales abren su equivalente HTTP para poder consultar el Excel.
+// Configuraciones pertenece únicamente al modo interactivo abierto por el BAT.
 (() => {
-  if (location.protocol !== 'file:') return;
-
-  const pagina = location.pathname.split('/').pop();
-  const destino = new URL('/' + pagina, 'http://127.0.0.1:8765');
-  destino.search = location.search;
-  destino.hash = location.hash;
-  location.replace(destino.href);
+  if (location.protocol !== 'file:' && !location.pathname.startsWith('/principal/')) return;
+  document.documentElement.classList.add('modo-consulta');
+  if (location.pathname.endsWith('/Panel_Configuraciones.html')) {
+    location.replace(new URL('../../Panel.html', location.href).href);
+  }
 })();

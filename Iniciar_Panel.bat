@@ -32,12 +32,13 @@ if errorlevel 1 (
 
 echo.
 echo Iniciando el panel.
-echo Cuando aparezca "Panel disponible", abre Panel.html o la URL indicada.
+echo Cuando aparezca "Panel disponible", abre la URL indicada para el uso interactivo.
+echo Panel.html con doble clic abre la consulta sin servidor.
 echo Mantén esta ventana abierta.
 echo Para detener el servidor pulsa Ctrl+C.
 echo.
 
-%PYTHON_CMD% -B scripts\reportabilidad.py %*
+%PYTHON_CMD% -B scripts\reportabilidad.py --abrir %*
 
 if errorlevel 1 goto error
 

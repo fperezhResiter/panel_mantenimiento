@@ -52,19 +52,35 @@ class FuenteBD:
         pass
 
 
-def actualizar_base_datos(excel, maestro, destino):
+def actualizar_base_datos(excel, maestro, destino, publicacion=None, zonas=None, catalogo_destino=None):
     """Publica una carga completa; un error conserva intacta la BD anterior."""
     with ACTUALIZACION:
         destino = Path(destino).resolve()
         firmas = {Path(ruta).resolve(): (Path(ruta).stat().st_size, Path(ruta).stat().st_mtime_ns)
-                  for ruta in (excel, maestro)}
+                  for ruta in (excel, maestro, *([zonas] if zonas is not None else []))}
+        catalogo = None
+        catalogo_temporal = None
+        if zonas is not None:
+            from .catalogo_zonas import leer_catalogo_zonas
+            from .zonas import CATALOGO
+            catalogo_destino = Path(catalogo_destino or CATALOGO)
+            anterior_catalogo = json.loads((catalogo_destino if catalogo_destino.exists() else CATALOGO).read_text(encoding='utf-8'))
+            catalogo = leer_catalogo_zonas(zonas, anterior_catalogo)
         destino.parent.mkdir(parents=True, exist_ok=True)
         descriptor, nombre = tempfile.mkstemp(prefix='mantenimiento-', suffix='.sqlite3', dir=destino.parent)
         os.close(descriptor)
         temporal = Path(nombre)
+        consulta_temporal = None
         try:
+            if destino.exists():
+                with closing(conectar(destino)) as anterior, closing(sqlite3.connect(temporal)) as copia:
+                    anterior.backup(copia)
             with closing(sqlite3.connect(temporal)) as conexion, conexion:
                 conexion.executescript('''
+                    DROP TABLE IF EXISTS metadatos;
+                    DROP TABLE IF EXISTS fuentes;
+                    DROP TABLE IF EXISTS hojas;
+                    DROP TABLE IF EXISTS filas;
                     CREATE TABLE metadatos (clave TEXT PRIMARY KEY, valor TEXT NOT NULL);
                     CREATE TABLE fuentes (rol TEXT PRIMARY KEY, nombre TEXT NOT NULL, ruta TEXT NOT NULL, epoch TEXT NOT NULL);
                     CREATE TABLE hojas (rol TEXT NOT NULL, nombre TEXT NOT NULL, PRIMARY KEY (rol, nombre));
@@ -103,14 +119,75 @@ def actualizar_base_datos(excel, maestro, destino):
                         raise ValueError(f'{ruta.name} cambió durante la carga. Guarda y vuelve a actualizar.')
                 conexion.executemany('INSERT INTO metadatos VALUES (?, ?)',
                                      [('version', VERSION), ('actualizado', datetime.now().astimezone().isoformat(timespec='seconds'))])
+                if catalogo is not None:
+                    conexion.execute('INSERT INTO metadatos VALUES (?, ?)', ('catalogo_zonas', json.dumps(catalogo, ensure_ascii=False)))
                 for ruta, firma in firmas.items():
                     estado = ruta.stat()
                     if (estado.st_size, estado.st_mtime_ns) != firma:
                         raise ValueError(f'{ruta.name} cambió durante la carga. Guarda y vuelve a actualizar.')
-            os.replace(temporal, destino)
+            if catalogo is not None:
+                catalogo_destino.parent.mkdir(parents=True, exist_ok=True)
+                descriptor, nombre = tempfile.mkstemp(dir=catalogo_destino.parent, suffix='.tmp')
+                os.close(descriptor)
+                catalogo_temporal = Path(nombre)
+                catalogo_temporal.write_text(json.dumps(catalogo, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+            if publicacion is not None:
+                from .publicacion import publicar_consulta
+                publicacion = Path(publicacion)
+                publicacion.parent.mkdir(parents=True, exist_ok=True)
+                descriptor, nombre = tempfile.mkstemp(dir=publicacion.parent, suffix='.tmp')
+                os.close(descriptor)
+                consulta_temporal = Path(nombre)
+                publicar_consulta(temporal, consulta_temporal)
+            reemplazos = [(temporal, destino)]
+            if catalogo_temporal is not None: reemplazos.append((catalogo_temporal, catalogo_destino))
+            if consulta_temporal is not None: reemplazos.append((consulta_temporal, publicacion))
+            anteriores = {p: p.read_bytes() if p.exists() else None for _, p in reemplazos}
+            completados = []
+            try:
+                for nuevo, archivo in reemplazos:
+                    os.replace(nuevo, archivo)
+                    completados.append((nuevo, archivo))
+            except OSError:
+                for nuevo, archivo in reversed(completados):
+                    if anteriores[archivo] is None: archivo.unlink()
+                    else:
+                        nuevo.write_bytes(anteriores[archivo])
+                        os.replace(nuevo, archivo)
+                raise
         finally:
             temporal.unlink(missing_ok=True)
+            if consulta_temporal is not None:
+                consulta_temporal.unlink(missing_ok=True)
+            if catalogo_temporal is not None:
+                catalogo_temporal.unlink(missing_ok=True)
         return estado_base_datos(destino)
+
+
+def leer_configuracion(ruta):
+    with closing(conectar(ruta)) as conexion:
+        if not conexion.execute("SELECT 1 FROM sqlite_master WHERE name='configuraciones'").fetchone():
+            return None
+        fila = conexion.execute("SELECT datos FROM configuraciones WHERE clave='portal'").fetchone()
+        return json.loads(fila[0]) if fila else None
+
+
+def guardar_configuracion(ruta, datos, publicacion=None):
+    campos = ('regiones', 'cecos', 'catalogo', 'centros', 'ocultos')
+    permitidos = set(campos) | {'calendario_excluidas', 'zonas', 'catalogo_zonas', 'unidades_regiones', 'unidades_zonas'}
+    if not isinstance(datos, dict) or not set(campos) <= set(datos) or not set(datos) <= permitidos or any(
+            not isinstance(valores, list) or any(not isinstance(v, str) for v in valores) for valores in datos.values()):
+        raise ValueError('Configuración inválida.')
+    # No crea una BD vacía si todavía no se han importado las fuentes.
+    estado_base_datos(ruta)
+    with ACTUALIZACION, closing(sqlite3.connect(ruta)) as conexion, conexion:
+        conexion.execute('CREATE TABLE IF NOT EXISTS configuraciones (clave TEXT PRIMARY KEY, datos TEXT NOT NULL)')
+        conexion.execute('INSERT OR REPLACE INTO configuraciones VALUES (?, ?)',
+                         ('portal', json.dumps(datos, ensure_ascii=False)))
+        if publicacion is not None:
+            from .publicacion import actualizar_configuracion_publicada
+            actualizar_configuracion_publicada(publicacion, datos, ruta)
+    return datos
 
 
 def conectar(ruta):
@@ -147,4 +224,6 @@ def leer_fuentes(ruta):
                     'SELECT datos FROM filas WHERE rol=? AND hoja=? ORDER BY numero', (rol, titulo))]
                 hojas.append(HojaBD(titulo, filas))
             fuentes[rol] = FuenteBD(nombre, datetime.fromisoformat(epoch), hojas)
+        catalogo = conexion.execute("SELECT valor FROM metadatos WHERE clave='catalogo_zonas'").fetchone()
+        if catalogo: fuentes['maestro'].catalogo_zonas = json.loads(catalogo[0])
         return fuentes['excel'], fuentes['maestro'], estado

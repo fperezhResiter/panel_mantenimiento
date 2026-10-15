@@ -34,13 +34,16 @@ class PortalTest(unittest.TestCase):
                      'Operativo', 1100, 1200, 1300, 1400])
         programa = libro.create_sheet('PROGRAMA')
         programa.append(['REGION ACTUAL', 'NOMBRE CeCo ACTUAL', 'PATENTE', 'FECHA PROYECTADA', 'ESTADO'])
+        gdm = libro.create_sheet('Prog Resiter')
+        gdm.append([None,None,'Unidad','Centro de Costos','LN','Línea de Negocio','Zona'])
+        gdm.append([None,None,'CECO A',1001,1,'RESIDUOS',3])
         libro.save(fuente)
         libro.close()
         bd = Path(cls.temp.name) / 'mantenimiento.sqlite3'
         actualizar_base_datos(fuente, fuente, bd)
         cls.proceso = subprocess.Popen(
             [sys.executable, '-B', '-u', str(BASE / 'scripts/reportabilidad.py'), '--puerto', '0',
-             '--excel', str(fuente), '--maestro', str(fuente), '--bd', str(bd)],
+             '--excel', str(fuente), '--maestro', str(fuente), '--zonas', str(fuente), '--bd', str(bd)],
             cwd=BASE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
         cls.addClassCleanup(cls.detener)
         inicio = cls.proceso.stdout.readline()
@@ -133,6 +136,15 @@ class PortalTest(unittest.TestCase):
             urlopen(self.url + '/Datos/mantenimiento.sqlite3', timeout=5)
         self.assertEqual(error.exception.code, 404)
         error.exception.close()
+
+    def test_configuracion_guardada_en_bd(self):
+        config = dict(regiones=['REGION BHP'], cecos=[], catalogo=[], centros=[], ocultos=['resumen.tabla'], calendario_excluidas=['ABCD12'])
+        solicitud = Request(self.url + '/api/configuracion', data=json.dumps(config).encode(),
+                            headers={'Content-Type':'application/json', 'Origin':self.url})
+        with urlopen(solicitud, timeout=5) as respuesta:
+            self.assertEqual(json.load(respuesta), config)
+        with urlopen(self.url + '/api/configuracion', timeout=5) as respuesta:
+            self.assertEqual(json.load(respuesta), config)
 
 
 if __name__ == '__main__':

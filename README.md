@@ -2,7 +2,35 @@
 
 Portal local con página de inicio y acceso a los paneles. Los reportes consultan una BD SQLite; Python recarga sus datos desde los Excel sin modificarlos.
 
-## Estructura de carpetas
+## Dos formas de uso y publicación
+
+- **Consulta:** abre `Panel.html` con doble clic. No requiere Python ni servidor. Permite consultar los cinco paneles, cambiar períodos y filtros, explorar gráficos y descargar CSV y PDF. Usa la fecha y los datos de la última publicación. No guarda cambios en la BD; Configuraciones solo está disponible en el modo interactivo.
+- **Uso interactivo:** ejecuta `Iniciar_Panel.bat` y abre la URL indicada. Permite guardar las configuraciones en la BD propia.
+- **Actualización:** la persona encargada ejecuta `Actualizar_BD.bat` en esta carpeta. Importa Excel a `Datos/mantenimiento.sqlite3` y genera `web/datos/publicacion.js`. Conserva las configuraciones y las demás tablas de registros guardados. La fecha de actualización aparece en todas las vistas.
+
+Comparte y sincroniza la carpeta completa mediante SharePoint/OneDrive, incluidos `Datos` y `web/datos`. Esta BD es independiente de Codelco y de los demás proyectos. Coordina las escrituras y actualizaciones para que no coincidan; SQLite y OneDrive no ofrecen escritura distribuida simultánea.
+
+El Panel Universal debe tener un único acceso relativo a esta carpeta, dirigido a `panel_mantenimiento/Panel.html` (ajustar el prefijo a su ubicación). Mantenimiento conserva sus vistas internas y sus propios BAT. La portada Universal está en `../../Panel Universal.html`; su catálogo tiene un único acceso a Mantenimiento, marcado como consulta sin servidor. El catálogo base conserva esta selección al regenerarlo.
+
+La publicación precalcula los mismos resultados Python para las semanas de Reportabilidad hasta la fecha publicada y los intervalos de columnas de Seguimiento de hasta 104 semanas. Permite elegir cualquier fecha que seleccione esas columnas. Los meses sin lecturas informan que no hay datos; los meses sin programación muestran cero. Los cambios de Excel requieren actualizar la BD. Guardar Configuraciones actualiza las preferencias de la publicación sin recalcular los datos; recarga las consultas sin servidor para leerlas. Requiere una versión reciente de Edge, Chrome o Firefox con `DecompressionStream`; todas las bibliotecas de descarga son locales. El tamaño y el tiempo de publicación crecen con la cantidad de columnas de lectura.
+
+## Agrupación por zona
+
+Los cinco paneles incluyen el botón **Modo zona** junto a **Volver al inicio**. Activa la agrupación por zona, unidad y línea. El botón cambia a **Modo región** para volver a la vista por región; el filtro muestra **Zona** o **Región** según el modo activo. El modo región sigue disponible; la elección se recuerda en el navegador. El filtro de línea se combina con la zona y la unidad. Tablas, tarjetas, gráficos y descargas usan la agrupación seleccionada; los porcentajes se recalculan desde las cantidades correspondientes.
+
+El catálogo `config/unidades_zonas.json` asocia unidad, centro de costo, zona y líneas a partir de la hoja `Prog Resiter` de `Datos GDM ADC y CC Minería 230926.xlsx`. Conserva 4A, 4B, 8A y 8B y las filas de origen, sin datos de contacto. Las gerencias y jefaturas sin contratos se excluyen del catálogo. El CeCo actual permite distinguir unidades con el mismo nombre en distintas zonas; LN se obtiene del maestro de activos por patente y unidad actual. Si una patente histórica ya no coincide con esa unidad, la zona se resuelve con el CeCo único conocido de la unidad reportada; no se copia la línea de otra patente. Los casos ambiguos o sin datos se conservan como **SIN ZONA / SIN LÍNEA**, sin repartir ni duplicar equipos. Las exclusiones de regiones y unidades de Configuraciones se aplican antes de agrupar por zona. Las zonas desmarcadas solo se ocultan en el modo zona.
+
+**Actualizar BD** y **Actualizar_BD.bat** leen automáticamente el catálogo de `06. Mantenimiento/Datos GDM ADC y CC Minería 230926.xlsx`, junto con el libro de equipos. Guarda y sincroniza ambos Excel antes de actualizar. La carga regenera `config/unidades_zonas.json` y la publicación sin servidor; las consultas utilizan la asociación de esa misma carga guardada en SQLite.
+
+Se conservan los alias confirmados y sus nombres de línea, como **CMP VALLE COPIAPO ASEO → VALLE COPIAPO → ASEO**. La zona y el centro de costo se renuevan desde el Excel. Si algún archivo falta, cambia durante la lectura o falla la publicación, se conservan la BD, el catálogo JSON y la publicación anteriores.
+
+Para usar otra ruta, configura `LIBRO_ZONAS` en `config/.env` o pasa `--zonas "C:\Datos\Catálogo GDM.xlsx"` tanto al servidor como al actualizador. La opción de línea de comandos tiene prioridad sobre la variable. Reinicia el servidor después de cambiar su ruta. También existe una importación manual del JSON:
+
+```powershell
+python -B scripts/importar_zonas.py "C:\Datos\Datos GDM ADC y CC Minería.xlsx"
+```
+
+La importación manual solo genera el JSON. Para actualizar los paneles y la consulta sin servidor, usa **Actualizar BD**, que vuelve a leer el Excel GDM configurado. Comparte el JSON y la carpeta completa del proyecto.
 
 ```text
 panel_mantenimiento/
@@ -35,7 +63,7 @@ Los archivos `.gitignore` se encuentran dentro de las carpetas que contienen con
 2. La primera vez, ejecuta **Iniciar_Primera_Vez.bat**. Necesita Internet, actualiza pip, instala `config/requirements.txt` y verifica las dependencias y la carga del servidor.
 3. Cuando indique **Preparación completada**, ejecuta **Actualizar_BD.bat** para crear la base y luego **Iniciar_Panel.bat**. Este es el archivo para el uso diario.
 4. Espera el mensaje **Panel disponible en http://127.0.0.1:8765**.
-5. Abre **Panel.html** o <http://127.0.0.1:8765> y selecciona el panel que deseas consultar.
+5. Abre <http://127.0.0.1:8765> para el uso interactivo. **Panel.html** con doble clic abre siempre la consulta sin servidor.
 6. Mantén la ventana del `.bat` abierta mientras trabajas. Para detener el servidor pulsa `Ctrl+C`; si Windows pregunta si deseas terminar el trabajo por lotes, confirma con `S`.
 
 Los lanzadores utilizan Python 3.10 o superior instalado en el equipo y funcionan aunque se ejecuten desde otra carpeta. No inicies varias copias del servidor en el mismo puerto.
@@ -45,7 +73,7 @@ Los lanzadores utilizan Python 3.10 o superior instalado en el equipo y funciona
 1. Instala Python 3.10 o superior, disponible como `python3`.
 2. La primera vez, abre `MAC/Iniciar_Primera_vez_MAC.command` para preparar las dependencias.
 3. Para el uso diario, abre `MAC/Iniciar_Panel_MAC.command`.
-4. Espera **Panel disponible** y abre `Panel.html` o la URL indicada. Mantén la terminal abierta y usa `Control+C` para detener el servidor.
+4. Espera **Panel disponible** y abre la URL indicada para el modo interactivo. Mantén la terminal abierta y usa `Control+C` para detener el servidor.
 
 Los `.command` cambian a la carpeta principal antes de instalar o iniciar. Si el sistema exige permiso de ejecución, desde la carpeta del proyecto ejecuta `chmod +x MAC/*.command`.
 
@@ -64,7 +92,7 @@ En Mac, usa `python3` en lugar de `python`. También puedes indicar otros archiv
 .\Iniciar_Panel.bat --excel "C:\Datos\Control.xlsx" --maestro "C:\Datos\Control.xlsx" --puerto 8766
 ```
 
-En ese caso abre <http://127.0.0.1:8766>. Abrir `Panel.html` con doble clic dirige al puerto 8765. Solo se escucha en este equipo (`127.0.0.1`).
+En ese caso abre <http://127.0.0.1:8766>. Abrir `Panel.html` con doble clic utiliza la última publicación sin servidor. Solo se escucha en este equipo (`127.0.0.1`).
 
 Selecciona la fecha y pulsa **Consultar BD**. Para actualizar los datos, guarda y sincroniza el Excel y pulsa **Actualizar BD** o ejecuta **Actualizar_BD.bat**. El servidor lee la copia local disponible, no descarga datos de Microsoft Forms ni fuerza la sincronización de SharePoint/OneDrive. Si Excel impide la lectura, cierra el libro y reintenta.
 
@@ -96,9 +124,9 @@ Esta sección corresponde al panel **Reportabilidad**; KM-HR tiene sus propios e
 
 El semáforo utiliza el porcentaje sin redondear: **verde desde 90%**, **amarillo desde 75% hasta menos de 90%** y **rojo por debajo de 75%**. Si el total de referencia es cero, aparece en gris como **Sin base**. Se aplica a cada CeCo, los subtotales de región y el total general. El CSV incluye el nombre del semáforo.
 
-En el panel **Configuraciones** del portal, marca o desmarca las regiones compartidas y los CeCo específicos de Reportabilidad. Los cambios son inmediatos y afectan tanto las patentes reportadas como el total del maestro y los porcentajes. Al excluir una región se excluyen todos sus CeCo; al volver a incluirla se respetan sus selecciones individuales. **Incluir todos** restablece toda la selección y **Excluir todos** deja el reporte sin centros incluidos.
+En **Configuraciones**, cada región tiene una casilla y sus unidades debajo. Desmarcar una región oculta todas sus unidades en los cinco paneles; desmarcar una unidad la oculta en todo el portal. Los filtros afectan gráficos, tablas, totales, porcentajes, historial y descargas. Al volver a incluir una región se conservan las exclusiones individuales de unidades. **Incluir todas** y **Excluir todas** cambian las casillas de los grupos, conservando la selección de unidades. El botón **Modo zona** cambia la agrupación a zona y unidad; las zonas excluidas solo afectan las vistas por zona.
 
-La selección se guarda en este navegador y dirección del panel. Se conserva al recargar o cambiar de fecha; otro navegador, puerto o equipo tiene su propia configuración. Los nuevos CeCo aparecen incluidos por defecto, salvo que su región esté excluida. Borrar los datos del navegador elimina la selección guardada. Si el navegador bloquea el guardado, se muestra un aviso y los cambios solo duran la sesión actual.
+La selección se guarda en la BD propia de Mantenimiento y se conserva al actualizar las fuentes. Las configuraciones solo se modifican en el uso interactivo. Cada guardado actualiza también la configuración de la publicación sin servidor. Recarga o vuelve a abrir los paneles de consulta para leer los cambios. Los nuevos CeCo aparecen incluidos por defecto, salvo que su región esté excluida.
 
 Los filtros de búsqueda y región se aplican además de la configuración. El CSV exporta solo el detalle incluido y visible. Los avisos generales de calidad siguen correspondiendo al archivo consultado.
 
@@ -110,7 +138,7 @@ El portal usa el libro configurado mediante `LIBRO_EQUIPOS` en `config/.env` o l
 - `BD ACTIVOS MOVILES`: clasificación y base de activos para Reportabilidad.
 - `Seguimiento KM-HR`: equipos, lecturas, última mantención, intervalo y STATUS EQUIPO para Seguimiento, Resumen y Calendario.
 
-Las columnas con fecha, de texto o fechas nativas de Excel, se ordenan y filtran entre las fechas elegidas. No se aplican ventanas ADC a estas columnas. Ceros y celdas vacías representan semanas sin reporte. Los datos inválidos y retrocesos se marcan STAND BY. El CeCo actual se obtiene de la columna sin título inmediatamente después de REGION ACTUAL; si falta, se busca una ubicación única en el maestro. No se sustituye por el CeCo AF.
+Las columnas con fecha, de texto o fechas nativas de Excel, se ordenan y filtran entre las fechas elegidas. No se aplican ventanas ADC a estas columnas. Ceros y celdas vacías representan semanas sin reporte. Los datos inválidos y retrocesos se marcan No operativo. El CeCo actual se obtiene de la columna sin título inmediatamente después de REGION ACTUAL; si falta, se busca una ubicación única en el maestro. No se sustituye por el CeCo AF.
 
 La hoja aporta KM U HR UM, UN UM, FECHA UM, INTERVALO y UN IN. El portal calcula próxima mantención = UM + intervalo, saldo = próxima mantención − última lectura, y el semáforo con los límites de ±10% del intervalo. No usa los resultados de PROX.MANT, SALDO, STATUS MANTENCION, SEMAFORO, DURACION ni FECHA PROYECTADA del Excel.
 
@@ -122,30 +150,30 @@ Las fórmulas del Excel se importan por su último valor guardado. Guarda y sinc
 
 ### Reporte de mantención y Calendarización
 
-El inicio tiene cuatro paneles con archivos y direcciones independientes: **Reportabilidad**, **Seguimiento KM-HR**, **Resumen de mantención** y **Calendario de mantención**. Las configuraciones se administran en el panel independiente **Configuraciones**. Comparten los cálculos de Seguimiento KM-HR. El Resumen abre en el mes actual y permite elegir el **mes de lecturas**, la **región** y el **CeCo**. Cambiar el mes consulta las columnas de fechas de ese mes y recalcula los estados; agosto de 2026 comienza el día 4. Región y CeCo filtran tarjetas, subtotales, total, detalle y CSV; la lista de CeCo depende de la región elegida. Si el mes no tiene columnas de lectura, se informa y no se permite exportar resultados anteriores. El Calendario conserva su selección de semana 1 y última fecha de referencia. Cada patente del maestro se cuenta una sola vez. Las regiones incluidas se mantienen compartidas entre Resumen y Calendario mediante el almacenamiento del navegador; se recuperan al cargar la página.
+El inicio tiene cinco paneles con archivos y direcciones independientes: **Reportabilidad**, **Seguimiento KM-HR**, **Resumen de mantención**, **Calendario de mantención** y **Programa Mantención**. Las configuraciones se administran en el panel independiente **Configuraciones**. Comparten los cálculos de Seguimiento KM-HR. El Resumen abre en el mes actual y permite elegir el **mes de lecturas**, la **región** y el **CeCo**. Cambiar el mes consulta las columnas de fechas de ese mes y recalcula los estados; agosto de 2026 comienza el día 4. Región y CeCo filtran tarjetas, subtotales, total, detalle y CSV; la lista de CeCo depende de la región elegida. Si el mes no tiene columnas de lectura, se informa y no se permite exportar resultados anteriores. El Calendario conserva su selección de semana 1 y última fecha de referencia. Cada patente del maestro se cuenta una sola vez. Las regiones incluidas se mantienen compartidas entre Resumen y Calendario mediante la BD propia; la consulta sin servidor usa la configuración publicada.
 
-El resumen agrupa **región → CeCo**, con columnas de mantención vencida, próxima a vencer, vigente, STAND BY y total. Las primeras tres categorías usan la fórmula de saldo del panel KM-HR. Los subtotales y el total general se recalculan según las regiones incluidas.
+El resumen agrupa **región → CeCo**, con columnas de mantención vencida, próxima a vencer, vigente, No operativo y total. Las primeras tres categorías usan la fórmula de saldo del panel KM-HR. Los subtotales y el total general se recalculan según las regiones incluidas.
 
-**STAND BY:** nuevo nombre de los casos antes marcados REVISAR. La clasificación es fija y no depende de STATUS EQUIPO ni de configuraciones guardadas.
+**No operativo:** nuevo nombre de los casos antes marcados REVISAR. La clasificación es fija y no depende de STATUS EQUIPO ni de configuraciones guardadas.
 
 El detalle de patentes conserva el estado operativo, la fecha de reporte y el motivo del caso.
 
-El indicador **% no vencidas** equivale a `(vigentes + próximas) / (total − STAND BY) × 100`. Los casos STAND BY permanecen en el total general y se excluyen del porcentaje, conservando el tratamiento de los antiguos casos REVISAR. Si no hay equipos clasificables, se muestra —.
+El indicador **% no vencidas** equivale a `(vigentes + próximas) / (total − No operativo) × 100`. Los casos No operativo permanecen en el total general y se excluyen del porcentaje, conservando el tratamiento de los antiguos casos REVISAR. Si no hay equipos clasificables, se muestra —.
 
-En **Configuraciones**, desmarca las regiones que no quieres incluir. La selección se aplica al resumen, calendario y sus CSV; se guarda en el navegador, junto con Reportabilidad, Seguimiento KM-HR y Programa Mantención. «Incluir todas» y «Excluir todas» permiten cambiar la selección completa.
+En **Configuraciones**, desmarca las regiones que no quieres incluir. La selección se aplica al resumen, calendario y sus CSV; se guarda en la BD, junto con Reportabilidad, Seguimiento KM-HR y Programa Mantención. «Incluir todas» y «Excluir todas» permiten cambiar la selección completa.
 
 En **Calendario de mantención**:
 
 1. Elige el mes de mantención y, opcionalmente, una región entre las incluidas.
 2. Solo aparecen patentes cuya **fecha proyectada** esté dentro de ese mes. El calendario prioriza **FECHA PROYECTADA REAL** de **Seguimiento KM-HR** cuando contiene una fecha válida, incluso sin proyección calculable por uso. Si la columna no existe o la celda está vacía o es inválida, se usa la fecha calculada. Esta prioridad se aplica al calendario, la agenda y ambas descargas. Elegir otro mes no modifica el período de lecturas usado para estimar las fechas.
 3. Los días con mantenciones aparecen destacados con la cantidad de patentes. Pulsa un día para ver su detalle, o **Ver todo el mes** para volver a la agenda completa.
-4. La agenda se agrupa por región y muestra patente, CeCo, unidad KM/HR, fecha proyectada, lectura objetivo y estado. La columna **Incluir en descarga** permite marcar o desmarcar cada patente para ambas descargas; todas parten marcadas. La selección se conserva al cambiar de mes, región o día y al consultar BD, y se restablece al recargar la página. Las patentes desmarcadas siguen visibles en el panel para poder volver a seleccionarlas.
+4. La agenda se agrupa por región y muestra patente, CeCo, unidad KM/HR, fecha proyectada, lectura objetivo y estado. La columna **Incluir en publicación y descargas** aparece solo en el modo interactivo. Permite marcar o desmarcar cada patente; la selección se guarda en la BD y se conserva al recargar y actualizar Excel. Las patentes desmarcadas siguen visibles en el modo interactivo para poder volver a seleccionarlas. Tras ejecutar Actualizar_BD.bat, quedan fuera del calendario, la agenda y las descargas en la consulta sin servidor, donde no aparecen casillas.
 5. **Descargar tabla CSV** exporta las patentes marcadas del mes y región elegidos, incluso si el detalle está filtrado por un día. Incluye fechas ISO (`aaaa-mm-dd`) para ordenar y filtrar en Excel.
 6. Para descargar **el calendario junto con la tabla de patentes de una región**, elige una región específica y pulsa **Descargar calendario + tabla de la región (PDF)**. El archivo incluye el calendario mensual con días destacados y una tabla completa con fecha proyectada, patente, región, CeCo, unidad, próxima mantención y estado. Incluye solo las patentes marcadas de todo el mes, aunque se esté viendo un solo día. Si no hay eventos seleccionados, conserva el calendario y señala que no hay mantenciones proyectadas.
 7. Abre el PDF sin conexión o compártelo. El calendario mensual completo ocupa la primera página y la tabla continúa en las siguientes. La descarga directa es PDF; el CSV conserva la tabla como datos sin colores.
-8. Todos los paneles incluyen **Descargar PDF**, que captura la vista con sus filtros, gráficos y tablas visibles. Conserva las secciones ocultas y los detalles cerrados. Las tablas con desplazamiento se incluyen completas. Las bibliotecas PDF se sirven localmente desde `web/vendor`, sin conexión a Internet.
+8. Todos los paneles incluyen **Descargar PDF**, que genera un informe con el título del panel y el logo de Resiter, filtros escritos (fechas, regiones y CeCo), indicadores y tablas como texto seleccionable, y gráficos como figuras. Se omiten el encabezado de navegación y los controles del panel. Conserva las secciones ocultas y los detalles cerrados. Las tablas con desplazamiento se incluyen completas. Las bibliotecas PDF se sirven localmente desde `web/vendor`, sin conexión a Internet.
 
-Los equipos sin fecha real válida ni fecha calculable se omiten del calendario y se informa su cantidad. No se rellenan fechas para equipos sin datos. Las proyecciones no son órdenes de trabajo confirmadas. Si un equipo STAND BY conserva una proyección de uso válida, se incluye con esa etiqueta; revisa su fecha si su utilización cambió. El resumen también se puede descargar en CSV, con una columna «Tipo» que distingue detalle CeCo, subtotales de región y total general.
+Los equipos sin fecha real válida ni fecha calculable se omiten del calendario y se informa su cantidad. No se rellenan fechas para equipos sin datos. Las proyecciones no son órdenes de trabajo confirmadas. Si un equipo No operativo conserva una proyección de uso válida, se incluye con esa etiqueta; revisa su fecha si su utilización cambió. El resumen también se puede descargar en CSV, con una columna «Tipo» que distingue detalle CeCo, subtotales de región y total general.
 
 `Panel.html` es la portada, servida también en `/`. `Panel_Reportabilidad.html` conserva el nombre existente; la ruta `/Panel_repostabilidad.html` también abre ese panel. Cada HTML carga `panel.css`; Reportabilidad y KM-HR cargan sus propios archivos JavaScript. La portada incluye el control compartido de actualización de BD. El servidor publica únicamente las páginas y recursos declarados en `ARCHIVOS_WEB`, no los Excel ni el código Python.
 
@@ -196,18 +224,18 @@ Después de actualizar los archivos del panel, detén el servidor anterior con `
 
 Acceso desde la portada y la navegación de paneles. Lee la hoja `PROGRAMA` del libro configurado con `--excel`, usando las columnas REGION ACTUAL, NOMBRE CeCo ACTUAL, PATENTE, FECHA PROYECTADA y ESTADO. Filtra por mes y año de fecha proyectada, sin usar la fecha de ejecución.
 
-Muestra programadas, realizadas, regularizadas, no realizadas, N/A y sin clasificar por región y CeCo. Cuenta patentes únicas dentro de cada región/CeCo/mes; los duplicados contradictorios quedan sin clasificar. Cumplimiento = realizadas / (programadas − N/A). Las regularizadas no suman cumplimiento. Verde ≥90%, amarillo ≥70% y rojo <70%; sin aplicables se muestra —. Los totales recalculan el porcentaje a partir de los conteos, sin promediar porcentajes.
+Muestra programadas, realizadas, regularizadas, no realizadas, N/A y sin clasificar por región y CeCo. Cuenta patentes únicas dentro de cada región/CeCo/mes; los duplicados contradictorios quedan sin clasificar. Cumplimiento = (realizadas + regularizadas) / (programadas − N/A). Verde ≥90%, amarillo ≥70% y rojo <70%; sin aplicables se muestra —. Los totales recalculan el porcentaje a partir de los conteos, sin promediar porcentajes.
 
 API: `/api/programa-mantencion?mes=2026-09`. Pruebas: `python -B -m unittest discover -s tests`, desde la carpeta del panel.
 
-El panel incluye gráficos de cumplimiento mensual, programadas frente a realizadas por mes y torta de los cuatro estados del mes seleccionado. El historial usa todos los meses con patentes válidas en PROGRAMA y agrupa por fecha proyectada; no representa el mes de ejecución. Los casos sin estado válido permanecen en el total y denominador, con aviso, pero no tienen columna ni tarjeta y se excluyen de la torta. Los porcentajes de la torta usan solo los cuatro estados reconocidos.
+El panel incluye gráficos de cumplimiento mensual, programadas frente a realizadas por mes y cascada de realizadas, regularizadas y no realizadas del mes seleccionado, con alturas según la cantidad de patentes, cantidad dentro de cada barra, porcentaje arriba y una barra final de total (100%), sin N/A. El historial usa todos los meses con patentes válidas en PROGRAMA y agrupa por fecha proyectada; no representa el mes de ejecución. Los casos sin estado válido permanecen en el total y denominador, con aviso, pero no tienen columna ni tarjeta y se excluyen de la cascada. Los porcentajes de la cascada usan solo realizadas, regularizadas y no realizadas. Pasar el mouse por una línea, punto o leyenda del historial destaca la misma región o CeCo en ambos gráficos (cumplimiento, programadas y realizadas) y atenúa las demás entidades; al retirar el mouse se restaura la vista completa.
 
 
 ## Configuración unificada del portal
 
-El sexto acceso, **Configuraciones**, reúne las preferencias de todos los reportes. La selección de regiones afecta los filtros, gráficos, tablas, totales y descargas de Reportabilidad, Seguimiento KM-HR, Resumen, Calendario y Programa, incluido el historial. Las exclusiones antiguas de regiones se unen al migrar; los CeCo excluidos de Reportabilidad se conservan en su sección específica.
+El sexto acceso, **Configuraciones**, reúne las preferencias de todos los reportes. La selección de regiones afecta los filtros, gráficos, tablas, totales y descargas de Reportabilidad, Seguimiento KM-HR, Resumen, Calendario y Programa, incluido el historial. Las exclusiones antiguas de regiones se unen al migrar; las unidades excluidas anteriormente de Reportabilidad se conservan y ahora se aplican a todos los paneles. Las unidades se presentan dentro de su región; **Modo zona** las agrupa por zona y permite ocultar zonas completas.
 
-Se pueden ocultar individualmente 14 gráficos y tablas distribuidos entre los cinco paneles. Ocultar una vista no elimina sus datos de las descargas. «Mostrar todos» recupera las vistas. Los cambios se guardan en el navegador y se sincronizan entre pestañas de la misma dirección. Los nuevos nombres de región se incluyen por defecto. «Actualizar regiones desde BD» reúne las regiones de las tres fuentes y avisa si alguna consulta falla.
+Se pueden ocultar individualmente 14 gráficos y tablas distribuidos entre los cinco paneles. Ocultar una vista no elimina sus datos de las descargas. «Mostrar todos» recupera las vistas. Los cambios se guardan en la BD propia en el modo interactivo. La consulta sin servidor usa la configuración de la última publicación. Los nuevos nombres de región se incluyen por defecto. «Actualizar grupos desde BD» reúne las regiones, zonas y unidades de las tres fuentes y avisa si alguna consulta falla.
 
 Reinicia el servidor y recarga con Ctrl+F5 para habilitar las nuevas rutas. Los controles de consulta, fechas y búsquedas permanecen dentro de cada reporte. Todos comparten navegación, filtros, tarjetas, tablas y diseño adaptable.
 

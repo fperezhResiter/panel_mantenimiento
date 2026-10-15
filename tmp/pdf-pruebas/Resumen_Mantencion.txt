@@ -1,0 +1,7 @@
+Resumen de mantención  Resiter Minería · Página 1  Mes de lecturas: 10-2026 Región: REGION BHP Unidad: Todas las unidades 1 regiones y 102 patentes incluidas. Mes de lecturas: 2026-10. Lecturas disponibles: 06-10-2026 a 13-10-2026. La última mantención y el estado operativo corresponden al estado actual del Excel.  Mantenciones por región y Unidad  Cantidad de patentes por estado, sin duplicar equipos.  0  Mantención Vencida  11  Próxima a vencer  66  Mantención Vigente  25  No operativo  No operativo reúne los casos antes marcados REVISAR, sin clasificación calculable.  Región / Unidad   Mantención Vencida Próxima a vencer Mantención Vigente No operativo   Total general   % no vencidas REGION BHP   0   11   66   25   102   100 %  ESCONDIDA   0   9   30   5   44   100 % SPENCE   0   2   17   18   37   100 % WATER SUPPLY 2   0   0   19   2   21   100 %  Total general   0   11   66   25   102   100 %
+Resumen de mantención  Resiter Minería · Página 2  % no vencidas = (vigentes + próximas a vencer) / patentes clasificadas. No operativo se muestra en el total, pero se excluye de este porcentaje. Si no hay patentes clasificadas aparece —.  Detalle de patentes incluidas
+Resumen de mantención  Resiter Minería · Página 3
+Resumen de mantención  Resiter Minería · Página 4
+Resumen de mantención  Resiter Minería · Página 5
+Resumen de mantención  Resiter Minería · Página 6
+Resumen de mantención  Resiter Minería · Página 7  Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR · Cálculos de Seguimiento KM-HR

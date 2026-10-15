@@ -14,11 +14,15 @@ for (const pagina of paginas) {
   assert(enlace, pagina + ': falta conexión al servidor');
   assert.equal(path.resolve(root, path.dirname(pagina), enlace[1]), path.join(root, 'web/js/abrir_portal.js'));
   let destino;
-  vm.runInNewContext(script, {URL, location: {
+  let modo;
+  vm.runInNewContext(script, {URL, document:{documentElement:{classList:{add:c=>modo=c}}}, location: {
     protocol: 'file:', pathname: '/C:/carpeta%20con%20espacios/' + pagina,
+    href: 'file:///C:/carpeta%20con%20espacios/' + pagina,
     search: '?fecha=2026-09-29', hash: '#detalle', replace: url => { destino = url; }
   }});
-  assert.equal(destino, 'http://127.0.0.1:8765/' + path.basename(pagina) + '?fecha=2026-09-29#detalle');
+  assert.equal(modo, 'modo-consulta');
+  assert.equal(destino, pagina.endsWith('Panel_Configuraciones.html') ? 'file:///C:/carpeta%20con%20espacios/Panel.html' : undefined,
+    'Configuraciones local vuelve al inicio; los reportes conservan la consulta');
 }
 
 for (const protocol of ['http:', 'https:']) {
@@ -27,4 +31,4 @@ for (const protocol of ['http:', 'https:']) {
     replace: () => assert.fail('No debe redirigir una página servida por HTTP/HTTPS')
   }});
 }
-console.log('OK: doble clic en las ' + paginas.length + ' páginas, parámetros conservados y navegación HTTP/HTTPS sin redirección.');
+console.log('OK: consulta local; Configuraciones vuelve al inicio sin servidor y sigue disponible por HTTP.');

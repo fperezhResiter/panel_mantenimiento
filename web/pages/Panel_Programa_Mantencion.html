@@ -4,31 +4,38 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Programa Mantención — Resiter Minería</title>
-    <link rel="stylesheet" href="../css/panel.css">
+    <title>Programa de mantención — Resiter Minería</title>
+    <link rel="stylesheet" href="../css/panel.css?v=20261015-12">
   <script src="../js/abrir_portal.js"></script>
+  <script src="../datos/publicacion.js"></script>
+  <script src="../js/datos_panel.js"></script>
+<!-- INICIO CONTROLES UNIVERSALES -->
+<link rel="stylesheet" href="../css/controles-comunes.css">
+<script src="../js/controles-comunes.js" data-menu="../../../../Panel Universal.html"></script>
+<!-- FIN CONTROLES UNIVERSALES -->
 </head>
 
 <body data-panel="programa">
     <header>
         <img class="logo" src="../img/logo_sin_fondo_resiter.png" alt="Resiter">
-        <h1>Programa Mantención</h1><a class="volver-inicio" href="../../Panel.html">← Inicio</a>
+        <h1>Programa de mantención</h1><a class="volver-inicio" href="../../Panel.html">← Volver al inicio</a>
     </header>
     <nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html">Reportabilidad</a><a
             href="Panel_Seguimiento_KM_HR.html">Seguimiento KM-HR</a><a href="Panel_Resumen_Mantencion.html">Resumen de
             mantención</a><a href="Panel_Calendario_Mantencion.html">Calendario de mantención</a><a
-            href="Panel_Programa_Mantencion.html" aria-current="page">Programa Mantención</a><a
+            href="Panel_Programa_Mantencion.html" aria-current="page">Programa de mantención</a><a
             href="Panel_Configuraciones.html">Configuraciones</a></nav>
     <form id="programa-form" class="filtros"><label>Mes de fecha proyectada<input id="mes" type="month"
                 required></label><label>Región<select id="region-programa">
                 <option value="">Todas las regiones</option>
-            </select></label><label>CeCo<select id="ceco-programa">
-                <option value="">Todos los CeCo</option>
-            </select></label><button id="consultar" class="pri">Consultar</button><button id="descargar-pdf" type="button" data-pdf-omitir>Descargar PDF</button><span id="pdf-estado" role="status" aria-live="polite" data-pdf-omitir></span></form>
+            </select></label><label>Unidad<select id="ceco-programa">
+                <option value="">Todas las unidades</option>
+            </select></label>
+<div class="acciones-filtros"><button id="consultar" class="pri">Consultar</button><button id="descargar-pdf" type="button" data-pdf-omitir>Descargar PDF</button></div><span id="pdf-estado" role="status" aria-live="polite" data-pdf-omitir></span></form>
     <main>
         <div class="intro">
             <div>
-                <h2>Programa mensual por región y CeCo</h2>
+                <h2>Programa mensual por región y Unidad</h2>
                 <p>Patentes con fecha proyectada dentro del mes seleccionado.</p>
             </div>
         </div>
@@ -42,18 +49,21 @@
                 <p class="nota">Meses disponibles en PROGRAMA, según fecha proyectada. Realizadas muestra el estado
                     actual de esas mantenciones, no el mes de ejecución.</p>
                 <div class="reporte-graficos-grid">
-                    <figure data-vista="programa.cumplimiento">
+                    <figure data-vista="programa.cumplimiento" data-pdf-descripcion="Evolución mensual del cumplimiento de las mantenciones programadas. Se calcula como (realizadas + regularizadas) / (programadas − N/A). Cada serie representa el grupo indicado en la leyenda; sin patentes aplicables no se calcula porcentaje.">
                         <figcaption>Cumplimiento por mes</figcaption>
                         <div class="scroll" id="grafico-cumplimiento"></div>
                     </figure>
-                    <figure data-vista="programa.cantidades">
+                    <figure data-vista="programa.cantidades" data-pdf-descripcion="Comparación mensual de patentes programadas y realizadas. La línea continua representa las programadas y la discontinua, las realizadas. El mes corresponde a la fecha proyectada; Realizadas refleja el estado actual de esas mantenciones, no el mes de ejecución.">
                         <figcaption>Programadas y realizadas por mes</figcaption>
                         <div class="scroll" id="grafico-cantidades"></div>
                     </figure>
                 </div>
+                <div class="programa-acciones" data-pdf-omitir>
+                    <button id="programa-volver" type="button" hidden>← Ir al nivel anterior</button>
+                </div>
             </details>
-            <details open data-vista="programa.estados" class="tarjeta reporte-evolucion programa-plegable">
-                <summary id="titulo-torta">Estados del mes seleccionado</summary>
+            <details open data-vista="programa.estados" class="tarjeta reporte-evolucion programa-plegable" data-pdf-descripcion="La cascada acumula las cantidades de mantenciones realizadas, regularizadas y no realizadas. La última barra muestra la suma de esos tres estados. N/A y los estados sin clasificación válida quedan fuera de la cascada; estos últimos sí permanecen en las programadas y en el denominador del cumplimiento.">
+                <summary id="titulo-estados">Estados del mes seleccionado · Cascada</summary>
                 <div class="reporte-graficos-grid">
                     <div id="grafico-estados"></div>
                     <div id="leyenda-estados"></div>
@@ -63,12 +73,16 @@
                     ≥ 70% y &lt; 90%</span><span class="semaforo rojo">Rojo &lt; 70%</span><span
                     class="semaforo neutro">Sin aplicables</span></div>
             <section class="tarjeta" data-vista="programa.tabla">
+                <div class="programa-acciones" data-pdf-omitir>
+                    <button id="programa-alternar-grupos" type="button" aria-controls="detalle" aria-expanded="true" disabled>Contraer todo</button>
+                    <button id="programa-alternar-lineas" type="button" aria-controls="detalle" aria-pressed="false" hidden>Mostrar por línea</button>
+                </div>
                 <div class="scroll">
                     <table>
                         <caption class="nota" id="periodo"></caption>
                         <thead>
                             <tr>
-                                <th scope="col">Región / CeCo</th>
+                                <th scope="col">Región / Unidad</th>
                                 <th scope="col">Programadas</th>
                                 <th scope="col">Realizadas</th>
                                 <th scope="col">Regularizadas</th>
@@ -82,19 +96,22 @@
                     </table>
                 </div>
             </section>
-            <p class="nota">Cumplimiento = realizadas / (programadas − N/A). Las regularizadas no suman al cumplimiento.
-                Se cuenta cada patente una vez por región y CeCo en el mes. Los estados vacíos, desconocidos o
-                contradictorios permanecen en programadas y en el denominador de cumplimiento; se excluyen de la torta.
+            <p class="nota">Cumplimiento = (realizadas + regularizadas) / (programadas − N/A).
+                Se cuenta cada patente una vez por región y Unidad en el mes. Los estados vacíos, desconocidos o
+                contradictorios permanecen en programadas y en el denominador de cumplimiento; se excluyen de la cascada.
+                La cascada muestra cantidades de realizadas, regularizadas y no realizadas y una barra final de total,
+                sin N/A. <span data-pdf-omitir>Pasa el mouse por una barra para ver su porcentaje.</span>
                 Si no hay patentes aplicables se muestra —.</p>
         </section>
         <footer id="fuente">Fuente: hoja PROGRAMA</footer>
     </main>
     <script src="../js/configuracion.js" defer></script>
-    <script src="../js/programa.js" defer></script>
+    <script src="../js/zonas.js?v=20261015-10" defer></script>
+    <script src="../js/programa.js?v=20261015-10" defer></script>
   <script src="../js/base_datos.js" defer></script>
 <script src="../vendor/pdf-lib.min.js" defer></script>
 <script src="../vendor/html2canvas.min.js" defer></script>
-<script src="../js/panel_pdf.js" defer></script>
+<script src="../js/panel_pdf.js?v=20261015-12" defer></script>
 </body>
 
 </html>

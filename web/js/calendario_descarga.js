@@ -28,7 +28,8 @@ function informeCalendarioMt(equipos,mes,region,inicio,referencia)
         }
         calendario+='</tr>';
     }
-    const tabla=eventos.map(e=>{const estado=['REVISAR','REVISADO'].includes(e.calculo.estado?.toUpperCase())?'STAND BY':e.calculo.estado;return '<tr>'+[fecha(e.calculo.fecha_proyectada),e.patente,e.region,e.ceco,e.unidad||'—',numero(e.calculo.proxima),estado].map(v=>`<td>${esc(v)}</td>`).join('')+'</tr>';}).join('')||'<tr><td colspan="7">Sin mantenciones proyectadas para esta región y mes.</td></tr>';
+    const zona=typeof window!=='undefined'&&window.PortalZona?.activa();
+    const tabla=eventos.map(e=>{const estado=['REVISAR','REVISADO'].includes(e.calculo.estado?.toUpperCase())?'No operativo':e.calculo.estado;return '<tr>'+[fecha(e.calculo.fecha_proyectada),e.patente,e.region,e.ceco,...(zona?[e.linea]:[]),e.unidad||'—',numero(e.calculo.proxima),estado].map(v=>`<td>${esc(v)}</td>`).join('')+'</tr>';}).join('')||`<tr><td colspan="${zona?8:7}">Sin mantenciones proyectadas para esta ${zona?'zona':'región'} y mes.</td></tr>`;
     return `<!doctype html>
     <html lang="es"><head><meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -46,11 +47,11 @@ function informeCalendarioMt(equipos,mes,region,inicio,referencia)
     vertical-align:top;
     text-align:left}th{background:#e3edf7;
     color:#073762}.calendario{table-layout:fixed}.calendario th{text-align:center}.calendario td{height:75px}.calendario b{font-size:19px}.calendario strong,.calendario span{display:block;font-size:11px;margin-top:6px;overflow-wrap:anywhere}.programado{background:#e4f2fc;
-    border:2px solid #0e81c5}.vacio{background:#f6f7f9}.detalle{font-size:12px}.detalle td{overflow-wrap:anywhere}footer{border-top:1px solid #ccd9e4;padding-top:12px;
+    border:2px solid #0e81c5}.vacio{background:#f6f7f9}.detalle{font-size:12px}.detalle td{overflow-wrap:anywhere}.detalle th,.detalle td{border-color:#b8cddd}.detalle tbody tr:nth-child(even){background:#e3f0fa}footer{border-top:1px solid #ccd9e4;padding-top:12px;
     color:#526373;font-size:12px}@media print{@page{size:A4 landscape;margin:12mm}body{margin:0;padding:0;max-width:none}.instruccion{display:none}.tabla-patentes{break-before:page}.detalle thead{display:table-header-group}.detalle tr{break-inside:avoid}.programado{print-color-adjust:exact;-webkit-print-color-adjust:exact}.calendario td{height:90px}}@media(max-width:650px){body{padding:0 8px}.calendario td{padding:4px}.calendario span{font-size:10px}.detalle{font-size:10px}}
     </style>
     </head>
-    <body><header>
+    <body data-panel="calendario"><header>
     <p class="etiqueta">RESITER / MINERÍA</p>
     <h1>Calendario de mantención</h1>
     <h2>${esc(region)} · ${esc(mes)}</h2>
@@ -69,12 +70,12 @@ function informeCalendarioMt(equipos,mes,region,inicio,referencia)
         <h2>Tabla de patentes · ${esc(region)}</h2>
         <table class="detalle">
             <thead>
-                <tr>${['Fecha proyectada','Patente','Región','CeCo','Unidad','Próxima mantención','Estado'].map(c=>`<th>${c}</th>`).join('')}</tr>
+                <tr>${['Fecha proyectada','Patente',zona?'Zona':'Región','Unidad',...(zona?['Línea de negocio']:[]),'Medida KM/HR','Próxima mantención','Estado'].map(c=>`<th>${c}</th>`).join('')}</tr>
             </thead>
             <tbody>${tabla}</tbody>
         </table>
     </section>
-    <footer>Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR. Se utiliza FECHA PROYECTADA REAL cuando contiene una fecha válida; en los demás casos, la proyección según uso. Las fechas no son órdenes de trabajo confirmadas. Se incluyen solo las patentes seleccionadas para descarga de esta región con fecha en el mes elegido. Los equipos sin fecha quedan fuera. Si un equipo está en STAND BY, valida la fecha si su ritmo de uso cambió.</footer>
+    <footer>Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR. Se utiliza FECHA PROYECTADA REAL cuando contiene una fecha válida; en los demás casos, la proyección según uso. Las fechas no son órdenes de trabajo confirmadas. Se incluyen solo las patentes seleccionadas para descarga de esta región con fecha en el mes elegido. Los equipos sin fecha quedan fuera. Si un equipo está en No operativo, valida la fecha si su ritmo de uso cambió.</footer>
     </body>
     </html>`;
 }

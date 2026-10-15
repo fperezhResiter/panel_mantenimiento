@@ -11,7 +11,9 @@ from dotenv import load_dotenv
 from .rutas import ARCHIVOS_WEB
 from .reportes import crear_reporte
 from .api import API_RUTAS
-from .base_datos import actualizar_base_datos, leer_fuentes, estado_base_datos
+from .cecos import catalogo_cecos
+from .zonas import enriquecer_zonas
+from .base_datos import actualizar_base_datos, leer_fuentes, estado_base_datos, leer_configuracion, guardar_configuracion
 
 BASE = Path(__file__).resolve().parent.parent
 BASE_DOCUMENTOS = Path(__file__).resolve().parents[4]
@@ -23,6 +25,7 @@ LIBRO_EQUIPOS = Path(
     / "Forms"
     / "Control de Equipos Móviles – Minería.xlsx"
 )
+LIBRO_ZONAS = Path(os.environ.get('LIBRO_ZONAS') or BASE_DOCUMENTOS / '06. Mantenimiento' / 'Datos GDM ADC y CC Minería 230926.xlsx')
 
 class ServidorPanel(ThreadingHTTPServer):
     """Evita que dos instancias atiendan el mismo puerto en Windows."""
@@ -43,9 +46,16 @@ def main():
     parser.add_argument('--maestro', type=Path, default=LIBRO_EQUIPOS,
                         help='Libro de activos (hoja BD ACTIVOS MOVILES).')
     parser.add_argument('--puerto', type=int, default=8765)
+    parser.add_argument('--zonas', type=Path, default=LIBRO_ZONAS, help='Catálogo GDM de unidades, zonas y líneas.')
+    parser.add_argument('--abrir', action='store_true', help='Abrir el modo interactivo en el navegador.')
     parser.add_argument('--bd', type=Path, default=BASE / 'Datos' / 'mantenimiento.sqlite3',
                         help='Base SQLite que consultan los paneles.')
     args = parser.parse_args()
+    # Una BD alternativa mantiene su publicación al lado de esa BD.
+    publicacion = (BASE / 'web/datos/publicacion.js' if args.bd.resolve() == (BASE / 'Datos/mantenimiento.sqlite3').resolve()
+                   else args.bd.resolve().parent / 'publicacion.js')
+    catalogo_destino = (BASE / 'config/unidades_zonas.json' if args.bd.resolve() == (BASE / 'Datos/mantenimiento.sqlite3').resolve()
+                        else args.bd.resolve().parent / 'unidades_zonas.json')
 
     class Handler(BaseHTTPRequestHandler):
         def responder(self, status, contenido, tipo):
@@ -74,10 +84,18 @@ def main():
                     self.responder(400, json.dumps({'error': str(error)}).encode(), 'application/json')
                 except Exception:
                     self.responder(500, b'{"error":"BD no disponible. Ejecuta Actualizar_BD.bat."}', 'application/json')
+            elif url.path == '/api/configuracion':
+                try:
+                    datos = leer_configuracion(args.bd)
+                    self.responder(200, json.dumps(datos, ensure_ascii=False).encode(), 'application/json; charset=utf-8')
+                except Exception as error:
+                    self.responder(400, json.dumps({'error': str(error)}).encode(), 'application/json')
             elif url.path in API_RUTAS:
                 try:
                     excel_bd, maestro_bd, estado = leer_fuentes(args.bd)
                     datos = API_RUTAS[url.path](excel_bd, maestro_bd, parse_qs(url.query))
+                    enriquecer_zonas(datos, excel_bd, maestro_bd)
+                    datos['cecos_codigos'] = catalogo_cecos(maestro_bd)
                     datos['bd_actualizada'] = estado['actualizado']
                     if 'actualizado' in datos:
                         datos['actualizado'] = estado['actualizado']
@@ -95,11 +113,12 @@ def main():
                 longitud = int(self.headers.get('Content-Length', '0'))
             except ValueError:
                 longitud = -1
-            if not 0 <= longitud <= 1024:
+            if not 0 <= longitud <= 1048576:
                 self.responder(400, b'{"error":"Solicitud invalida."}', 'application/json')
                 return
-            self.rfile.read(longitud)
-            if urlsplit(self.path).path != '/api/bd/actualizar':
+            cuerpo = self.rfile.read(longitud)
+            ruta = urlsplit(self.path).path
+            if ruta not in ('/api/bd/actualizar', '/api/configuracion'):
                 self.responder(404, b'No encontrado', 'text/plain')
                 return
             # Solo el panel local puede solicitar una carga; no acepta rutas del navegador.
@@ -113,10 +132,13 @@ def main():
                 self.responder(403, b'{"error":"Solicitud no permitida."}', 'application/json')
                 return
             try:
-                datos = actualizar_base_datos(args.excel, args.maestro, args.bd)
+                if ruta == '/api/configuracion':
+                    datos = guardar_configuracion(args.bd, json.loads(cuerpo), publicacion)
+                else:
+                    datos = actualizar_base_datos(args.excel, args.maestro, args.bd, publicacion, args.zonas, catalogo_destino)
                 self.responder(200, json.dumps(datos, ensure_ascii=False).encode(), 'application/json; charset=utf-8')
             except Exception as error:
-                datos = {'error': f'No se pudo actualizar la BD: {error}. Se conserva la base anterior.'}
+                datos = {'error': f'No se pudo guardar o actualizar la BD: {error}.'}
                 self.responder(500, json.dumps(datos, ensure_ascii=False).encode(), 'application/json; charset=utf-8')
 
     try:
@@ -127,6 +149,9 @@ def main():
               'También puedes elegir otro puerto con --puerto 8766.', flush=True)
         raise SystemExit(1)
     print(f'Panel disponible en http://127.0.0.1:{servidor.server_address[1]} | Reporte v2 | Ctrl+C para detener', flush=True)
+    if args.abrir:
+        import webbrowser
+        webbrowser.open(f'http://127.0.0.1:{servidor.server_address[1]}/')
     try:
         servidor.serve_forever()
     except KeyboardInterrupt:

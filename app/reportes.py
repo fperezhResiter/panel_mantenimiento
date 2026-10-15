@@ -3,7 +3,8 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta
 from .excel import leer_tabla, normalizar, patente_valida, convertir_fecha, TIPO_ADC
 
-def crear_reporte(excel, maestro, fecha):
+def crear_reporte(excel, maestro, fecha, clasificar=None):
+    clave_ceco = lambda c, p: clasificar(c, p) if clasificar else normalizar(c) or "SIN CECO"
     primera_semana = date(2026, 8, 4)
     fecha = fecha + timedelta(days=1-fecha.weekday())
     if fecha < primera_semana:
@@ -28,6 +29,9 @@ def crear_reporte(excel, maestro, fecha):
             mapa[ceco].add(region)
 
     def region_ceco(ceco):
+        if clasificar:
+            import json
+            return json.loads(ceco)[0]
         regiones = mapa.get(ceco, set())
         return next(iter(regiones)) if len(regiones) == 1 else 'SIN REGIÓN'
 
@@ -40,7 +44,7 @@ def crear_reporte(excel, maestro, fecha):
         if patente is None:
             invalidas_maestro += 1
             continue
-        ceco = normalizar(ceco) or 'SIN CECO'
+        ceco = clave_ceco(ceco, patente)
         base[ceco].add(patente)
 
     filas, epoch, hoja = leer_tabla(excel, ['Hora de finalización', 'CeCo (Centro de costo)', 'REGION', 'PATENTE', 'Reportabilidad a realizar'], nombre_hoja='Sheet1')
@@ -58,7 +62,7 @@ def crear_reporte(excel, maestro, fecha):
         if p:
             for s, reportes_semana in zip(semanas, historico):
                 if s['inicio'] <= dia.isoformat() <= s['fin']:
-                    reportes_semana[normalizar(ceco) or 'SIN CECO'].add(p)
+                    reportes_semana[clave_ceco(ceco, p)].add(p)
         if not inicio <= dia <= fin:
             continue
         filas_periodo += 1
@@ -66,7 +70,7 @@ def crear_reporte(excel, maestro, fecha):
         if patente is None:
             sin_patente += 1
             continue
-        ceco = normalizar(ceco) or 'SIN CECO'
+        ceco = clave_ceco(ceco, patente)
         reportadas[ceco].add(patente)
     grupos = defaultdict(list)
     for ceco in sorted(set(base) | set().union(*(set(h) for h in historico))):

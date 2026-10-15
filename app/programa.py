@@ -10,12 +10,12 @@ def resumir(equipos):
     resultado = {campo: sum(e['estado'] == campo for e in equipos) for campo in CAMPOS}
     resultado['total'] = len(equipos)
     aplicables = resultado['total'] - resultado['na']
-    resultado['porcentaje'] = (resultado['realizadas'] * 100 / aplicables
+    resultado['porcentaje'] = ((resultado['realizadas'] + resultado['regularizadas']) * 100 / aplicables
                                if aplicables else None)
     return resultado
 
 
-def crear_programa(excel, mes):
+def crear_programa(excel, mes, clasificar=None):
     try:
         periodo = date.fromisoformat(mes + '-01')
     except (ValueError, TypeError):
@@ -47,6 +47,10 @@ def crear_programa(excel, mes):
                 conflictos += int(del_mes)
                 unicos[clave]['estado'] = 'sin_clasificar'
             continue
+        if clasificar:
+            import json
+            ceco = clasificar(ceco, patente)
+            region = json.loads(ceco)[0]
         unicos[clave] = {'region': region, 'ceco': ceco, 'patente': patente, 'estado': categoria}
     por_mes = defaultdict(list)
     for clave, equipo in unicos.items():
@@ -79,6 +83,6 @@ def crear_programa(excel, mes):
         if cantidad:
             avisos.append(f'{cantidad} {mensaje}.')
     if any(e['estado'] == 'sin_clasificar' for e in seleccionados):
-        avisos.append('Hay patentes con estado vacío, desconocido o contradictorio: se incluyen en programadas y en el denominador de cumplimiento, pero no en la torta de estados.')
+        avisos.append('Hay patentes con estado vacío, desconocido o contradictorio: se incluyen en programadas y en el denominador de cumplimiento, pero no en la cascada de estados.')
     return dict(mes=mes, regiones=regiones, historico=historico, advertencias=avisos, fuente=excel.name, hoja=hoja,
                 **resumir(seleccionados))

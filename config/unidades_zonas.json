@@ -1,0 +1,1414 @@
+{
+  "version": 1,
+  "fuente": "Datos GDM ADC y CC Minería 230926.xlsx",
+  "hoja": "Prog Resiter",
+  "unidades": [
+    {
+      "unidad": "QUEBRADA BLANCA",
+      "ceco": "3400",
+      "zona": "ZONA 1",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            14
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            15
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS/INSUMOS",
+          "filas_excel": [
+            16
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "TECK CMRS",
+      "ceco": "3450",
+      "zona": "ZONA 1",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            17
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            18
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            19
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "SUCURSAL IQUIQUE",
+      "ceco": "3120",
+      "zona": "ZONA 1",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            20
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            21
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            22
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "SAL PUNTA LOBOS (SPL)",
+      "ceco": "3791",
+      "zona": "ZONA 1",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            23
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            24
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "COLLAHUASI",
+      "ceco": "3010",
+      "zona": "ZONA 2",
+      "lineas": [
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            29,
+            30
+          ]
+        },
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            31
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            32
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            33
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "COLLAHUASI II",
+      "ceco": "3640",
+      "zona": "ZONA 2",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            34
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            35
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS/INSUMOS",
+          "filas_excel": [
+            36
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            37
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "LOS BRONCES",
+      "ceco": "3250",
+      "zona": "ZONA 2",
+      "lineas": [
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            38
+          ]
+        },
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            39
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            40
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CANDELARIA",
+      "ceco": "3220",
+      "zona": "ZONA 3",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            45
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            46
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CASERONES",
+      "ceco": "3470",
+      "zona": "ZONA 3",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            47
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            48
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            49
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "GOLD FIELDS",
+      "ceco": "3300",
+      "zona": "ZONA 3",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            50
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            51
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "PROYECTO VALERIANO (ATEX)",
+      "ceco": "3795",
+      "zona": "ZONA 3",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            52
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            53
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            54
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "SUCURSAL COPIAPO",
+      "ceco": "3290",
+      "zona": "ZONA 3",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            55
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            56
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            57
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            58
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "ESCONDIDA",
+      "ceco": "3130",
+      "zona": "ZONA 4A",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            65
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            66
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS/INSUMOS",
+          "filas_excel": [
+            67
+          ]
+        },
+        {
+          "codigo": "15",
+          "nombre": "CONSTRUCCIÓN",
+          "filas_excel": [
+            68
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "MEL 5400",
+      "ceco": "3700",
+      "zona": "ZONA 4A",
+      "lineas": [
+        {
+          "codigo": "15",
+          "nombre": "AGUAS/CONSTRUCCION",
+          "filas_excel": [
+            69
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "WATER SUPPLY 2",
+      "ceco": "3360",
+      "zona": "ZONA 4A",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            70
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS/INSUMOS",
+          "filas_excel": [
+            71
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            72
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            73
+          ]
+        },
+        {
+          "codigo": "14",
+          "nombre": "SANITIZACIÓN",
+          "filas_excel": [
+            74
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "SPENCE",
+      "ceco": "3020",
+      "zona": "ZONA 4B",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            75
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            76
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            77
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            78
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "SPENCE DRAGADO",
+      "ceco": "3021",
+      "zona": "ZONA 4B",
+      "lineas": [
+        {
+          "codigo": "2",
+          "nombre": "DRAGADO",
+          "filas_excel": [
+            79
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "SPENCE STWM",
+      "ceco": "3630",
+      "zona": "ZONA 4B",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            80
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            81
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            82
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CODELCO ANDINA",
+      "ceco": "3280",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            87
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            88
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CODELCO EL SALVADOR",
+      "ceco": "3390",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            89
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            90
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            91
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CODELCO EL SALVADOR RO",
+      "ceco": "3391",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "2",
+          "nombre": "RRHH",
+          "filas_excel": [
+            92
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "ECOMETALES POLVO",
+      "ceco": "3060",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            93
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "ECOMETALES POLVO SPOT",
+      "ceco": "3031",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            94
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "ECOMETALES PTAS",
+      "ceco": "3060",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            95
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "DCH SUBTERRANEO",
+      "ceco": "3730",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "2",
+          "nombre": "AGUAS/INSUMOS",
+          "filas_excel": [
+            96
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CODELCO VP",
+      "ceco": "3070",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            97
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS/INSUMOS",
+          "filas_excel": [
+            98
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            99
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "DMH HIDRICO",
+      "ceco": "3411",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            100
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "GABY",
+      "ceco": "3100",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            101
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            102
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "SUCURSAL CALAMA",
+      "ceco": "3090",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            103
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            104
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            105
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "ARAMARK TALABRE",
+      "ceco": "3790",
+      "zona": "ZONA 5",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            106
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUA",
+          "filas_excel": [
+            107
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "ANTUCOYA",
+      "ceco": "3170",
+      "zona": "ZONA 6",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            112
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS/INSUMOS",
+          "filas_excel": [
+            113
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            114
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CENTINELA",
+      "ceco": "3230",
+      "zona": "ZONA 6",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            115
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS/INSUMOS",
+          "filas_excel": [
+            116
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            117
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CENTINELA REDES",
+      "ceco": "3560",
+      "zona": "ZONA 6",
+      "lineas": [
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            118
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CENTINELA WOOD",
+      "ceco": "3231",
+      "zona": "ZONA 6",
+      "lineas": [
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            119
+          ]
+        },
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            120
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            121
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "PELAMBRES",
+      "ceco": "3510",
+      "zona": "ZONA 6",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            122
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS/INSUMOS",
+          "filas_excel": [
+            123
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            124
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            125
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "SUCURSAL ANTOFAGASTA",
+      "ceco": "3350",
+      "zona": "ZONA 6",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            126
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            127
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            128
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            129
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "ZALDIVAR",
+      "ceco": "3140",
+      "zona": "ZONA 6",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            130
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            131
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            132
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            133
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "ALBEMARLE",
+      "ceco": "3110",
+      "zona": "ZONA 7",
+      "lineas": [
+        {
+          "codigo": "2",
+          "nombre": "AGUAS/INSUMOS",
+          "filas_excel": [
+            138
+          ]
+        },
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            139
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            140
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            141
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "ALTO NORTE",
+      "ceco": "3180",
+      "zona": "ZONA 7",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            142
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            143
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "EL PEÑON",
+      "ceco": "3160",
+      "zona": "ZONA 7",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            144
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            145
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "LOMAS BAYAS",
+      "ceco": "3190",
+      "zona": "ZONA 7",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            146
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS/INSUMOS",
+          "filas_excel": [
+            147
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            148
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            149
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "MOLYB CODELCO",
+      "ceco": "3210",
+      "zona": "ZONA 7",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS/INSUMOS",
+          "filas_excel": [
+            150
+          ]
+        },
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            151
+          ]
+        },
+        {
+          "codigo": "4",
+          "nombre": "COMERCIALIZABLES",
+          "filas_excel": [
+            152
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "MANTO VERDE",
+      "ceco": "3660",
+      "zona": "ZONA 7",
+      "lineas": [
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            153
+          ]
+        },
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            154
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            155
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "MANTOS BLANCOS",
+      "ceco": "3670",
+      "zona": "ZONA 7",
+      "lineas": [
+        {
+          "codigo": "2",
+          "nombre": "AGUAS",
+          "filas_excel": [
+            156
+          ]
+        },
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS",
+          "filas_excel": [
+            157
+          ]
+        },
+        {
+          "codigo": "3",
+          "nombre": "SANITARIOS",
+          "filas_excel": [
+            158
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "SUCURSAL LA SERENA",
+      "ceco": "3490",
+      "zona": "ZONA 7",
+      "lineas": [
+        {
+          "codigo": "1",
+          "nombre": "RESIDUOS/SANITARIOS",
+          "filas_excel": [
+            159
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "TECK CMRS",
+      "ceco": "3785",
+      "zona": "ZONA 8A",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8A (Norte)",
+          "filas_excel": [
+            167
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "ANTUCOYA",
+      "ceco": "3771",
+      "zona": "ZONA 8A",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8A (Norte)",
+          "filas_excel": [
+            168
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "ANTUCOYA LIX",
+      "ceco": "3772",
+      "zona": "ZONA 8A",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8A (Norte)",
+          "filas_excel": [
+            169
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CENTINELA",
+      "ceco": "3789",
+      "zona": "ZONA 8A",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8A (Norte)",
+          "filas_excel": [
+            170
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "DMH ASEO INDUSTRIAL",
+      "ceco": "3777",
+      "zona": "ZONA 8A",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8A (Norte)",
+          "filas_excel": [
+            171
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "BARRIDO SIERRA GORDA",
+      "ceco": "3292",
+      "zona": "ZONA 8A",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8A (Norte)",
+          "filas_excel": [
+            172
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "SPIGOTS",
+      "ceco": "3783",
+      "zona": "ZONA 8A",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8A (Norte)",
+          "filas_excel": [
+            173
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "MANTOS BLANCOS",
+      "ceco": "3780",
+      "zona": "ZONA 8A",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8A (Norte)",
+          "filas_excel": [
+            174
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "SIERRA GORDA",
+      "ceco": "3784",
+      "zona": "ZONA 8A",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8A (Norte)",
+          "filas_excel": [
+            175
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "MANTO VERDE",
+      "ceco": "3781",
+      "zona": "ZONA 8B",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8B (Centro Norte)",
+          "filas_excel": [
+            176
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "GOLD FIELDS",
+      "ceco": "3779",
+      "zona": "ZONA 8B",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8B (Centro Norte)",
+          "filas_excel": [
+            177
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "Goldfields SPOT",
+      "ceco": "3779",
+      "zona": "ZONA 8B",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8B (Centro Norte)",
+          "filas_excel": [
+            178,
+            179
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CODELCO EL TENIENTE",
+      "ceco": "3776",
+      "zona": "ZONA 8B",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8B (Centro Norte)",
+          "filas_excel": [
+            180
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "CANDELARIA",
+      "ceco": "3788",
+      "zona": "ZONA 8B",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8B (Centro Norte)",
+          "filas_excel": [
+            181
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "MLP TRANQUE EL MAURO",
+      "ceco": "3792",
+      "zona": "ZONA 8B",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8B (Centro Norte)",
+          "filas_excel": [
+            182
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "PUERTO CHUNGO",
+      "ceco": "3782",
+      "zona": "ZONA 8B",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8B (Centro Norte)",
+          "filas_excel": [
+            183
+          ]
+        }
+      ]
+    },
+    {
+      "unidad": "VALLE COPIAPO",
+      "ceco": "3775",
+      "zona": "ZONA 8B",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "ASEO",
+          "filas_excel": [
+            184
+          ],
+          "nombre_fuente": "Zona 8B (Centro Norte)"
+        }
+      ],
+      "alias": [
+        "CMP VALLE COPIAPO ASEO"
+      ],
+      "nota": "Alias y nombre de linea confirmados por el usuario."
+    },
+    {
+      "unidad": "VALLE HUASCO",
+      "ceco": "3793",
+      "zona": "ZONA 8B",
+      "lineas": [
+        {
+          "codigo": "5",
+          "nombre": "Zona 8B (Centro Norte)",
+          "filas_excel": [
+            185
+          ]
+        }
+      ]
+    }
+  ]
+}

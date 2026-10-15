@@ -33,7 +33,7 @@ fi
 echo
 echo "Iniciando el panel..."
 echo
-echo "Cuando aparezca 'Panel disponible', abre Panel.html o la URL indicada."
+echo "Cuando aparezca 'Panel disponible', abre la URL indicada para el modo interactivo."
 echo
 echo "Mantén esta ventana abierta."
 echo "Para detener el servidor presiona Control + C."

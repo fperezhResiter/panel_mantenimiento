@@ -1,33 +1,131 @@
 <!doctype html>
 <html lang="es">
+
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Seguimiento semanal KM-HR — Resiter Minería</title>
-  <link rel="stylesheet" href="../css/panel.css">
+  <link rel="stylesheet" href="../css/panel.css?v=20261015-12">
   <script src="../js/abrir_portal.js"></script>
+  <script src="../datos/publicacion.js"></script>
+  <script src="../js/datos_panel.js"></script>
+<!-- INICIO CONTROLES UNIVERSALES -->
+<link rel="stylesheet" href="../css/controles-comunes.css">
+<script src="../js/controles-comunes.js" data-menu="../../../../Panel Universal.html"></script>
+<!-- FIN CONTROLES UNIVERSALES -->
 </head>
+
 <body data-panel="seguimiento">
-  <header><img class="logo" src="../img/logo_sin_fondo_resiter.png" alt="Resiter"><h1>Seguimiento KM-HR</h1><a class="volver-inicio" href="../../Panel.html">← Inicio</a></header>
-  <nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html">Reportabilidad</a><a href="Panel_Seguimiento_KM_HR.html" aria-current="page">Seguimiento KM-HR</a><a href="Panel_Resumen_Mantencion.html">Resumen de mantención</a><a href="Panel_Calendario_Mantencion.html">Calendario de mantención</a><a href="Panel_Programa_Mantencion.html">Programa Mantención</a><a href="Panel_Configuraciones.html">Configuraciones</a></nav>
-    <form id="km-form" class="filtros"><label>Fecha semana 1<input id="km-inicio" type="date" value="2026-08-04" required></label><label>Semanas hasta<input id="km-fecha" type="date" required></label><button class="pri" id="km-consultar">Consultar</button><label>Buscar patente<input id="km-buscar" type="search" placeholder="Patente"></label><label>Región<select id="km-region"><option value="">Todas</option></select></label><label>CeCo<select id="km-ceco"><option value="">Todos los CeCo</option></select></label><label>Status mantención<select id="km-estado"><option value="">Todos</option><option>Mantención Vigente</option><option>Próxima a vencer</option><option>Mantención Vencida</option><option>STAND BY</option></select></label><button type="button" id="km-exportar" disabled>Exportar CSV</button><button id="descargar-pdf" type="button" data-pdf-omitir>Descargar PDF</button><span id="pdf-estado" role="status" aria-live="polite" data-pdf-omitir></span></form>
+  <header><img class="logo" src="../img/logo_sin_fondo_resiter.png" alt="Resiter">
+    <h1>Seguimiento KM-HR</h1><a class="volver-inicio" href="../../Panel.html">← Volver al inicio</a>
+  </header>
+  <nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html">Reportabilidad</a><a
+      href="Panel_Seguimiento_KM_HR.html" aria-current="page">Seguimiento KM-HR</a><a
+      href="Panel_Resumen_Mantencion.html">Resumen de mantención</a><a
+      href="Panel_Calendario_Mantencion.html">Calendario de mantención</a><a
+      href="Panel_Programa_Mantencion.html">Programa de mantención</a><a
+      href="Panel_Configuraciones.html">Configuraciones</a></nav>
+  <form id="km-form" class="filtros"><label>Fecha semana 1<input id="km-inicio" type="date" value="2026-08-04"
+        required></label><label>Semanas hasta<input id="km-fecha" type="date" required></label><label>Buscar
+      patente<input id="km-buscar" type="search" placeholder="Patente"></label><label>Región<select id="km-region">
+        <option value="">Todas</option>
+      </select></label><label>Unidad<select id="km-ceco">
+        <option value="">Todas las unidades</option>
+      </select></label><label>Estado de mantención<select id="km-estado">
+        <option value="">Todos</option>
+        <option>Mantención Vigente</option>
+        <option>Próxima a vencer</option>
+        <option>Mantención Vencida</option>
+        <option>No operativo</option>
+      </select></label>
+    <label>Diferencia de lectura<select id="km-diferencia">
+        <option value="">Todas las patentes</option>
+        <option value="rojo">Última semana en rojo (&gt; 100%)</option>
+      </select></label>
+    <div class="acciones-filtros"><button class="pri" id="km-consultar">Consultar</button><button type="button"
+        id="km-exportar" disabled>Descargar CSV</button><button id="descargar-pdf" type="button"
+        data-pdf-omitir>Descargar PDF</button></div><span id="pdf-estado" role="status" aria-live="polite"
+      data-pdf-omitir></span>
+  </form>
   <main>
-    <div class="intro"><div><h2>Seguimiento semanal y mantenciones</h2><p>Datos de Seguimiento KM-HR · proyección calculada según uso.</p></div><span class="badge">Lecturas por fecha de columna</span></div>
+    <div class="intro">
+      <div>
+        <h2>Seguimiento semanal y mantenciones</h2>
+        <p>Datos de Seguimiento KM-HR · proyección calculada según uso.</p>
+      </div><span class="badge">Lecturas por fecha de columna</span>
+    </div>
 
     <p id="km-mensaje" role="status" aria-live="polite"></p>
     <section id="km-resultados" hidden>
       <p id="km-periodo"></p>
-      <div class="leyenda"><span class="semaforo verde">Vigente: saldo ≥ 10% del intervalo</span><span class="semaforo amarillo">Próxima: −10% ≤ saldo &lt; 10%</span><span class="semaforo rojo">Vencida: saldo &lt; −10%</span><span class="semaforo neutro">STAND BY: datos faltantes o inconsistentes</span></div>
-      <div class="kpis km-kpis"><div class="kpi"><b id="km-total">—</b><span>Patentes visibles</span></div><div class="kpi"><b id="km-vigentes">—</b><span>Mantenciones vigentes</span></div><div class="kpi"><b id="km-proximas">—</b><span>Próximas a vencer</span></div><div class="kpi"><b id="km-vencidas">—</b><span>Mantenciones vencidas</span></div><div class="kpi"><b id="km-revisar">—</b><span>STAND BY</span></div></div>
-      <section class="tarjeta km-graficos" data-grupo-vistas><div class="titulo"><h3>Progreso de una patente</h3><label>Patente<select id="km-patente" aria-label="Patente del gráfico"></select></label></div><div id="km-resumen-grafico" class="nota"></div><div class="km-graficos-grid"><figure data-vista="seguimiento.lecturas"><figcaption id="km-titulo-lecturas">Lecturas por semana</figcaption><div id="km-grafico-lecturas"></div></figure><figure data-vista="seguimiento.ritmo"><figcaption id="km-titulo-ritmo">Uso diario entre lecturas</figcaption><div id="km-grafico-ritmo"></div></figure></div><p class="nota">Selecciona una patente o pulsa su nombre en la tabla. Los espacios sin reporte no se rellenan. Los gráficos separan KM y HR; una unidad incompatible se indica para revisión.</p></section>
-      <section class="tarjeta" data-vista="seguimiento.tabla"><div class="scroll km-tabla-scroll"><table id="km-tabla"><caption class="nota">Lecturas de las columnas con fecha de Seguimiento KM-HR. La misma hoja aporta la última mantención, el intervalo y el estado del equipo. Saldo = KM/HR de próxima mantención − última lectura semanal disponible.</caption><thead id="km-cabecera"></thead><tbody id="km-detalle"></tbody></table></div></section>
+      <div class="leyenda"><span class="semaforo verde">Vigente: saldo ≥ 10% del intervalo</span><span
+          class="semaforo amarillo">Próxima: −10% ≤ saldo &lt; 10%</span><span class="semaforo rojo">Vencida: saldo &lt;
+          −10%</span><span class="semaforo neutro">No operativo: datos faltantes o inconsistentes</span></div>
+      <div class="kpis km-kpis">
+        <div class="kpi" data-kpi-color="azul"><b id="km-total">—</b><span>Patentes visibles</span></div>
+        <div class="kpi" data-kpi-color="verde"><b id="km-vigentes">—</b><span>Mantenciones vigentes</span></div>
+        <div class="kpi" data-kpi-color="amarillo"><b id="km-proximas">—</b><span>Próximas a vencer</span></div>
+        <div class="kpi" data-kpi-color="rojo"><b id="km-vencidas">—</b><span>Mantenciones vencidas</span></div>
+        <div class="kpi" data-kpi-color="neutro"><b id="km-revisar">—</b><span>No operativo</span></div>
+      </div>
+      <section class="tarjeta km-graficos" data-grupo-vistas>
+        <div class="titulo">
+          <h3>Progreso de una patente</h3><label>Patente<select id="km-patente"
+              aria-label="Patente del gráfico"></select></label>
+        </div>
+        <div id="km-resumen-grafico" class="nota"></div>
+        <div class="km-graficos-grid">
+          <figure data-vista="seguimiento.lecturas">
+            <figcaption id="km-titulo-lecturas">Lecturas por semana</figcaption>
+            <div id="km-grafico-lecturas"></div>
+          </figure>
+          <figure data-vista="seguimiento.ritmo">
+            <figcaption id="km-titulo-ritmo">Uso diario entre lecturas</figcaption>
+            <div id="km-grafico-ritmo"></div>
+            <p class="nota">Rojo en la tabla: se compara la lectura de la última semana seleccionada con la anterior disponible de la misma unidad. Se marca cuando la lectura mayor supera a la menor en más del 100% (más del doble), tanto en aumentos como en caídas. Por ejemplo, 100 después de 1.000 se marca. Los registros ausentes se omiten; sin lectura actual o anterior no se marca.</p>
+          </figure>
+        </div>
+        <p class="nota" data-pdf-omitir>Selecciona una patente o pulsa su nombre en la tabla. Los espacios sin reporte no se rellenan.
+          Los gráficos separan KM y HR; una unidad incompatible se indica para revisión.</p>
+      </section>
+      <section class="tarjeta" data-vista="seguimiento.tabla">
+        <div class="km-acciones-grupos" data-pdf-omitir>
+          <button id="km-alternar-grupos" type="button" aria-controls="km-detalle" aria-expanded="true">Contraer todo</button>
+          <button id="km-alternar-lineas" type="button" aria-controls="km-detalle" aria-pressed="false" hidden>Mostrar por línea</button>
+        </div>
+        <div class="scroll km-tabla-scroll">
+          <table id="km-tabla">
+            <caption class="nota">Lecturas de las columnas con fecha de Seguimiento KM-HR. La misma hoja aporta la
+              última mantención, el intervalo y el estado del equipo. Saldo = KM/HR de próxima mantención − última
+              lectura semanal disponible.</caption>
+            <thead id="km-cabecera"></thead>
+            <tbody id="km-detalle"></tbody>
+          </table>
+        </div>
+      </section>
     </section>
-    <details class="tarjeta km-config"><summary>Cómo se calcula</summary><p>Cada semana corresponde a una columna con fecha del Excel dentro del período seleccionado. Los ceros y las celdas vacías se consideran semanas sin reporte y aparecen como —.</p><p>Próxima mantención = KM U HR UM + INTERVALO. Se usan UN UM y UN IN para comprobar las unidades. KM U HR UM, FECHA UM e INTERVALO se toman de Seguimiento KM-HR. El portal recalcula saldo, semáforo y fecha proyectada sin modificar el Excel.</p><p>Consumo diario = (última lectura − primera lectura) / días entre ambas fechas de lectura válidas. Fecha proyectada = fecha de última lectura + saldo / consumo diario, redondeando los días hacia arriba. Una fecha anterior corresponde a un objetivo ya alcanzado; sigue siendo una estimación, no una mantención realizada.</p><p>Con menos de dos lecturas, consumo cero, retroceso del medidor, fechas incompatibles o unidades distintas no se proyecta. La fecha de lectura corresponde al encabezado de la columna; la unidad se toma de UN UM.</p></details>
+    <details class="tarjeta km-config">
+      <summary>Cómo se calcula</summary>
+      <p>Cada semana corresponde a una columna con fecha del Excel dentro del período seleccionado. Los ceros y las
+        celdas vacías se consideran semanas sin reporte y aparecen como —.</p>
+      <p>Próxima mantención = KM U HR UM + INTERVALO. Se usan UN UM y UN IN para comprobar las unidades. KM U HR UM,
+        FECHA UM e INTERVALO se toman de Seguimiento KM-HR. El portal recalcula saldo, semáforo y fecha proyectada sin
+        modificar el Excel.</p>
+      <p>Consumo diario = (última lectura − primera lectura) / días entre ambas fechas de lectura válidas. Fecha
+        proyectada = fecha de última lectura + saldo / consumo diario, redondeando los días hacia arriba. Una fecha
+        anterior corresponde a un objetivo ya alcanzado; sigue siendo una estimación, no una mantención realizada.</p>
+      <p>Con menos de dos lecturas, consumo cero, retroceso del medidor, fechas incompatibles o unidades distintas no se
+        proyecta. La fecha de lectura corresponde al encabezado de la columna; la unidad se toma de UN UM.</p>
+    </details>
     <footer id="km-fuente">Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR</footer>
   </main>
-  <script src="../js/configuracion.js" defer></script><script src="../js/seguimiento_km_hr.js" defer></script>
+  <script src="../js/configuracion.js" defer></script>
+    <script src="../js/zonas.js?v=20261015-10" defer></script>
+  <script src="../js/seguimiento_km_hr.js?v=20261015-6" defer></script>
   <script src="../js/base_datos.js" defer></script>
-<script src="../vendor/pdf-lib.min.js" defer></script>
-<script src="../vendor/html2canvas.min.js" defer></script>
-<script src="../js/panel_pdf.js" defer></script>
+  <script src="../vendor/pdf-lib.min.js" defer></script>
+  <script src="../vendor/html2canvas.min.js" defer></script>
+  <script src="../js/panel_pdf.js?v=20261015-12" defer></script>
 </body>
+
 </html>

@@ -5,34 +5,43 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Configuraciones — Resiter Minería</title>
-    <link rel="stylesheet" href="../css/panel.css">
+    <link rel="stylesheet" href="../css/panel.css?v=20261015-12">
   <script src="../js/abrir_portal.js"></script>
+  <script src="../datos/publicacion.js"></script>
+  <script src="../js/datos_panel.js"></script>
+<!-- INICIO CONTROLES UNIVERSALES -->
+<link rel="stylesheet" href="../css/controles-comunes.css">
+<script src="../js/controles-comunes.js" data-menu="../../../../Panel Universal.html"></script>
+<!-- FIN CONTROLES UNIVERSALES -->
 </head>
 
 <body>
     <header>
         <img class="logo" src="../img/logo_sin_fondo_resiter.png" alt="Resiter">
-        <h1>Configuraciones</h1><a class="volver-inicio" href="../../Panel.html">← Inicio</a>
+        <h1>Configuraciones</h1>
+        <div class="acciones-cabecera">
+            <a class="volver-inicio" href="../../Panel.html">← Volver al inicio</a>
+            <button id="modo-zona" type="button" class="boton-modo-zona" aria-pressed="false">Modo zona</button>
+        </div>
     </header>
     <nav class="navegacion-paneles" aria-label="Paneles"><a href="Panel_Reportabilidad.html">Reportabilidad</a><a
             href="Panel_Seguimiento_KM_HR.html">Seguimiento KM-HR</a><a href="Panel_Resumen_Mantencion.html">Resumen de
             mantención</a><a href="Panel_Calendario_Mantencion.html">Calendario de mantención</a><a
-            href="Panel_Programa_Mantencion.html">Programa Mantención</a><a href="Panel_Configuraciones.html"
+            href="Panel_Programa_Mantencion.html">Programa de mantención</a><a href="Panel_Configuraciones.html"
             aria-current="page">Configuraciones</a></nav>
-    <div class="filtros"><button id="descargar-pdf" type="button" data-pdf-omitir>Descargar PDF</button><span id="pdf-estado" role="status" aria-live="polite" data-pdf-omitir></span></div>
+    
     <main>
         <div class="intro">
             <div>
                 <h2>Configuraciones del portal</h2>
-                <p>Una selección de regiones para todos los reportes, totales y descargas.</p>
-            </div><span class="badge">Preferencias del navegador</span>
+                <p data-pdf-omitir>Selecciona las regiones, zonas y unidades de todos los reportes, totales y descargas.</p>
+            </div><span class="badge">Configuración compartida</span>
         </div>
         <p id="config-estado" role="status" aria-live="polite"></p>
         <section class="tarjeta config-seccion">
-            <h3>Regiones compartidas</h3>
-            <p>Los cambios se aplican automáticamente, también en los paneles abiertos. Las regiones nuevas se incluyen
-                por defecto.</p>
-            <div class="config-acciones"><button id="config-recargar" class="pri">Actualizar regiones desde
+            <h3 id="config-titulo">Regiones y unidades compartidas</h3>
+            <p data-pdf-omitir>Desmarca una región para ocultarla con sus unidades en todos los paneles. Las unidades desmarcadas se ocultan en todo el portal. En modo zona puedes ocultar zonas completas; esas exclusiones solo afectan la vista por zona. Las selecciones individuales se conservan al volver a incluir un grupo.</p>
+            <div class="config-acciones"><button id="config-recargar" class="pri">Actualizar grupos desde
                     BD</button><button id="config-todas">Incluir todas</button><button id="config-ninguna">Excluir
                     todas</button></div>
             <p id="config-carga" role="status"></p>
@@ -42,25 +51,18 @@
             <div class="titulo">
                 <h3>Gráficos y tablas por panel</h3><button id="config-restaurar">Mostrar todos</button>
             </div>
-            <p>Ocultar una vista cambia su presentación; las descargas conservan los datos de las regiones y filtros
+            <p data-pdf-omitir>Ocultar una vista cambia su presentación; las descargas conservan los datos de las regiones y filtros
                 seleccionados.</p>
             <div id="config-vistas" class="config-paneles"></div>
         </section>
-        <section class="tarjeta config-seccion">
-            <h3>Centros de costo de Reportabilidad</h3>
-            <p>Selección específica de CeCo para Reportabilidad. Las regiones se administran arriba para todo el portal.
-            </p>
-            <div id="config-centros" class="config-cecos"></div>
-        </section>
-        <footer>Las preferencias se guardan para este navegador y dirección del portal. Las exclusiones anteriores de
-            regiones se unifican al abrir Configuraciones por primera vez.</footer>
+        <footer data-pdf-omitir>Los cambios se guardan en la BD y actualizan la publicación sin servidor. Vuelve a abrir o recarga los paneles sin servidor para leer la configuración publicada.</footer>
     </main>
     <script src="../js/configuracion.js" defer></script>
     <script src="../js/configuraciones_panel.js" defer></script>
   <script src="../js/base_datos.js" defer></script>
 <script src="../vendor/pdf-lib.min.js" defer></script>
 <script src="../vendor/html2canvas.min.js" defer></script>
-<script src="../js/panel_pdf.js" defer></script>
+<script src="../js/panel_pdf.js?v=20261015-12" defer></script>
 </body>
 
 </html>

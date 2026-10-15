@@ -36,7 +36,7 @@ echo Actualizando la BD desde los Excel...
 
 if errorlevel 1 goto error
 
-echo BD actualizada. Abre el panel o recarga la pagina.
+echo BD y consulta publicadas. Abre Panel.html o recarga la pagina.
 pause
 popd
 endlocal
