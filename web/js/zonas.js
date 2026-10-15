@@ -25,6 +25,15 @@
     const acciones = document.createElement('div'); acciones.className = 'acciones-cabecera';
     inicio.before(acciones); acciones.append(inicio, botonZona);
   }
+  // El menú universal se monta al terminar el documento. Mantener esta unión
+  // aquí evita perderla cuando se regeneran los controles compartidos.
+  function agruparCabecera() {
+    const controles = document.querySelector('header .controles-universales');
+    const acciones = botonZona.closest('.acciones-cabecera');
+    if (controles && acciones && acciones.parentElement !== controles) controles.prepend(acciones);
+  }
+  agruparCabecera();
+  document.addEventListener('DOMContentLoaded', agruparCabecera, {once:true});
   let aviso = document.createElement('p');
   aviso.className = 'nota'; aviso.id = 'zona-aviso'; aviso.dataset.pdfOmitir = ''; formulario.after(aviso);
   const esZona = () => modo === 'zona';

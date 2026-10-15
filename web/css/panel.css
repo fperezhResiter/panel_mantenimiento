@@ -1099,6 +1099,14 @@ body[data-panel="reportabilidad"] span.reporte-ceco-enlace:hover {
 }
 
 /* Estilos propios de Mantenimiento: conservar fuera del bloque sincronizado. */
+body[data-panel] header .controles-universales {
+  gap: 6px;
+}
+body[data-panel] .controles-universales > .acciones-cabecera {
+  margin-left: 0;
+  gap: 6px;
+  max-width: 100%;
+}
 @media screen, print {
   body[data-panel="seguimiento"] #km-tabla {
     --km-fila: #fff;
