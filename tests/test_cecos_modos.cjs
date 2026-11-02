@@ -42,7 +42,7 @@ const root = path.resolve(__dirname,'..');
           assert(!resultado.grafico.includes(etiqueta),`${panel}: gráfico sin código`);
         }
         const selector=page.locator('#buscar,#km-ceco,#mt-ceco-resumen,#mt-ceco-cal,#ceco-programa');
-        await selector.selectOption(resultado.op.valor);
+        await selector.selectOption(resultado.op.valor,{force:true});
         assert.equal(await selector.inputValue(),resultado.op.valor,'El filtro conserva su clave sin código');
         if (panel === 'Reportabilidad') {
           await page.evaluate(() => {

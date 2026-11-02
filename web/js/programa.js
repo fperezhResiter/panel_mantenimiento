@@ -12,12 +12,12 @@
   function svgNodo(tipo, atributos = {}, texto) {
     const nodo = document.createElementNS('http://www.w3.org/2000/svg', tipo);
     Object.entries(atributos).forEach(([k, v]) => nodo.setAttribute(k, v));
-    if (texto !== undefined) nodo.textContent = texto;
+    if (texto !== undefined) nodo.textContent = tipo === 'title' ? texto.replaceAll(' · ', '\n') : texto;
     return nodo;
   }
   function lienzo(id, ancho, alto, titulo) {
     const svg = svgNodo('svg', {viewBox: `0 0 ${ancho} ${alto}`, role: 'img', 'aria-label': titulo});
-    svg.append(svgNodo('title', {}, titulo));
+    svg.append(svgNodo(window.PortalAyudaGrafico ? 'desc' : 'title', {}, titulo));
     $(id).replaceChildren(svg);
     return svg;
   }
@@ -58,30 +58,27 @@
   const nombreMes = mes => new Intl.DateTimeFormat('es-CL', {month: 'long', timeZone: 'UTC'}).format(new Date(mes + '-01T00:00:00Z'));
   function cambiarSeleccion(nueva) {
     seleccion = nueva;
-    $('region-programa').value = seleccion.region || '';
-    $('ceco-programa').value = seleccion.ceco || '';
+    PortalFiltros.asignar('region-programa',seleccion.region || []);
+    PortalFiltros.asignar('ceco-programa',seleccion.ceco || []);
     if (datosActuales) renderizar(datosActuales);
   }
   function prepararCecos(datos) {
-    const selector = $('ceco-programa'), previo = selector.value;
+    const selector = $('ceco-programa');
     const nombres = [...new Set([datos, ...(datos.historico || [])].flatMap(m => (m.regiones || [])
-      .filter(r => !seleccion.region || r.region === seleccion.region).flatMap(r => r.cecos.map(c => c.ceco))))]
+      .filter(r => PortalFiltros.coincide('region-programa',r.region)).flatMap(r => r.cecos.map(c => c.ceco))))]
       .sort((a,b) => a.localeCompare(b, 'es', {numeric: true}));
-    selector.replaceChildren(new Option('Todas las unidades', ''));
-    nombres.forEach(c => selector.add(new Option(PortalConfig.nombreCeco?.(c) ?? c, c)));
-    selector.value = nombres.includes(previo) ? previo : '';
+    PortalFiltros.opciones(selector,nombres.map(c=>[c,PortalConfig.nombreCeco?.(c) ?? c]),'Todas las unidades');
   }
   function filtrarCeco(datos) {
-    const ceco = $('ceco-programa').value;
-    if (!ceco) return datos;
+    if (!PortalFiltros.hay('ceco-programa') && !PortalFiltros.hay('region-programa')) return datos;
     function sumar(elementos) {
       const totales = {};
       for (const campo of [...campos, 'sin_clasificar']) totales[campo] = elementos.reduce((s,e) => s + (e[campo] || 0), 0);
       return {...totales, porcentaje: cumplimiento(totales)};
     }
     function filtrar(resumen) {
-      const regiones = (resumen.regiones || []).map(r => {
-        const cecos = r.cecos.filter(c => c.ceco === ceco);
+      const regiones = (resumen.regiones || []).filter(r=>PortalFiltros.coincide('region-programa',r.region)).map(r => {
+        const cecos = r.cecos.filter(c => PortalFiltros.coincide('ceco-programa',c.ceco));
         return {...r, ...sumar(cecos), cecos};
       }).filter(r => r.cecos.length);
       return {...resumen, ...sumar(regiones), regiones};
@@ -94,14 +91,14 @@
     return {...datos, ...(region || {total: 0, realizadas: 0, regularizadas: 0, no_realizadas: 0, na: 0, sin_clasificar: 0, porcentaje: null}), regiones: region ? [region] : []};
   }
   function prepararRegiones(datos) {
-    const nombres = nombresRegiones(datos);
-    $('region-programa').replaceChildren();
-    for (const nombre of ['', ...nombres]) {
-      const opcion = document.createElement('option'); opcion.value = nombre;
-      opcion.textContent = nombre || 'Todas las regiones'; $('region-programa').append(opcion);
-    }
-    if (seleccion.region && !nombres.includes(seleccion.region)) seleccion = {nivel: 'total'};
-    $('region-programa').value = seleccion.region || '';
+    PortalFiltros.opciones('region-programa',nombresRegiones(datos),'Todas las regiones');
+    sincronizarSeleccion();
+  }
+  function sincronizarSeleccion() {
+    const regiones = PortalFiltros.valores('region-programa');
+    const region = PortalFiltros.unico('region-programa'), ceco = PortalFiltros.unico('ceco-programa');
+    seleccion = region ? {nivel:'cecos',region} : {nivel: regiones.length || PortalFiltros.hay('ceco-programa') ? 'regiones' : 'total'};
+    if (window.PortalZona?.activa() && region && ceco) seleccion = {nivel:'lineas',region,ceco};
   }
   function historial(datos, porcentaje) {
     const clave = porcentaje ? 'cumplimiento' : 'cantidades';
@@ -184,7 +181,14 @@
       s.valores.forEach((v,i) => {
         if (v === null) return;
         const punto = svgNodo('circle', {cx: x(i), cy: y(v), r: 5, fill: s.color, stroke: '#fff', 'stroke-width': 1});
-        punto.append(svgNodo('title', {}, etiqueta + ' · ' + registros[i].mes + ': ' + numero.format(v) + (porcentaje ? '%' : '')));
+        const detalle = etiqueta + ' · Mes: ' + registros[i].mes + ' · ' + (porcentaje ? 'Cumplimiento: ' : 'Patentes: ') + numero.format(v) + (porcentaje ? '%' : '');
+        if (window.PortalAyudaGrafico) {
+          punto.setAttribute('tabindex', '0');
+          punto.setAttribute('aria-label', detalle);
+          PortalAyudaGrafico.conectar(punto, detalle);
+          punto.addEventListener('focus', () => destacarHistorial(s.nombre));
+          punto.addEventListener('blur', () => destacarHistorial(null));
+        } else punto.append(svgNodo('title', {}, detalle));
         grupo.append(punto);
         if (series.length <= 2) grupo.append(svgNodo('text', {x: x(i), y: y(v) + (s.campo === 'realizadas' ? 20 : -12), 'text-anchor': 'middle', fill: s.color}, numero.format(v) + (porcentaje ? '%' : '')));
       });
@@ -209,7 +213,7 @@
     historial(datos, false);
     $('programa-volver').hidden = seleccion.nivel === 'total';
     datos = datosRegion(datos);
-    $('titulo-estados').textContent = `Estados · ${nombreMes(datos.mes)} ${datos.mes.slice(0,4)} · ${seleccion.region || 'Todas las regiones'}${$('ceco-programa').value ? ' · ' + $('ceco-programa').value : ''}`;
+    $('titulo-estados').textContent = `Estados · ${nombreMes(datos.mes)} ${datos.mes.slice(0,4)} · ${PortalFiltros.texto('region-programa')} · ${PortalFiltros.texto('ceco-programa')}`;
     const estados = [['Realizadas', datos.realizadas], ['Regularizadas', datos.regularizadas], ['No realizadas', datos.no_realizadas]];
     const total = estados.reduce((s, e) => s + e[1], 0);
     $('leyenda-estados').replaceChildren();
@@ -257,7 +261,8 @@
       const altura = cantidad / total * 200;
       const etiqueta = `${nombre}: ${numero.format(cantidad)} (${numero.format(porcentaje)}%) · Acumulado: ${numero.format(acumulado)} patentes (${numero.format(acumulado / total * 100)}%)`;
       const grupo = svgNodo('g', {tabindex: 0, 'aria-label': etiqueta});
-      grupo.append(svgNodo('title', {}, etiqueta));
+      if (window.PortalAyudaGrafico) PortalAyudaGrafico.conectar(grupo, etiqueta);
+      else grupo.append(svgNodo('title', {}, etiqueta));
       grupo.append(svgNodo('rect', {x, y: y(acumulado), width: 90, height: altura, fill: color}));
       grupo.append(svgNodo('rect', {x, y: y(acumulado) - 20, width: 90, height: Math.max(42, altura + 30), fill: 'transparent'}));
       const valorPorcentaje = svgNodo('text', {x: x + 45, y: y(acumulado) - 12, 'text-anchor': 'middle', fill: '#1B2A3A', 'font-weight': 'bold', class:'programa-porcentaje-estado', visibility:'hidden', 'pointer-events':'none'}, `${numero.format(porcentaje)}%`);
@@ -331,7 +336,8 @@
     if (!zona && seleccion.nivel === 'lineas') seleccion = {nivel:'cecos',region:seleccion.region};
     fuente = aplicarConfiguracion(fuente);
     prepararCecos(fuente);
-    if (seleccion.nivel === 'lineas' && $('ceco-programa').value !== seleccion.ceco) seleccion = {nivel:'cecos',region:seleccion.region};
+    if (seleccion.region && !PortalFiltros.coincide('region-programa',seleccion.region)) sincronizarSeleccion();
+    if (seleccion.nivel === 'lineas' && PortalFiltros.unico('ceco-programa') !== seleccion.ceco) seleccion = {nivel:'cecos',region:seleccion.region};
     fuente = filtrarCeco(fuente);
     const visibles = nombresRegiones(fuente).length;
     $('programa-alcance').textContent = visibles ? `${visibles} regiones incluidas. Los gráficos y totales consideran solo las regiones configuradas.` : 'No hay regiones incluidas. Abre Configuraciones para seleccionar las regiones que quieres mostrar.';
@@ -372,7 +378,7 @@
         $('kpis').append(tarjeta);
       }
       graficos(fuente);
-      $('periodo').textContent = `${nombreMes(datos.mes)} ${datos.mes.slice(0,4)} · ${seleccion.region || 'Todas las regiones'}${$('ceco-programa').value ? ' · ' + $('ceco-programa').value : ''}`;
+      $('periodo').textContent = `${nombreMes(datos.mes)} ${datos.mes.slice(0,4)} · ${PortalFiltros.texto('region-programa')} · ${PortalFiltros.texto('ceco-programa')}`;
   }
   async function consultar(event) {
     event?.preventDefault();
@@ -425,17 +431,13 @@
     estadoTabla();
   };
   $('mes').addEventListener('change', consultar);
-  $('region-programa').addEventListener('change', () => cambiarSeleccion($('region-programa').value ? {nivel: 'cecos', region: $('region-programa').value} : {nivel: 'total'}));
-  $('ceco-programa').addEventListener('change', () => {
+  $('region-programa').addEventListener('change', () => {
     if (!datosActuales) return;
-    const ceco = $('ceco-programa').value;
-    if (window.PortalZona?.activa() && ceco) {
-      const region = seleccion.region || aplicarConfiguracion(datosActuales).regiones.find(r => r.cecos.some(c => c.ceco === ceco))?.region;
-      cambiarSeleccion({nivel:'lineas',region,ceco});
-    } else {
-      if (seleccion.nivel === 'lineas') seleccion = {nivel:'cecos',region:seleccion.region};
-      renderizar(datosActuales);
-    }
+    prepararCecos(aplicarConfiguracion(datosActuales));
+    sincronizarSeleccion(); renderizar(datosActuales);
+  });
+  $('ceco-programa').addEventListener('change', () => {
+    sincronizarSeleccion(); if (datosActuales) renderizar(datosActuales);
   });
   consultar();
 })();

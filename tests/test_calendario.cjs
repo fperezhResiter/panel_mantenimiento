@@ -29,6 +29,7 @@ const document={body:{dataset:{panel:'calendario'}},getElementById:id=>{if(!elem
 const descargas=[],excluidas=new Set();
 const datos={version:2,incluye_estado_equipo:true,equipos,inicio:'2026-09-01',fecha:'2026-09-08',semanas:[{fecha:'2026-09-08'}],advertencias:[]};
 const contexto=vm.createContext({document,window:{addEventListener(){}},PortalDatos:{fechaActual:()=>new Date(),consultar:async()=>({ok:true,json:async()=>datos})},PortalConfig:{registrar(){},incluida:()=>true,calendarioIncluida:p=>!excluidas.has(p),estado:()=>({calendario_excluidas:[...excluidas]}),aviso:()=>'',seleccionar:(tipo,p,incluir)=>{if(incluir)excluidas.delete(p);else excluidas.add(p);}},location:{protocol:'http:'},Option:function(t,v){this.text=t;this.value=v;},URLSearchParams,Blob,URL:{createObjectURL:b=>{descargas.push(b);return 'blob:prueba';},revokeObjectURL(){}},PanelPDF:{descargar:async({html,nombre})=>{assert(nombre.endsWith(".pdf"));descargas.push(new Blob([html]));}},fetch:async()=>({ok:true,json:async()=>datos})});
+require('./ayuda_filtros.cjs')(contexto,Elemento);
 for(const nombre of ['calendario_descarga.js','mantenciones.js'])vm.runInContext(fs.readFileSync(path.join(__dirname,'../web/js',nombre),'utf8'),contexto);
 const el=id=>document.getElementById(id);
 const casilla=patente=>el('mt-agenda').children.flatMap(tr=>tr.children).flatMap(td=>td.children).find(n=>n['aria-label']===`Incluir ${patente} en la publicación del calendario y descargas`);

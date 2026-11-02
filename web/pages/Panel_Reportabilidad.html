@@ -5,7 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Reportabilidad — Resiter Minería</title>
-    <link rel="stylesheet" href="../css/panel.css?v=20261015-13">
+    <link rel="icon" href="../img/logo_sin_fondo_resiter.png">
+    <link rel="stylesheet" href="../css/panel.css?v=20261022-rangos">
   <script src="../js/abrir_portal.js"></script>
   <script src="../datos/publicacion.js"></script>
   <script src="../js/datos_panel.js"></script>
@@ -15,7 +16,7 @@
 <!-- FIN CONTROLES UNIVERSALES -->
 </head>
 
-<body data-panel="reportabilidad">
+<body data-panel="reportabilidad" data-reportabilidad="total">
     <header>
         <img class="logo" src="../img/logo_sin_fondo_resiter.png" alt="Resiter">
         <h1>Panel de reportabilidad</h1><a class="volver-inicio" href="../../Panel.html">← Volver al inicio</a>
@@ -34,88 +35,167 @@
             </select></label><label>Unidad<select id="buscar">
                 <option value="">Todas las unidades</option>
             </select></label>
-<div class="acciones-filtros"><button class="pri" id="consultar">Consultar</button><button id="exportar" type="button" disabled>Descargar CSV</button><button id="descargar-pdf" type="button" data-pdf-omitir>Descargar PDF</button></div><span id="pdf-estado" role="status" aria-live="polite" data-pdf-omitir></span></form>
+            <label>Status del equipo<select id="status-equipo" title="Status actual de BD ACTIVOS MOVILES; se aplica a reportadas y a la base vigente.">
+                <option value="">Todos los status</option>
+            </select></label>
+<div class="acciones-filtros"><button id="reporte-modo" type="button" aria-pressed="false" aria-controls="vista-reporte" data-pdf-omitir disabled>Mostrar reportabilidad efectiva</button><button class="pri" id="consultar">Consultar</button><button id="limpiar-filtros" type="button" title="Incluir todas las zonas o regiones, unidades, líneas y status, conservando la fecha y los criterios de efectividad." data-pdf-omitir disabled>Limpiar filtros</button><button id="exportar" type="button" disabled>Descargar CSV</button><button id="descargar-pdf" type="button" data-pdf-omitir>Descargar PDF</button></div><span id="pdf-estado" role="status" aria-live="polite" data-pdf-omitir></span></form>
     <main>
 
         <section id="vista-reporte">
             <div class="intro">
                 <div>
-                    <h2>Reportabilidad de patentes</h2>
+                    <h2 id="reporte-titulo">Reportabilidad total de patentes</h2>
                     <p id="periodo">Selecciona una fecha para consultar el reporte.</p>
-                </div><span class="badge">Patentes distintas por Unidad</span>
+                </div><span id="reporte-badge" class="badge">Patentes distintas por Unidad</span>
             </div>
+            <section id="regla-efectiva" class="tarjeta reporte-explicacion" aria-labelledby="explicacion-efectiva-titulo" data-modo-reporte="efectiva" hidden>
+                <h3 id="explicacion-efectiva-titulo">¿Qué significa reportabilidad efectiva?</h3>
+                <p>Una patente tiene <strong>reportabilidad efectiva</strong> cuando fue reportada y cumple todos los criterios que selecciones. Marca o desmarca para recalcular el panel:</p>
+                <fieldset id="criterios-efectiva" class="reporte-criterios" aria-describedby="criterios-efectiva-ayuda" data-pdf-omitir>
+                    <legend>Criterios a considerar</legend>
+                    <ul>
+                        <li><label><input id="criterio-mayor-cero" type="checkbox" checked>La lectura actual es <strong>mayor que cero</strong>.</label></li>
+                        <li><label><input id="criterio-mayor-anterior" type="checkbox" checked>Es <strong>mayor o igual que la lectura anterior</strong> de la misma patente y medidor.</label></li>
+                        <li><label><input id="criterio-maximo-doble" type="checkbox" checked>Es <strong>menor o igual al doble de la anterior</strong>. El doble exacto se acepta.</label></li>
+                    </ul>
+                </fieldset>
+                <p id="criterios-efectiva-resumen" aria-live="polite">Criterios aplicados: lectura actual mayor que cero; mayor o igual que la anterior; menor o igual al doble de la anterior.</p>
+                <p id="criterios-efectiva-ayuda" class="nota">Los tres criterios están activados por defecto. Sin criterios seleccionados, todas las patentes reportadas se consideran efectivas.</p>
+                <p>Según <strong>Unidad de Control del equipo</strong> de Sheet1, «Por kilometraje» revisa <strong>Kilometraje actual (km)</strong> y «Por horómetro» revisa <strong>Horómetro actual (hrs)</strong>. Se evalúa el último envío ADC de cada patente en la semana, después de asignarla a su Unidad vigente. Con algún criterio activo se necesita una lectura numérica y un control reconocido; los criterios que comparan con la anterior necesitan además ese dato numérico del mismo medidor, ordenado por Hora de finalización.</p>
+                <p id="ejemplo-efectiva"><strong>Ejemplo:</strong> si la lectura anterior es 1.000, una actual de 1.000 o de 1.100 es efectiva; una de 2.100 no lo es.</p>
+                <p><strong>Cómo leer las barras apiladas:</strong> la parte sólida representa las patentes efectivas; la parte superior achurada representa las reportadas que no son efectivas. Ambas partes juntas corresponden a la reportabilidad total. El porcentaje superior corresponde a las efectivas respecto de la base vigente. En las barras de la semana seleccionada, el color indica el rango de cumplimiento efectivo. En Reportabilidad semanal, cada entidad mantiene el color de su leyenda y de la evolución semanal.</p>
+            </section>
             <div id="estado" role="status" aria-live="polite"></div>
             <div id="avisos" hidden></div>
             <section id="resultados" hidden>
-                <div class="leyenda" aria-label="Rangos del semáforo"><span class="semaforo verde">Verde: 90 % o
-                        más</span><span class="semaforo amarillo">Amarillo: desde 75 % y menos de 90 %</span><span
-                        class="semaforo rojo">Rojo: menos de 75 %</span><span class="semaforo neutro">Sin base: total
+                <div class="leyenda" aria-label="Rangos del semáforo"><span class="semaforo verde" data-reporte-rango="verde">Verde: 90 % o
+                        más</span><span class="semaforo amarillo" data-reporte-rango="amarillo">Amarillo: desde 75 % y menos de 90 %</span><span
+                        class="semaforo rojo" data-reporte-rango="rojo">Rojo: menos de 75 %</span><span class="semaforo neutro" data-reporte-rango="neutro">Sin base: total
                         igual a 0</span></div>
+                <p class="nota" data-modo-reporte="efectiva" hidden>Las franjas de color y el semáforo indican el cumplimiento del porcentaje efectivo.</p>
                 <p id="resumen-config"></p>
                 <div class="kpis">
-                    <div class="kpi" data-kpi-color="verde"><b id="reportadas">—</b><span>Patentes reportadas</span></div>
-                    <div class="kpi" data-kpi-color="azul"><b id="total">—</b><span>Total patentes del maestro</span></div>
-                    <div class="kpi" data-kpi-color="neutro"><b id="porcentaje">—</b><span>Reportadas / total</span></div>
+                    <div class="kpi" data-kpi-color="azul" data-modo-reporte="efectiva" hidden><b id="reportadas-totales">—</b><span>Patentes reportadas totales</span></div>
+                    <div class="kpi" data-kpi-color="verde"><b id="reportadas">—</b><span id="reportadas-etiqueta">Patentes reportadas</span></div>
+                    <div class="kpi" data-kpi-color="amarillo" data-modo-reporte="efectiva" hidden><b id="no-efectivas">—</b><span>Patentes no efectivas</span></div>
+                    <div class="kpi" data-kpi-color="azul"><b id="total">—</b><span>Base vigente al martes</span></div>
+                    <div class="kpi" data-kpi-color="neutro" data-modo-reporte="efectiva" hidden><b id="porcentaje-reportadas">—</b><span>Reportadas totales / base vigente</span></div>
+                    <div class="kpi" data-kpi-color="neutro"><b id="porcentaje">—</b><span id="porcentaje-etiqueta">Reportadas / total</span></div>
+                    <div class="kpi" data-kpi-color="amarillo" data-modo-reporte="efectiva" hidden><b id="porcentaje-no-efectivas">—</b><span>No efectivas / base vigente</span></div>
                     <div class="kpi" data-kpi-color="azul"><b id="cecos">—</b><span>Unidades</span></div>
                 </div>
+                <section id="fuera-vigencia" class="tarjeta" hidden>
+                    <h3>Reportes fuera de base y vigencias pendientes</h3>
+                    <p id="vigencia-resumen" class="nota"></p>
+                    <p class="nota">Se muestran por su región y Unidad de origen para facilitar la revisión. No se inventan fechas ni se incorporan patentes sin un período vigente único.</p>
+                    <button id="exportar-incidencias" type="button" data-solo-interactivo data-pdf-omitir>Descargar pendientes CSV</button>
+                    <div class="scroll"><table><thead><tr><th>Patente</th><th>Región de origen</th><th>Unidad de origen</th><th>Tipo</th><th>Motivo</th></tr></thead><tbody id="vigencia-detalle"></tbody></table></div>
+                </section>
                 <section class="tarjeta reporte-evolucion" data-grupo-vistas>
                     <div class="reporte-graficos-grid">
-                        <figure data-vista="reportabilidad.evolucion" data-pdf-descripcion="Porcentaje de patentes reportadas frente al maestro en la semana seleccionada y hasta siete anteriores.">
+                        <figure data-vista="reportabilidad.evolucion" data-pdf-descripcion="Porcentaje de patentes reportadas frente a su base vigente semanal en todas las semanas disponibles hasta la seleccionada. Los fondos indican los rangos rojo, amarillo y verde." data-vista-total="reportabilidad.evolucion" data-vista-efectiva="reportabilidad.efectiva_evolucion" data-pdf-descripcion-total="Porcentaje de patentes reportadas frente a su base vigente semanal en todas las semanas disponibles hasta la seleccionada. Los fondos indican los rangos rojo, amarillo y verde." data-pdf-descripcion-efectiva="Evolución semanal de las patentes efectivas, con sus puntos y líneas, respecto de la base vigente. Los fondos indican los rangos de cumplimiento efectivo.">
                             <figcaption id="reporte-grafico-titulo">Cumplimiento semanal por región</figcaption>
-                            <div id="reporte-grafico" class="scroll"></div>
+                            <div class="leyenda reporte-tipos-leyenda" aria-label="Serie de evolución" data-modo-reporte="efectiva" hidden>
+                                <span><i class="reporte-muestra-linea" aria-hidden="true"></i>Patentes efectivas</span>
+                            </div>
+                            <div id="reporte-grafico" class="scroll" role="region" aria-labelledby="reporte-grafico-titulo"></div>
+                            <p id="reporte-grafico-detalle" class="nota reporte-marca-detalle" aria-live="polite" data-pdf-omitir></p>
                             <div id="reporte-leyenda" class="leyenda"></div>
                         </figure>
-                        <figure data-vista="reportabilidad.barras" data-pdf-descripcion="Porcentaje de patentes reportadas frente al maestro por grupo en la semana seleccionada; el color indica su rango de cumplimiento.">
+                        <figure data-vista="reportabilidad.barras" data-pdf-descripcion="Porcentaje de patentes reportadas frente a su base vigente semanal por grupo en la semana seleccionada; el color indica su rango de cumplimiento." data-vista-total="reportabilidad.barras" data-vista-efectiva="reportabilidad.efectiva_barras" data-pdf-descripcion-total="Porcentaje de patentes reportadas frente a su base vigente semanal por grupo en la semana seleccionada; el color indica su rango de cumplimiento." data-pdf-descripcion-efectiva="Barras apiladas de la semana seleccionada: efectivas en sólido y reportadas no efectivas en el tramo superior achurado. La altura completa representa la reportabilidad total. El porcentaje sobre la barra y su color corresponden al cumplimiento efectivo: rojo bajo 75 %, amarillo desde 75 % hasta menos de 90 %, verde desde 90 %.">
                             <figcaption id="reporte-barras-titulo">Cumplimiento por Unidad</figcaption>
+                            <div class="leyenda reporte-tipos-leyenda" aria-label="Partes de la barra" data-modo-reporte="efectiva" hidden>
+                                <span><i class="reporte-muestra-solida" aria-hidden="true"></i>Efectivas · sólido</span>
+                                <span><i class="reporte-muestra-achurada" aria-hidden="true"></i>Reportadas no efectivas · achurado</span>
+                            </div>
                             <div id="reporte-barras" class="scroll"></div>
-                            <div class="leyenda" data-pdf-solo hidden>
+                            <p id="reporte-barras-detalle" class="nota reporte-marca-detalle" aria-live="polite" data-pdf-omitir></p>
+                            <div data-modo-reporte="total"><div class="leyenda" data-pdf-solo hidden>
                                 <span data-pdf-leyenda="90 % o más" data-pdf-color="#21854b"></span>
                                 <span data-pdf-leyenda="Desde 75 % y menos de 90 %" data-pdf-color="#b78912"></span>
                                 <span data-pdf-leyenda="Menos de 75 %" data-pdf-color="#bc3e3e"></span>
+                            </div></div>
+                        </figure>
+                        <figure class="reporte-semanal-figura" data-vista="reportabilidad.semanal" data-pdf-descripcion="Barras agrupadas por semana: una por entidad del nivel actual, desde la primera semana disponible hasta la seleccionada. Rojo: menos de 75 %; amarillo: desde 75 % y menos de 90 %; verde: 90 % o más. Sin base se indica con una marca gris y —." data-modo-reporte="total">
+                            <figcaption id="reporte-semanal-titulo">Cumplimiento semanal en barras</figcaption>
+                            <p id="reporte-semanal-periodo" class="nota"></p>
+                            <div class="leyenda reporte-rangos-leyenda" aria-label="Rangos de cumplimiento">
+                                <span class="semaforo rojo" data-reporte-rango="rojo">Rojo: menos de 75 %</span>
+                                <span class="semaforo amarillo" data-reporte-rango="amarillo">Amarillo: desde 75 % y menos de 90 %</span>
+                                <span class="semaforo verde" data-reporte-rango="verde">Verde: 90 % o más</span>
+                                <span class="semaforo neutro" data-reporte-rango="neutro">Sin base: —</span>
                             </div>
+                            <div id="reporte-semanal" class="scroll reporte-historico-scroll" tabindex="0" role="region" aria-labelledby="reporte-semanal-titulo"></div>
+                            <p id="reporte-semanal-detalle" class="nota reporte-marca-detalle" aria-live="polite" data-pdf-omitir></p>
+                            <div id="reporte-semanal-leyenda" class="leyenda"></div>
+                            <p class="nota" data-pdf-omitir>La vista abre en las semanas más recientes; mueve la barra deslizadora hacia la izquierda para revisar las anteriores. El porcentaje aparece sobre cada barra y al pasar el mouse o enfocar verás las patentes reportadas y el total. Los colores de las barras identifican entidades. Pasa el mouse o enfoca una franja de fondo o su leyenda para destacar todas las barras y puntos de ese rango en los tres gráficos.</p>
+                        </figure>
+                        <figure class="reporte-semanal-figura" data-vista="reportabilidad.efectiva_comparativo" data-pdf-descripcion="Barras semanales apiladas: efectivas en sólido y reportadas no efectivas en el tramo superior achurado. La altura completa equivale a todas las patentes reportadas, divididas por la base vigente. El porcentaje sobre la barra es el efectivo. Cada entidad usa el color de su leyenda, igual que en la evolución semanal. Los números inferiores identifican la entidad según la leyenda." data-modo-reporte="efectiva" hidden>
+                            <figcaption id="reporte-comparativo-titulo">Reportabilidad semanal: efectivas y no efectivas por región</figcaption>
+                            <p id="reporte-comparativo-periodo" class="nota"></p>
+                            <div class="leyenda reporte-tipos-leyenda" aria-label="Partes de la barra">
+                                <span><i class="reporte-muestra-solida" aria-hidden="true"></i>Efectivas · sólido</span>
+                                <span><i class="reporte-muestra-achurada" aria-hidden="true"></i>Reportadas no efectivas · achurado</span>
+                            </div>
+                            <div id="reporte-comparativo" class="scroll reporte-historico-scroll" tabindex="0" role="region" aria-labelledby="reporte-comparativo-titulo"></div>
+                            <p id="reporte-comparativo-detalle" class="nota reporte-marca-detalle" aria-live="polite" data-pdf-omitir></p>
+                            <div id="reporte-comparativo-leyenda" class="leyenda"></div>
+                            <p class="nota">Sólido + achurado = reportabilidad total. Cada entidad usa el color de su leyenda, igual que en la evolución semanal; el porcentaje superior indica el cumplimiento efectivo. Los números bajo las barras identifican cada entidad según la leyenda. Al pasar el mouse o enfocar cada tramo se muestran las cantidades y porcentajes de ambas partes.</p>
                         </figure>
                     </div>
+                    <div id="reporte-tooltip" class="reporte-tooltip" role="tooltip" hidden data-pdf-omitir></div>
                     <button id="reporte-volver" type="button" hidden>← Volver al nivel anterior</button>
-                    <p class="nota" data-pdf-omitir>Ambos gráficos usan marcas cada 25 %. La evolución muestra hasta ocho semanas:
-                        la seleccionada y siete anteriores. Pulsa una región o zona en cualquiera de los gráficos
+                    <p class="nota" data-pdf-omitir data-modo-reporte="total">Los tres gráficos usan marcas cada 25 %. La evolución y las barras semanales muestran todas las semanas disponibles hasta la seleccionada.
+                        Las barras de la semana seleccionada conservan su resumen. Los fondos marcan los rangos rojo, amarillo y verde.
+                        Pulsa una región o zona en cualquiera de los gráficos
                         para ver sus unidades; en modo zona, pulsa una unidad para ver sus líneas de negocio.
                         Usa «Volver al nivel anterior» para regresar. Pasa el mouse sobre una serie para destacarla
-                        en ambos gráficos; en el último nivel, pulsa para fijarla y usa Escape para quitar la selección.
+                        en los tres gráficos; al pasar por una marca se destaca también su misma semana. En el último nivel, pulsa para fijarla y usa Escape para quitar la selección.
                         En la tabla, pulsa una región o zona para expandir o contraer sus unidades, y una unidad
                         para expandir o contraer sus líneas, que están contraídas por defecto. En modo zona, «Expandir líneas» y «Contraer líneas» muestran u ocultan las líneas de todas las unidades filtradas. La selección en los gráficos se refleja en los filtros superiores y filtra también la tabla y los totales.
                         Los selectores superiores filtran el panel completo. La tabla conserva las tres semanas
-                        anteriores y el promedio de cuatro semanas. Todas las semanas usan el maestro actual;
+                        anteriores y el promedio de cuatro semanas. Cada semana usa la base vigente de su martes de referencia;
+                        la semana en curso puede estar incompleta hasta el viernes.</p>
+                    <p class="nota" data-pdf-omitir data-modo-reporte="efectiva" hidden>Los gráficos usan marcas cada 25 %. La evolución y las barras semanales muestran todas las semanas disponibles hasta la seleccionada.
+                        Las barras de la semana seleccionada y las semanales muestran efectivas en sólido y no efectivas en achurado. La evolución muestra solo las efectivas. El porcentaje superior de ambas barras indica el cumplimiento efectivo. En las barras semanales el color identifica la entidad, igual que en la evolución; en las barras de la semana seleccionada indica el rango de cumplimiento efectivo.
+                        Pulsa una región o zona en cualquiera de los gráficos
+                        para ver sus unidades; en modo zona, pulsa una unidad para ver sus líneas de negocio.
+                        Usa «Volver al nivel anterior» para regresar. Pasa el mouse sobre una serie para destacarla
+                        en los gráficos; al pasar por una marca se destaca también su misma semana. En el último nivel, pulsa para fijarla y usa Escape para quitar la selección.
+                        En la tabla, pulsa una región o zona para expandir o contraer sus unidades, y una unidad
+                        para expandir o contraer sus líneas, que están contraídas por defecto. En modo zona, «Expandir líneas» y «Contraer líneas» muestran u ocultan las líneas de todas las unidades filtradas. La selección en los gráficos se refleja en los filtros superiores y filtra también la tabla y los totales.
+                        Los selectores superiores filtran el panel completo. La tabla conserva las tres semanas
+                        anteriores y el promedio de cuatro semanas. Cada semana usa la base vigente de su martes de referencia;
                         la semana en curso puede estar incompleta hasta el viernes.</p>
                 </section>
-                <section class="tarjeta" data-vista="reportabilidad.tabla">
+                <section class="tarjeta" data-vista="reportabilidad.tabla" data-vista-total="reportabilidad.tabla" data-vista-efectiva="reportabilidad.efectiva_tabla">
                     <div class="titulo">
                         <h3>Detalle por región y Unidad</h3>
                         <div class="config-acciones"><button id="mostrar-regiones" type="button" hidden>Expandir líneas</button><button id="expandir" type="button">Contraer regiones</button></div>
                     </div>
                     <div class="scroll">
                         <table>
-                            <caption class="nota">Patentes distintas reportadas frente al total de patentes del maestro
+                            <caption id="reporte-tabla-caption" class="nota">Patentes distintas reportadas frente al base de patentes vigentes
                                 por Unidad.</caption>
                             <thead id="cabecera"></thead>
                             <tbody id="detalle"></tbody>
                             <tfoot id="pie"></tfoot>
                         </table>
                     </div>
-                    <div class="nota">Una patente cuenta una sola vez por Unidad en todo el período. Los subtotales suman
-                        las unidades. El porcentaje compara cantidades; no acredita que todas las patentes reportadas
-                        pertenezcan al maestro.</div>
+                    <div id="reporte-tabla-nota" class="nota">Cada patente cuenta una vez por semana y se atribuye a su asignación vigente al martes. Cada porcentaje histórico usa la base de su propia semana. Los reportes fuera de base se conservan aparte.</div>
                 </section>
             </section>
         </section>
-        <footer id="fuente">Fuente: Control de Equipos Móviles – Minería.xlsx · Sheet1 / BD ACTIVOS MOVILES</footer>
+        <footer id="fuente">Fuente: Control de Equipos Móviles – Minería.xlsx · Sheet1 / VIGENCIA / BD ACTIVOS MOVILES</footer>
     </main>
-    <script src="../js/configuracion.js" defer></script>
-    <script src="../js/zonas.js?v=20261015-13" defer></script>
-    <script src="../js/reportabilidad.js" defer></script>
+    <script src="../js/configuracion.js?v=20261022-vigencia" defer></script>
+    <script src="../js/filtros_multiples.js?v=20261022-vigencia" defer></script>
+    <script src="../js/zonas.js?v=20261022-vigencia" defer></script>
+    <script src="../js/reportabilidad.js?v=20261022-vigencia-pendientes" defer></script>
   <script src="../js/base_datos.js" defer></script>
 <script src="../vendor/pdf-lib.min.js" defer></script>
 <script src="../vendor/html2canvas.min.js" defer></script>
-<script src="../js/panel_pdf.js?v=20261015-12" defer></script>
+<script src="../js/panel_pdf.js?v=20261022-vigencia" defer></script>
 </body>
 
 </html>

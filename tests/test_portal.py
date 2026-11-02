@@ -23,10 +23,17 @@ class PortalTest(unittest.TestCase):
         fuente = Path(cls.temp.name) / 'control.xlsx'
         libro = Workbook()
         libro.active.title = 'Sheet1'
-        libro.active.append(['Hora de finalización', 'CeCo (Centro de costo)', 'REGION', 'PATENTE', 'Reportabilidad a realizar'])
+        libro.active.append(['Hora de finalización', 'CeCo (Centro de costo)', 'REGION', 'PATENTE', 'Reportabilidad a realizar',
+                             'Unidad de Control del equipo', 'Kilometraje actual (km)', 'Horómetro actual (hrs)'])
+        from app.excel import TIPO_ADC
+        libro.active.append(['2026-09-15', 'CECO A', 'REGION BHP', 'ABCD12', TIPO_ADC, 'Por kilometraje', 100, None])
+        libro.active.append(['2026-09-22', 'CECO A', 'REGION BHP', 'ABCD12', TIPO_ADC, 'Por kilometraje', 150, None])
         maestro = libro.create_sheet('BD ACTIVOS MOVILES')
         maestro.append(['PATENTE', 'NOMBRE CeCo ACTUAL', 'REGION ACTUAL'])
         maestro.append(['ABCD12', 'CECO A', 'REGION BHP'])
+        vigencia = libro.create_sheet('VIGENCIA')
+        vigencia.append(['PATENTE','INICIO VIGENCIA','FIN VIGENCIA','NOMBRE CeCo ACTUAL','REGION ACTUAL','ZONA ACTUAL','CeCo ACTUAL','LN','Nombre LN'])
+        vigencia.append(['ABCD12','2026-08-04',None,'CECO A','REGION BHP','ZONA 3',1001,1,'RESIDUOS'])
         hoja = libro.create_sheet('Seguimiento KM-HR')
         hoja.append(['PATENTE', 'REGION ACTUAL', None, 'KM U HR UM', 'UN UM', 'FECHA UM',
                      'INTERVALO', 'UN IN', 'STATUS EQUIPO', '01-09-2026', '08-09-2026', '15-09-2026', '22-09-2026'])
@@ -78,17 +85,22 @@ class PortalTest(unittest.TestCase):
             self.assertEqual(error.exception.code, 404)
 
     def test_enlaces_y_separacion(self):
-        for nombre in ['Panel_Programa_Mantencion.html', 'Panel.html', 'Panel_Reportabilidad.html', 'Panel_Seguimiento_KM_HR.html', 'Panel_Mantenciones.html', 'Panel_Resumen_Mantencion.html', 'Panel_Calendario_Mantencion.html']:
+        for nombre in ['Panel_Programa_Mantencion.html', 'Panel.html', 'Panel_Reportabilidad.html', 'Panel_Reportabilidad_Efectiva.html', 'Panel_Seguimiento_KM_HR.html', 'Panel_Mantenciones.html', 'Panel_Resumen_Mantencion.html', 'Panel_Calendario_Mantencion.html']:
             html = (BASE / ARCHIVOS_WEB['/' + nombre][0]).read_text(encoding='utf-8')
             self.assertNotIn('<style>', html)
             self.assertNotIn('<script>', html)
             for enlace in re.findall(r'(?:href|src)="([^"]+)"', html):
                 self.assertIn(urlsplit(urljoin('http://localhost/' + nombre, enlace)).path, ARCHIVOS_WEB)
 
-    def test_cinco_paneles_independientes(self):
+    def test_cinco_paneles_y_reportabilidad_unificada(self):
         inicio = (BASE / 'Panel.html').read_text(encoding='utf-8')
         enlaces = re.findall(r'class="panel-enlace" href="([^"]+)"', inicio)
         self.assertEqual(len(set(enlaces)), 6)
+        self.assertEqual(enlaces[:2], ['web/pages/Panel_Reportabilidad.html', 'web/pages/Panel_Seguimiento_KM_HR.html'])
+        self.assertNotIn('web/pages/Panel_Reportabilidad_Efectiva.html', enlaces)
+        reporte = (BASE / 'web/pages/Panel_Reportabilidad.html').read_text(encoding='utf-8')
+        self.assertIn('id="reporte-modo"', reporte)
+        self.assertIn('Mostrar reportabilidad efectiva', reporte)
         self.assertIn('web/pages/Panel_Configuraciones.html', enlaces)
         self.assertTrue(all('#' not in enlace for enlace in enlaces))
         resumen = (BASE / 'web/pages/Panel_Resumen_Mantencion.html').read_text(encoding='utf-8')
@@ -105,6 +117,14 @@ class PortalTest(unittest.TestCase):
         self.assertTrue(datos['equipos'])
         self.assertTrue(all(len(e['lecturas']) == 4 for e in datos['equipos']))
 
+    def test_api_reportabilidad_efectiva(self):
+        with urlopen(self.url + '/api/reporte-efectivo?fecha=2026-09-22', timeout=15) as respuesta:
+            datos = json.load(respuesta)
+        self.assertTrue(datos['reportabilidad_efectiva'])
+        self.assertEqual((datos['reportadas'], datos['total']), (1, 1))
+        self.assertTrue(datos['detalle_zona'])
+        self.assertTrue(datos['bd_actualizada'])
+
     def test_api_mantenciones(self):
         with urlopen(self.url + '/api/mantenciones?inicio=2026-09-01&fecha=2026-09-22', timeout=15) as respuesta:
             datos = json.load(respuesta)
@@ -117,7 +137,7 @@ class PortalTest(unittest.TestCase):
                             headers={'Content-Type': 'application/json', 'Origin': self.url})
         with urlopen(solicitud, timeout=15) as respuesta:
             estado = json.load(respuesta)
-        self.assertEqual(len(estado['hojas']), 4)
+        self.assertEqual(len(estado['hojas']), 5)
         with urlopen(self.url + '/api/reporte?fecha=2026-09-22', timeout=15) as respuesta:
             datos = json.load(respuesta)
         self.assertEqual(datos['bd_actualizada'], estado['actualizado'])

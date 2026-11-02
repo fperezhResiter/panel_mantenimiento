@@ -10,6 +10,7 @@ ARCHIVOS_WEB = {
     '/': ('Panel.html', 'text/html; charset=utf-8'),
     '/Panel.html': ('Panel.html', 'text/html; charset=utf-8'),
     '/Panel_Reportabilidad.html': ('web/pages/Panel_Reportabilidad.html', 'text/html; charset=utf-8'),
+    '/Panel_Reportabilidad_Efectiva.html': ('web/pages/Panel_Reportabilidad_Efectiva.html', 'text/html; charset=utf-8'),
     '/Panel_repostabilidad.html': ('web/pages/Panel_Reportabilidad.html', 'text/html; charset=utf-8'),
     '/Panel_Seguimiento_KM_HR.html': ('web/pages/Panel_Seguimiento_KM_HR.html', 'text/html; charset=utf-8'),
     '/panel.css': ('web/css/panel.css', 'text/css; charset=utf-8'),
@@ -37,7 +38,9 @@ ARCHIVOS_WEB['/datos/publicacion.js'] = ('web/datos/publicacion.js', 'text/javas
 ARCHIVOS_WEB['/js/panel_pdf.js'] = ('web/js/panel_pdf.js', 'text/javascript; charset=utf-8')
 ARCHIVOS_WEB['/vendor/pdf-lib.min.js'] = ('web/vendor/pdf-lib.min.js', 'text/javascript; charset=utf-8')
 ARCHIVOS_WEB['/vendor/html2canvas.min.js'] = ('web/vendor/html2canvas.min.js', 'text/javascript; charset=utf-8')
+ARCHIVOS_WEB['/js/filtros_multiples.js'] = ('web/js/filtros_multiples.js', 'text/javascript; charset=utf-8')
 ARCHIVOS_WEB['/js/zonas.js'] = ('web/js/zonas.js', 'text/javascript; charset=utf-8')
+ARCHIVOS_WEB['/js/graficos_ayuda.js'] = ('web/js/graficos_ayuda.js', 'text/javascript; charset=utf-8')
 ARCHIVOS_WEB['/datos/unidades_zonas.json'] = ('config/unidades_zonas.json', 'application/json; charset=utf-8')
 for archivo, tipo in list(ARCHIVOS_WEB.values()):
     ARCHIVOS_WEB['/' + archivo] = (archivo, tipo)

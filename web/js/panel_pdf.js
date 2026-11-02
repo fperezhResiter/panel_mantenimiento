@@ -8,12 +8,12 @@
         const lineas = [];
         const visible = el => el.getClientRects().length && !el.closest('[hidden],.vista-oculta');
         for (const el of document.querySelectorAll('.filtros input,.filtros select,#km-patente')) {
-            if (!visible(el) || ['checkbox','submit','button'].includes(el.type)) continue;
-            const etiqueta = el.closest('label')?.childNodes[0]?.textContent.trim() || el.getAttribute('aria-label') || el.id;
+            if (el.parentElement.closest('[hidden],.vista-oculta') || (!visible(el) && !el.dataset.filtroEtiqueta) || ['checkbox','submit','button','search'].includes(el.type)) continue;
+            const etiqueta = (el.dataset.filtroEtiqueta && document.getElementById(el.id+'-rotulo')?.textContent) || el.closest('label')?.childNodes[0]?.textContent.trim() || el.getAttribute('aria-label') || el.id;
             let valor = el.value;
             if (el.tagName === 'SELECT') {
                 const opciones = Array.from(el.options);
-                valor = el.selectedOptions[0]?.textContent.trim() || valor;
+                valor = el.multiple ? PortalFiltros.texto(el) : el.selectedOptions[0]?.textContent.trim() || valor;
                 if (/region/i.test(el.id) && !el.value) valor = opciones.filter(o => o.value && (window.PortalConfig?.incluida(o.value) ?? true)).map(o => o.textContent.trim()).join(', ') || valor;
             } else if (el.type === 'date' && valor) valor = valor.split('-').reverse().join('-');
             else if (el.type === 'month' && valor) valor = valor.split('-').reverse().join('-');
@@ -70,6 +70,100 @@
                 svg.append(texto);
             }
             svg.setAttribute('viewBox', `${izquierda} ${superior} ${ancho} ${alto + arriba - superior}`);
+        }
+    }
+
+    function prepararGraficosReportabilidad(doc) {
+        if (doc.body.dataset.panel !== 'reportabilidad') return;
+        // El informe incluye todas las entidades aunque haya una marca bajo el mouse.
+        doc.querySelectorAll('.reporte-evolucion [role="button"]').forEach(el => el.style.opacity = '1');
+        doc.querySelectorAll('.reporte-rango,[data-reporte-rango]').forEach(el => { el.style.opacity = '1'; el.removeAttribute('data-activo'); });
+        doc.querySelectorAll('.reporte-guia').forEach(el => el.remove());
+        doc.querySelectorAll('.reporte-evolucion rect[data-entidad],.reporte-evolucion circle').forEach(el => el.setAttribute('stroke-width', '0'));
+        // Recompone bloques de cinco semanas para A4 vertical.
+        for (const svg of doc.querySelectorAll('svg[data-pdf-semanas]')) {
+            const margen = 40, separacion = 12, derecha = 8, ancho = 600, porBloque = 5;
+            const [, , , alto] = svg.getAttribute('viewBox').split(/\s+/).map(Number);
+            const marcas = Array.from(svg.querySelectorAll('g[data-pdf-barra],rect[data-entidad]:not([data-segmento])'));
+            const semanas = [...new Set(marcas.map(el => el.dataset.semana))], entidades = marcas.filter(el => el.dataset.semana === semanas[0]).map(el => el.dataset.entidad);
+            const porSemana = new Map(semanas.map(semana => [semana, marcas.filter(el => el.dataset.semana === semana)]));
+            if (!marcas.length) continue;
+            const medicion = doc.createElement('canvas').getContext('2d');
+            const figura = svg.closest('figure'), leyenda = figura?.querySelector('#reporte-semanal-leyenda,#reporte-comparativo-leyenda');
+            const etiquetas = new Map(Array.from(svg.querySelectorAll('text')).filter(el => /^S\d+$/.test(el.textContent)).map(el => [el.textContent.slice(1), [el, el.nextElementSibling]]));
+            const bloques = [];
+            for (let inicio = 0; inicio < semanas.length; inicio += porBloque) {
+              const periodo = semanas.slice(inicio, inicio + porBloque);
+                const nombres = entidades, paso = (ancho - margen - derecha) / periodo.length, espacio = (paso - separacion) / nombres.length, anchoBarra = Math.min(16, espacio * .78), ocupados = [];
+                const bloque = doc.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                bloque.setAttribute('viewBox', `0 0 ${ancho} ${alto}`);
+                bloque.dataset.pdfGrafico = 'semanal';
+                // Repetir el eje, el semáforo y la misma escala en cada bloque.
+                for (const original of svg.children) {
+                    const tag = original.tagName.toLowerCase();
+                    if (tag === 'defs') {
+                        bloque.append(original.cloneNode(true));
+                    } else if (original.matches('rect[data-rango]')) {
+                        const fondo = original.cloneNode(true); fondo.setAttribute('x',margen); fondo.setAttribute('width', ancho - margen - derecha); bloque.append(fondo);
+                    } else if (tag === 'line' && original.getAttribute('x1') !== original.getAttribute('x2') && !original.hasAttribute('role')) {
+                        const linea = original.cloneNode(true); linea.setAttribute('x1',margen); linea.setAttribute('x2', ancho - derecha); bloque.append(linea);
+                    } else if (tag === 'text' && (original.getAttribute('text-anchor') === 'end' || original.textContent === '% cumplimiento')) {
+                        const eje = original.cloneNode(true);
+                        if(original.getAttribute('text-anchor') === 'end'){eje.setAttribute('x',margen-6);eje.setAttribute('font-size','10');}
+                        bloque.append(eje);
+                    }
+                }
+                periodo.forEach((semana, j) => {
+                    const izquierda = margen + j * paso;
+                    for (const original of etiquetas.get(semana) || []) {
+                        if (!original) continue;
+                        const rotulo = original.cloneNode(true); rotulo.setAttribute('x', izquierda + paso / 2); bloque.append(rotulo);
+                    }
+                    nombres.forEach((nombre, i) => {
+                        const original = porSemana.get(semana)?.[i];
+                        if (!original) return;
+                        const x = izquierda + (paso - nombres.length * espacio) / 2 + espacio * (i + .5), barra = original.cloneNode(true);
+                        if (barra.hasAttribute('data-pdf-barra')) {
+                            barra.setAttribute('transform',`translate(${x} 0)`);
+                            barra.querySelectorAll('rect[data-segmento]').forEach(segmento=>{segmento.setAttribute('x',-anchoBarra/2);segmento.setAttribute('width',anchoBarra);});
+                        } else {barra.setAttribute('width', anchoBarra); barra.setAttribute('x', x - anchoBarra/2);}
+                        bloque.append(barra);
+                        const porcentaje = original.nextElementSibling;
+                        if (porcentaje?.hasAttribute('data-porcentaje')) {
+                            const etiqueta = porcentaje.cloneNode(true), vertical = espacio < 24, fuente = vertical ? 9 : 12;
+                            medicion.font = `bold ${fuente}px Arial`;
+                            const longitud = medicion.measureText(etiqueta.textContent).width, amplitud = vertical ? fuente : longitud, altura = vertical ? longitud : fuente, anterior = Number(original.getAttribute('y') ?? original.dataset.pdfY) - (Number(original.dataset.valor)>0 ? 9 : 6);
+                            let y = anterior;
+                            while (ocupados.some(o => x - amplitud/2 < o.derecha+2 && x + amplitud/2 > o.izquierda-2 && y - altura < o.inferior+3 && y > o.superior-3)) y -= vertical ? altura+4 : 14;
+                            ocupados.push({izquierda:x-amplitud/2,derecha:x+amplitud/2,superior:y-altura,inferior:y});
+                            if (y !== anterior) {
+                                const guia = doc.createElementNS('http://www.w3.org/2000/svg', 'line');
+                                for (const [atributo, valor] of Object.entries({x1:x,x2:x,y1:anterior+5,y2:y+3,stroke:'#5b6b7c','stroke-width':.7})) guia.setAttribute(atributo,String(valor));
+                                bloque.append(guia);
+                            }
+                            etiqueta.setAttribute('x', x); etiqueta.setAttribute('y', y); etiqueta.setAttribute('font-size',fuente); etiqueta.style.strokeWidth='2px';
+                            if(vertical){etiqueta.setAttribute('transform',`rotate(-90 ${x} ${y})`);etiqueta.setAttribute('text-anchor','start');etiqueta.setAttribute('dominant-baseline','central');}
+                            bloque.append(etiqueta);
+                        }
+                    });
+                });
+                const limiteEtiquetas = Math.min(30,...ocupados.map(o=>o.superior));
+                const tituloEje = Array.from(bloque.querySelectorAll('text')).find(el=>el.textContent==='% cumplimiento');
+                if(tituloEje)tituloEje.setAttribute('y',Math.min(15,limiteEtiquetas-16));
+                const superior = Math.min(0,limiteEtiquetas-7,Number(tituloEje?.getAttribute('y')||15)-14);
+                bloque.setAttribute('viewBox', `0 ${superior} ${ancho} ${alto-superior}`);
+                const titulo = doc.createElement('p');
+                titulo.dataset.pdfBloqueSemanal = '';
+                titulo.className = 'nota'; titulo.textContent = `${svg.dataset.pdfTitulo || 'Cumplimiento semanal en barras'} - S${periodo[0]}${periodo.length > 1 ? ' a S' + periodo.at(-1) : ''}`;
+                bloques.push(titulo, bloque);
+                if (leyenda) {
+                    const copia = leyenda.cloneNode(true); copia.removeAttribute('id');
+                    copia.querySelectorAll('[data-pdf-leyenda]').forEach(el => { if (!nombres.includes(el.dataset.pdfEntidad || el.dataset.pdfLeyenda)) el.remove(); });
+                    bloques.push(copia);
+                }
+            }
+            leyenda?.remove();
+            svg.replaceWith(...bloques);
         }
     }
 
@@ -142,14 +236,15 @@
             await doc.fonts.ready;
             await pausa();
             prepararGraficosSeguimiento(doc);
+            prepararGraficosReportabilidad(doc);
             // Convierte solo los gráficos SVG en figuras y conserva sus estilos.
             for (const svg of doc.querySelectorAll('svg')) {
                 const rect = svg.getBoundingClientRect();
                 if (!rect.width || !rect.height) continue;
                 for (const nodo of [svg, ...svg.querySelectorAll('*')]) {
                     const css = marco.contentWindow.getComputedStyle(nodo);
-                    for (const propiedad of ['fill','stroke','stroke-width','font-family','font-size','font-weight','opacity']) {
-                        nodo.style.setProperty(propiedad, css.getPropertyValue(propiedad));
+                    for (const propiedad of ['fill','stroke','stroke-width','paint-order','stroke-linejoin','font-family','font-size','font-weight','opacity']) {
+                        nodo.style.setProperty(propiedad, css.getPropertyValue(propiedad).replace(/url\(["']?[^)"']*#([^)"']+)["']?\)/g,'url(#$1)'));
                     }
                 }
                 svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
@@ -157,6 +252,7 @@
                 svg.setAttribute('height', rect.height);
                 const img = doc.createElement('img');
                 img.width = rect.width; img.height = rect.height;
+                if (svg.dataset.pdfGrafico) img.dataset.pdfGrafico = svg.dataset.pdfGrafico;
                 img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(svg));
                 svg.replaceWith(img);
             }
@@ -226,7 +322,8 @@
             logo = await pdf.embedPng(bytes);
         }
         const muchasColumnas = Array.from(doc.querySelectorAll('table')).some(t => (t.rows[0]?.cells.length || 0) >= 12);
-        const ancho = muchasColumnas ? 1190.55 : 841.89, alto = muchasColumnas ? 841.89 : 595.28;
+        const esReportabilidad = doc.body.dataset.panel === 'reportabilidad';
+        const ancho = esReportabilidad ? 595.28 : muchasColumnas ? 1190.55 : 841.89, alto = esReportabilidad ? 841.89 : muchasColumnas ? 841.89 : 595.28;
         const margen = 32, disponible = ancho - margen * 2, pie = 34;
         let pagina, y;
         function nuevaPagina() {
@@ -288,7 +385,7 @@
             y-=altura+14;
         }
         function tarjetasResumen(el) {
-            const tarjetas=Array.from(el.children).filter(visible),columnas=Math.min(5,tarjetas.length);
+            const tarjetas=Array.from(el.children).filter(visible),columnas=doc.body.dataset.reportabilidad==='efectiva'?Math.min(4,tarjetas.length):Math.min(5,tarjetas.length);
             if (!columnas) return;
             const espacio=10,anchoTarjeta=(disponible-espacio*(columnas-1))/columnas;
             for (let inicio=0;inicio<tarjetas.length;inicio+=columnas) {
@@ -442,8 +539,12 @@
             const suma = anchuras.reduce((a,b)=>a+b,0);
             const min = Math.min(55,disponible/columnas * 0.7);
             const libres = disponible - columnas*min;
-            const anchos = suma ? anchuras.map(n=>min+libres*n/suma) : null;
+            let anchos = suma ? anchuras.map(n=>min+libres*n/suma) : null;
             const reportabilidad=doc.body.dataset.panel==='reportabilidad';
+            if (reportabilidad && columnas >= 5 && columnas <= 8) {
+                const pesos = [.24,.12,.14,.10,...Array(columnas - 5).fill(.09),.13], sumaPesos = pesos.reduce((a,b)=>a+b,0);
+                anchos = pesos.map(peso=>disponible*peso/sumaPesos);
+            }
             const seguimiento=doc.body.dataset.panel==='seguimiento';
             const resumen=doc.body.dataset.panel==='resumen';
             const programa=doc.body.dataset.panel==='programa';
@@ -462,10 +563,21 @@
                     const estadoColor=['mt-rojo','mt-amarillo','mt-verde','mt-gris'].some(clase=>c.classList.contains(clase));
                     const fondoCelda=estadoColor?colorCSS(css(c).backgroundColor,null):null;
                     const colorTexto=estadoColor?colorCSS(css(c).color):null;
-                    return {texto:semaforo&&reportabilidad?textoCelda(c).split(' · ')[0]:textoCelda(c),span:c.colSpan,bold:c.tagName==='TH'||region||unidad||linea||total,region,unidad,linea,total,alterna,semaforo,tablaDetallada,fondoCelda,colorTexto,alerta:seguimiento&&c.classList.contains('km-uso-alerta'),derecha:tablaDetallada&&!cabecera&&i>0&&(!calendario||i===columnas-2),programado:el.classList.contains('calendario')&&c.classList.contains('programado')};
+                    let texto = semaforo&&reportabilidad?textoCelda(c).split(' · ')[0]:textoCelda(c);
+                    if (cabecera && reportabilidad) texto = texto.replace(/(\d{2}-\d{2})-\d{4}/g,'$1');
+                    return {texto,span:c.colSpan,bold:c.tagName==='TH'||region||unidad||linea||total,region,unidad,linea,total,alterna,semaforo,tablaDetallada,fondoCelda,colorTexto,alerta:seguimiento&&c.classList.contains('km-uso-alerta'),derecha:tablaDetallada&&!cabecera&&i>0&&(!calendario||i===columnas-2),programado:el.classList.contains('calendario')&&c.classList.contains('programado')};
                 })};
             });
             tabla(contenido.filter(f=>!f.cabecera).map(f=>f.celdas),contenido.filter(f=>f.cabecera).map(f=>f.celdas),columnas,anchos,el.classList.contains('calendario'));
+        }
+        const altoFigura = img => img?.dataset.pdfGrafico === 'semanal' ? 400 : 240;
+        function altoLeyendaSeries(el) {
+            const items = Array.from(el?.querySelectorAll('[data-pdf-leyenda]') || []), columnas = Math.min(3, items.length);
+            if (!columnas) return 0;
+            const anchoItem = (disponible - 14 * (columnas - 1)) / columnas;
+            let altura = 7;
+            for (let inicio = 0; inicio < items.length; inicio += columnas) altura += Math.max(...items.slice(inicio, inicio + columnas).map(item => envolver(item.dataset.pdfLeyenda, anchoItem - 14, 10).length)) * 14 + 5;
+            return altura;
         }
         async function figura(img) {
             const canvas = doc.createElement('canvas');
@@ -474,14 +586,19 @@
             const ctx = canvas.getContext('2d');
             ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
             const imagen = await pdf.embedPng(canvas.toDataURL('image/png'));
-            const medida = imagen.scaleToFit(disponible,240);
+            const medida = imagen.scaleToFit(disponible,altoFigura(img));
             asegurar(medida.height+12);
             pagina.drawImage(imagen,{x:margen,y:y-medida.height,...medida}); y -= medida.height+14;
             canvas.width=canvas.height=0;
         }
         async function recorrer(el) {
             if (!visible(el)) return;
-            if (el.dataset.vista==='reportabilidad.tabla') nuevaPagina();
+            if (el.dataset.pdfBloqueSemanal !== undefined) {
+                const img = el.nextElementSibling;
+                asegurar((img?.tagName === 'IMG' ? Math.min(altoFigura(img),img.height*disponible/img.width) : 400) + Math.min(50,altoLeyendaSeries(img?.nextElementSibling)) + 35);
+                parrafo(el.innerText,10,true); return;
+            }
+            if (['reportabilidad.tabla','reportabilidad.efectiva_tabla','reportabilidad_efectiva.tabla'].includes(el.dataset.vista)) nuevaPagina();
             if (el.dataset.pdfLeyenda) { itemLeyenda(el); return; }
             if ((el.classList.contains('leyenda') || el.id==='leyenda-estados') && el.querySelector('[data-pdf-leyenda]')) {
                 if(['reportabilidad','programa'].includes(doc.body.dataset.panel)){
@@ -500,7 +617,8 @@
             }
             if (el.tagName==='FIGURE') {
                 const img = el.querySelector('img');
-                if (img && visible(img)) asegurar(Math.min(240,img.height*disponible/img.width)+(el.dataset.pdfDescripcion?90:50));
+                const altoTipos = Array.from(el.querySelectorAll('.reporte-tipos-leyenda')).filter(visible).reduce((s,l)=>s+envolver(l.innerText,disponible,10).length*14+7,0);
+                if (img && visible(img)) asegurar(Math.min(altoFigura(img),img.height*disponible/img.width)+(img.dataset.pdfGrafico === 'semanal' ? Math.min(210 + altoLeyendaSeries(img.nextElementSibling),alto - 140 - altoFigura(img)) : (el.dataset.pdfDescripcion?90:50)+altoTipos));
             }
             if (el.tagName==='DETAILS' && el.dataset.vista) {
                 const img = el.querySelector('img');
@@ -515,6 +633,7 @@
                 tabla(filas,[cabecera],7,null,true); return;
             }
             if (el.tagName==='IMG') { await figura(el); return; }
+            if (el.tagName==='LI') { parrafo('- '+el.innerText); return; }
             if (el.classList.contains('kpi')) { parrafo(el.innerText.split('\n').filter(Boolean).join(': '),11,true); return; }
             if (/^(H[1-6]|SUMMARY|FIGCAPTION)$/.test(el.tagName)) { asegurar(60); parrafo(el.innerText,12,true); return; }
             if (/^(P|FOOTER|LEGEND)$/.test(el.tagName) || el.classList.contains('leyenda')) { if (el.innerText.trim()) parrafo(el.innerText); return; }
@@ -570,5 +689,5 @@
     }
     window.PanelPDF = {descargar};
     const boton = document.getElementById('descargar-pdf');
-    if (boton) boton.onclick = () => descargar({nombre:`Panel_${document.body.dataset.panel || 'Configuraciones'}_${new Date().toLocaleDateString('sv-SE')}.pdf`});
+    if (boton) boton.onclick = () => descargar({nombre:`Panel_${document.body.dataset.reportabilidad==='efectiva'?'reportabilidad_efectiva':document.body.dataset.panel || 'Configuraciones'}_${new Date().toLocaleDateString('sv-SE')}.pdf`});
 })();

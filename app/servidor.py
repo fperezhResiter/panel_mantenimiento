@@ -148,7 +148,7 @@ def main():
         print('Si hay otro panel abierto, detén esa instancia antes de iniciar una nueva. '
               'También puedes elegir otro puerto con --puerto 8766.', flush=True)
         raise SystemExit(1)
-    print(f'Panel disponible en http://127.0.0.1:{servidor.server_address[1]} | Reporte v2 | Ctrl+C para detener', flush=True)
+    print(f'Panel disponible en http://127.0.0.1:{servidor.server_address[1]} | Reporte v3 · VIGENCIA semanal | Ctrl+C para detener', flush=True)
     if args.abrir:
         import webbrowser
         webbrowser.open(f'http://127.0.0.1:{servidor.server_address[1]}/')

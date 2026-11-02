@@ -19,6 +19,7 @@ function pagina(panel,datos,archivos,excluidas=[]){
   const el=id=>{if(!elementos.has(id))elementos.set(id,new Elemento());return elementos.get(id);};
   const document={body:{dataset:{panel}},getElementById:el,createElement:()=>new Elemento(),createElementNS:()=>new Elemento()};
   const contexto=vm.createContext({document,window:{addEventListener:(n,f)=>eventos[n]=f},PanelPDF:{descargar:async({html})=>descargas.push(new Blob([html]))},PortalDatos:{fechaActual:()=>new Date(),consultar:async()=>({ok:true,json:async()=>datos})},PortalConfig:{registrar(){},incluida:r=>r!=='Excluida',cecoIncluido:c=>!excluidas.includes(c),calendarioIncluida:()=>true,estado:()=>({calendario_excluidas:[]}),aviso:()=>''},location:{protocol:'http:'},Option:function(t,v){this.text=t;this.value=v;},URLSearchParams,Blob,URL:{createObjectURL:b=>{descargas.push(b);return 'blob:prueba';},revokeObjectURL(){}},fetch:async()=>({ok:true,json:async()=>datos})});
+require('./ayuda_filtros.cjs')(contexto,Elemento);
   for(const archivo of archivos)vm.runInContext(fs.readFileSync(path.join(__dirname,'../web/js',archivo),'utf8'),contexto);
   return {el,descargas,eventos};
 }
@@ -62,7 +63,7 @@ const programa={...resumen('',16,8),mes:'2026-10',regiones:[norte,sur],historico
   assert.equal(pro.el('leyenda-estados').children[0].children.at(-1).hidden,true);
   const textos=n=>[n.textContent,...n.children.flatMap(c=>typeof c==='object'?textos(c):[c])];
   const historico=textos(pro.el('grafico-cantidades')).filter(Boolean).join(' ');
-  assert(historico.includes('CECO 1 · Programadas · 2026-09: 6'));assert(!historico.includes('CECO 10'));
+  assert(historico.includes('CECO 1\nProgramadas\nMes: 2026-09\nPatentes: 6'));assert(!historico.includes('CECO 10'));
   pro.el('region-programa').value='Sur';pro.el('region-programa').eventos.change();assert.equal(pro.el('ceco-programa').value,'');assert.deepEqual(opciones(pro.el('ceco-programa')),['','CECO 100']);
   pro.el('region-programa').value='';pro.el('region-programa').eventos.change();assert.equal(pro.el('kpis').children[0].children[1].textContent,'16');
   // La publicación puede conservar porcentajes antiguos: recalcular todos los niveles.
@@ -72,7 +73,7 @@ const programa={...resumen('',16,8),mes:'2026-10',regiones:[norte,sur],historico
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(actualizado.el('totales').children[0].children.at(-1).children[0].textContent,'75%');
   for(const fila of actualizado.el('detalle').children)assert.equal(fila.children.at(-1).children[0].textContent,'75%');
-  assert(textos(actualizado.el('grafico-cumplimiento')).includes('Total general · 2026-09: 75%'));
+  assert(textos(actualizado.el('grafico-cumplimiento')).includes('Total general\nMes: 2026-09\nCumplimiento: 75%'));
   const estadosTexto=textos(actualizado.el('leyenda-estados')).filter(Boolean).join(' ');
   assert(estadosTexto.includes('Realizadas: 3'));
   assert(estadosTexto.includes('Regularizadas: 3'));
@@ -102,7 +103,7 @@ const programa={...resumen('',16,8),mes:'2026-10',regiones:[norte,sur],historico
   actualizado.el('region-programa').value='Norte';actualizado.el('region-programa').eventos.change();
   actualizado.el('ceco-programa').value='CECO 1';actualizado.el('ceco-programa').eventos.change();
   assert.equal(actualizado.el('totales').children[0].children.at(-1).children[0].textContent,'75%');
-  assert(textos(actualizado.el('grafico-cumplimiento')).includes('CECO 1 · 2026-09: 75%'));
+  assert(textos(actualizado.el('grafico-cumplimiento')).includes('CECO 1\nMes: 2026-09\nCumplimiento: 75%'));
   // Resaltado compartido por entidad desde cualquiera de los dos historiales.
   const grupos=id=>pro.el(id).children[2].children[0].children.filter(n=>n['aria-label']);
   grupos('grafico-cumplimiento')[0].eventos.click(); // Total → regiones.
@@ -130,7 +131,7 @@ const programa={...resumen('',16,8),mes:'2026-10',regiones:[norte,sur],historico
   assert(!opciones(calExcluido.el('mt-ceco-cal')).includes('CECO 1'));
   assert(!opciones(proExcluido.el('ceco-programa')).includes('CECO 1'));
   assert.equal(proExcluido.el('kpis').children[0].children[1].textContent,'6');
-  assert(textos(proExcluido.el('grafico-cantidades')).includes('Total general · Programadas · 2026-09: 6'));
+  assert(textos(proExcluido.el('grafico-cantidades')).includes('Total general\nProgramadas\nMes: 2026-09\nPatentes: 6'));
   kmExcluido.el('km-exportar').onclick();
   assert(!(await kmExcluido.descargas.at(-1).text()).includes('AAA111'));
   console.log('OK: filtros CeCo por región, búsqueda por patente, descargas, totales e historial.');

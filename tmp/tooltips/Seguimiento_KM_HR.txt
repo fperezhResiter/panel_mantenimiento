@@ -1,0 +1,8 @@
+Semana: 12
+Fecha: 20-10-2026
+Lectura: 332.376 KM
+
+Período: S11 a S12
+Incremento: 147 KM
+Días: 7
+Consumo diario: 21 KM/día

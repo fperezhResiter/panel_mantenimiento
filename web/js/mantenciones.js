@@ -158,33 +158,19 @@ function mtResumen(){
  const general=document.createElement('tr');mtCelda(general,'Total general');mtMetricas(general,total);mt$('mt-totales').append(general);
  mt$('mt-patentes').replaceChildren();for(const e of mtIncluidos){const tr=document.createElement('tr');[e.patente,e.region,(PortalConfig.nombreCeco?.(e.ceco) ?? e.ceco)+(window.PortalZona?.activa()?' / '+e.linea:'')].forEach(v=>mtCelda(tr,v));mtBadge(mtCelda(tr,''),estadoMt(e));[e.estado_equipo||'Sin estado reportado',mtFecha(e.fecha_estado_equipo),e.calculo.motivo||'—'].forEach(v=>mtCelda(tr,v));mt$('mt-patentes').append(tr);}
 }
-function mtActualizar(){if(!mtDatos)return;mtIncluidos=mtDatos.equipos.filter(e=>PortalConfig.incluida(e.region)&&(PortalConfig.cecoIncluido?.(e.ceco) ?? true)&&(!mtEsCalendario||!PortalDatos.consulta||PortalConfig.calendarioIncluida(e.patente)));const regiones=[...new Set(mtIncluidos.map(e=>e.region))].sort();if(mtEsCalendario){const previa=mt$('mt-region-cal').value;mt$('mt-region-cal').replaceChildren(new Option('Todas las regiones incluidas',''));regiones.forEach(r=>mt$('mt-region-cal').add(new Option(r,r)));if(regiones.includes(previa))mt$('mt-region-cal').value=previa;}
- if(!mtEsCalendario){
-  const selectorRegion=mt$('mt-region-resumen'),selectorCeco=mt$('mt-ceco-resumen');
-  const regionPrevia=selectorRegion.value,cecoPrevio=selectorCeco.value;
-  selectorRegion.replaceChildren(new Option('Todas las regiones incluidas',''));
-  regiones.forEach(r=>selectorRegion.add(new Option(r,r)));
-  selectorRegion.value=regiones.includes(regionPrevia)?regionPrevia:'';
-  mtIncluidos=mtIncluidos.filter(e=>!selectorRegion.value||e.region===selectorRegion.value);
-  const cecos=[...new Set(mtIncluidos.map(e=>e.ceco))].sort();
-  selectorCeco.replaceChildren(new Option('Todas las unidades',''));
-  cecos.forEach(c=>selectorCeco.add(new Option(PortalConfig.nombreCeco?.(c) ?? c,c)));
-  selectorCeco.value=cecos.includes(cecoPrevio)?cecoPrevio:'';
-  mtIncluidos=mtIncluidos.filter(e=>!selectorCeco.value||e.ceco===selectorCeco.value);
- }
- if(mtEsCalendario){
-  mtIncluidos=mtIncluidos.filter(e=>!mt$('mt-region-cal').value||e.region===mt$('mt-region-cal').value);
-  const selector=mt$('mt-ceco-cal'),previo=selector.value;
-  const cecos=[...new Set(mtIncluidos.map(e=>e.ceco))].sort((a,b)=>a.localeCompare(b,'es',{numeric:true}));
-  selector.replaceChildren(new Option('Todas las unidades',''));cecos.forEach(c=>selector.add(new Option(PortalConfig.nombreCeco?.(c) ?? c,c)));selector.value=cecos.includes(previo)?previo:'';
-  mtIncluidos=mtIncluidos.filter(e=>!selector.value||e.ceco===selector.value);
- }
+function mtActualizar(){if(!mtDatos)return;mtIncluidos=mtDatos.equipos.filter(e=>PortalConfig.incluida(e.region)&&(PortalConfig.cecoIncluido?.(e.ceco) ?? true)&&(!mtEsCalendario||!PortalDatos.consulta||PortalConfig.calendarioIncluida(e.patente)));const regiones=[...new Set(mtIncluidos.map(e=>e.region))].sort();
+ const selectorRegion=mt$(mtEsCalendario?'mt-region-cal':'mt-region-resumen'),selectorCeco=mt$(mtEsCalendario?'mt-ceco-cal':'mt-ceco-resumen');
+ PortalFiltros.opciones(selectorRegion,regiones,'Todas las regiones incluidas');
+ mtIncluidos=mtIncluidos.filter(e=>PortalFiltros.coincide(selectorRegion,e.region));
+ const cecos=[...new Set(mtIncluidos.map(e=>e.ceco))].sort((a,b)=>a.localeCompare(b,'es',{numeric:true}));
+ PortalFiltros.opciones(selectorCeco,cecos.map(c=>[c,PortalConfig.nombreCeco?.(c) ?? c]),'Todas las unidades');
+ mtIncluidos=mtIncluidos.filter(e=>PortalFiltros.coincide(selectorCeco,e.ceco));
  mt$('mt-alcance').textContent=`${new Set(mtIncluidos.map(e=>e.region)).size} regiones y ${mtIncluidos.length} patentes incluidas. ${mtEsCalendario?'':`Mes de lecturas: ${mtDatos.fecha.slice(0,7)}. `}Lecturas disponibles: ${mtFecha(mtDatos.inicio)} a ${mtFecha(mtDatos.semanas.at(-1).fecha)}. La última mantención y el estado operativo corresponden al estado actual del Excel.`;
  mtResumen();mtDia='';mtCalendario();}
 function mtCalendario(){
- if(!mtDatos||!mtEsCalendario)return;const mes=mt$('mt-mes').value,region=mt$('mt-region-cal').value;mtMes=eventosMesMt(mtIncluidos,mes,region);const grid=mt$('mt-cal-grid');grid.replaceChildren();mt$('mt-exportar-informe').disabled=!region||!mesValidoMt(mes);mtNotaDescarga();
+ if(!mtDatos||!mtEsCalendario)return;const mes=mt$('mt-mes').value;mtMes=eventosMesMt(mtIncluidos,mes);const grid=mt$('mt-cal-grid');grid.replaceChildren();mt$('mt-exportar-informe').disabled=!mesValidoMt(mes);mtNotaDescarga();
  if(!mesValidoMt(mes)){mt$('mt-cal-nota').textContent='Selecciona un mes válido.';mtMes=[];mtDia='';mtAgenda();mt$('mt-exportar-calendario').disabled=true;return;}
- mt$('mt-exportar-calendario').disabled=false;const candidatos=mtIncluidos.filter(e=>!region||e.region===region),sinFecha=candidatos.filter(e=>!(e.fecha_proyectada_real||e.calculo.fecha_proyectada)).length;
+ mt$('mt-exportar-calendario').disabled=false;const candidatos=mtIncluidos,sinFecha=candidatos.filter(e=>!(e.fecha_proyectada_real||e.calculo.fecha_proyectada)).length;
  mt$('mt-cal-nota').textContent=`${mtMes.length} patentes con mantención proyectada en ${mes}. ${sinFecha} patentes de las regiones elegidas no tienen fecha proyectada y quedan fuera del calendario.`;
  const ayudaMes=document.createElement('span');ayudaMes.dataset.pdfOmitir='';ayudaMes.textContent=' Cambiar el mes no cambia el período de lecturas utilizado.';mt$('mt-cal-nota').append(ayudaMes);
  for(const dia of ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']){const n=document.createElement('div');n.className='mt-cal-nombre';n.textContent=dia;grid.append(n);}
@@ -194,8 +180,8 @@ function mtCalendario(){
 }
 function mtSeleccionDescarga(){return equiposCalendarioMt(mtMes,new Set(PortalConfig.estado().calendario_excluidas||[]));}
 function mtNotaDescarga(){
- const region=mt$('mt-region-cal').value;
- mt$('mt-informe-nota').textContent=`${mtSeleccionDescarga().length} de ${mtMes.length} patentes del mes y región seleccionados se incluirán en las descargas PDF por región y CSV. `+(region?`El PDF incluye el calendario y la tabla de ${region}.`:'Elige una región para habilitar el PDF.');
+ const region=PortalFiltros.texto('mt-region-cal');
+ mt$('mt-informe-nota').textContent=`${mtSeleccionDescarga().length} de ${mtMes.length} patentes del conjunto filtrado se incluirán en las descargas PDF y CSV. `+`El PDF incluye el calendario y la tabla de las regiones y unidades filtradas: ${region}.`;
  if(mt$('mt-config-estado'))mt$('mt-config-estado').textContent=PortalConfig.aviso();
 }
 function mtEstadoGruposAgenda(){
@@ -272,7 +258,7 @@ function mtAgenda(){
  mtEstadoGruposAgenda();
 }
 function descargarMt(filas,nombre){const url=URL.createObjectURL(new Blob([csvMt(filas)],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=nombre;a.click();URL.revokeObjectURL(url);}
-if(mtEsCalendario)mt$('mt-exportar-informe').onclick=()=>{const region=mt$('mt-region-cal').value,mes=mt$('mt-mes').value;if(!mtDatos||!region||!mesValidoMt(mes))return;const html=informeCalendarioMt(mtSeleccionDescarga(),mes,region,mtDatos.inicio,mtDatos.semanas.at(-1).fecha);return PanelPDF.descargar({html,nombre:`Calendario_y_Patentes_${region.replace(/[^\p{L}\p{N}_-]/gu,'_')}_${mes}.pdf`,titulo:`Calendario ${region} · ${mes}`});};
+if(mtEsCalendario)mt$('mt-exportar-informe').onclick=()=>{const region=PortalFiltros.texto('mt-region-cal'),mes=mt$('mt-mes').value;if(!mtDatos||!region||!mesValidoMt(mes))return;const html=informeCalendarioMt(mtSeleccionDescarga(),mes,region,mtDatos.inicio,mtDatos.semanas.at(-1).fecha,[...new Set(mtIncluidos.map(e=>e.region))]);return PanelPDF.descargar({html,nombre:`Calendario_y_Patentes_${region.replace(/[^\p{L}\p{N}_-]/gu,'_')}_${mes}.pdf`,titulo:`Calendario ${region} · ${mes}`});};
 if(!mtEsCalendario)mt$('mt-exportar-resumen').onclick=()=>{if(!mtDatos)return;const filas=[['Tipo',window.PortalZona?.activa()?'Zona':'Región','Unidad',...(window.PortalZona?.activa()?['Línea de negocio']:[]),...MT_ESTADOS,'Total general','% no vencidas','Fecha referencia']];const agregar=(tipo,region,ceco,c,linea='')=>filas.push([tipo,region,ceco,...(window.PortalZona?.activa()?[linea]:[]),...c.estados,c.total,c.porcentaje,mtDatos.fecha]);for(const r of mtGrupos){agregar('Subtotal región',r.region,'',r.conteo);for(const c of r.cecos){agregar('Unidad',r.region,c.ceco,c.conteo);for(const l of c.lineas||[])agregar('Línea',r.region,c.ceco,l.conteo,l.linea);}}agregar('Total general','','',conteoMt(mtIncluidos));descargarMt(filas,`Reporte_Mantencion_${mtDatos.fecha}.csv`);};
 if(mtEsCalendario)mt$('mt-exportar-calendario').onclick=()=>{if(!mtDatos)return;const filas=[['Fecha proyectada','Patente',window.PortalZona?.activa()?'Zona':'Región','Unidad',...(window.PortalZona?.activa()?['Línea de negocio']:[]),'Medida KM/HR','Próxima mantención','Estado','Fecha de última lectura']];mtSeleccionDescarga().forEach(e=>filas.push([e.calculo.fecha_proyectada,e.patente,e.region,e.ceco,...(window.PortalZona?.activa()?[e.linea]:[]),e.unidad,e.calculo.proxima,estadoMt(e),e.calculo.fecha_lectura]));descargarMt(filas,`Calendario_Mantenciones_${mt$('mt-mes').value}.csv`);};
 
@@ -304,7 +290,7 @@ if(!mtEsCalendario){
   for(const n of unidades){if(expandir){mtUnidadesExpandidas.add(n.clave);mtRegionesContraidas.delete(n.region);}else mtUnidadesExpandidas.delete(n.clave);}
   mtEstadoGruposResumen();
  };
- mt$('mt-region-resumen').onchange=()=>{mt$('mt-ceco-resumen').value='';mtActualizar();};mt$('mt-ceco-resumen').onchange=mtActualizar;mt$('mt-mes-resumen').onchange=consultarMt;
+ mt$('mt-region-resumen').onchange=mtActualizar;mt$('mt-ceco-resumen').onchange=mtActualizar;mt$('mt-mes-resumen').onchange=consultarMt;
 }
 function cambiarMesMt(delta){const mes=mt$('mt-mes').value;if(!mesValidoMt(mes))return;const [y,m]=mes.split('-').map(Number),d=new Date(Date.UTC(y,m-1+delta,1));mt$('mt-mes').value=d.toISOString().slice(0,7);mtDia='';mtCalendario();}
 if(mtEsCalendario){mt$('mt-mes-anterior').onclick=()=>cambiarMesMt(-1);mt$('mt-mes-siguiente').onclick=()=>cambiarMesMt(1);}

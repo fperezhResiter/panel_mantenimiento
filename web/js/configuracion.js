@@ -3,6 +3,8 @@
 (() => {
   const clave = 'resiter.portal.config.v1';
   const normalizar = s => String(s).normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, ' ').toUpperCase();
+  const agruparZona = zona => normalizar(zona).replace(/^ZONA (4|8)[AB]$/, 'ZONA $1');
+  const subzonas = zona => ['ZONA 4', 'ZONA 8'].includes(zona) ? [zona+'A', zona+'B'] : [];
   let aviso = '';
   const leer = key => { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch { aviso = 'No se pudo leer el almacenamiento del navegador.'; return null; } };
   const lista = v => Array.isArray(v) ? v.filter(x => typeof x === 'string') : [];
@@ -32,12 +34,18 @@
   const camposNuevos = ['zonas', 'catalogo_zonas', 'unidades_regiones', 'unidades_zonas'];
   function completar(c) {
     for (const campo of ['regiones','cecos','catalogo','centros','ocultos','calendario_excluidas', ...camposNuevos]) c[campo] = lista(c[campo]);
+    c.ocultos = [...new Set(c.ocultos.map(v => v.replace(/^reportabilidad_efectiva\./, 'reportabilidad.efectiva_')))];
+    c.catalogo_zonas = [...new Set(c.catalogo_zonas.map(agruparZona))].sort();
+    c.unidades_zonas = [...new Set(c.unidades_zonas.map(v => {
+      const [zona, unidad] = JSON.parse(v);
+      return JSON.stringify([agruparZona(zona), unidad]);
+    }))].sort();
     return c;
   }
   let estado = completar(cargar());
   let cola = Promise.resolve();
   const paneles = {
-    reportabilidad: ['Reportabilidad', [['evolucion','Evolución semanal'],['barras','Cumplimiento por región / Unidad'],['tabla','Detalle por región y Unidad']]],
+    reportabilidad: ['Reportabilidad', [['evolucion','Total · Evolución semanal'],['barras','Total · Cumplimiento por región / Unidad'],['semanal','Total · Barras de todas las semanas'],['tabla','Total · Detalle por región y Unidad'],['efectiva_evolucion','Efectiva · Evolución semanal'],['efectiva_barras','Efectiva · Barras apiladas de la semana seleccionada'],['efectiva_comparativo','Efectiva · Barras semanales de efectivas y no efectivas'],['efectiva_tabla','Efectiva · Detalle por región y Unidad']]],
     seguimiento: ['Seguimiento KM-HR', [['lecturas','Lecturas semanales'],['ritmo','Uso diario'],['tabla','Detalle de equipos']]],
     resumen: ['Resumen de mantención', [['tabla','Resumen por región y Unidad'],['patentes','Detalle de patentes']]],
     calendario: ['Calendario de mantención', [['calendario','Calendario mensual'],['agenda','Tabla de agenda']]],
@@ -62,16 +70,20 @@
   }
   function aplicar() {
     document.querySelectorAll('[data-vista]').forEach(el => el.classList.toggle('vista-oculta', estado.ocultos.includes(el.dataset.vista)));
-    document.querySelectorAll('[data-grupo-vistas]').forEach(el => el.classList.toggle('vista-oculta', [...el.querySelectorAll('[data-vista]')].every(n => n.classList.contains('vista-oculta'))));
+    document.querySelectorAll('[data-grupo-vistas]').forEach(el => el.classList.toggle('vista-oculta', [...el.querySelectorAll('[data-vista]')].filter(n=>!n.hidden).every(n => n.classList.contains('vista-oculta'))));
   }
   function cambiar() { persistir(); aplicar(); window.dispatchEvent(new Event('portal-config')); }
   window.PortalConfig = {
-    paneles, normalizar, nombreCeco, limpiarCecosPDF,
+    paneles, normalizar, agruparZona, nombreCeco, limpiarCecosPDF, aplicarVistas:aplicar,
     textoUnidad: texto => String(texto).replace(/Los CeCo/g, 'Las unidades').replace(/Hay CeCo/g, 'Hay unidades').replace(/ese CeCo/g, 'esa unidad').replace(/\bCeCo\b/g, 'unidad').replace(/\bSIN CECO\b/g, 'SIN UNIDAD'),
-    registrarCecos: datos => { codigosCecos = datos.cecos_codigos || {}; },
+    registrarCecos: datos => { codigosCecos = datos.cecos_codigos_vigencia || datos.cecos_codigos || {}; },
     incluida: region => !estado.regiones.includes(normalizar(region)),
     cecoIncluido: ceco => !estado.cecos.some(c => normalizar(c) === normalizar(ceco)),
-    zonaIncluida: zona => !estado.zonas.includes(normalizar(zona)),
+    zonaIncluida: zona => {
+      const nombre = normalizar(zona), grupo = agruparZona(nombre), partes = subzonas(nombre);
+      // Conservar exclusiones anteriores de una subzona hasta que se cambie el grupo.
+      return !estado.zonas.includes(nombre) && !estado.zonas.includes(grupo) && !(partes.length && partes.every(p => estado.zonas.includes(p)));
+    },
     calendarioIncluida: patente => !estado.calendario_excluidas.includes(patente),
     estado: () => JSON.parse(JSON.stringify(estado)),
     aviso: () => aviso,
@@ -86,7 +98,7 @@
       const agregar = (region, unidad, zona) => {
         if (region) { regiones.add(normalizar(region)); ur.add(JSON.stringify([normalizar(region), unidad])); }
         centros.add(unidad);
-        if (zona) { zonas.add(normalizar(zona)); uz.add(JSON.stringify([normalizar(zona), unidad])); }
+        if (zona) { zonas.add(agruparZona(zona)); uz.add(JSON.stringify([agruparZona(zona), unidad])); }
       };
       for (const resumen of [datos, ...(datos.historico || [])])
         for (const r of resumen.regiones || []) for (const c of r.cecos || []) agregar(r.region, c.ceco);
@@ -98,7 +110,7 @@
       const nuevo = {catalogo:[...regiones].sort(), centros:[...centros].sort(), catalogo_zonas:[...zonas].sort(), unidades_regiones:[...ur].sort(), unidades_zonas:[...uz].sort()};
       if (Object.entries(nuevo).some(([k,v])=>JSON.stringify(v)!==JSON.stringify(estado[k]))) { Object.assign(estado,nuevo); persistir(); }
     },
-    seleccionar(tipo, valor, incluir) { if (window.PortalDatos?.consulta) return; const claveValor = ['regiones','zonas'].includes(tipo) ? normalizar(valor) : valor; estado[tipo] = estado[tipo].filter(x => x !== claveValor); if (!incluir) estado[tipo].push(claveValor); cambiar(); },
+    seleccionar(tipo, valor, incluir) { if (window.PortalDatos?.consulta) return; const claveValor = tipo === 'zonas' ? agruparZona(valor) : tipo === 'regiones' ? normalizar(valor) : valor; estado[tipo] = estado[tipo].filter(x => (tipo === 'zonas' ? agruparZona(x) : x) !== claveValor); if (!incluir) estado[tipo].push(claveValor); cambiar(); },
     regionesTodas(incluir) { if (window.PortalDatos?.consulta) return; estado.regiones = incluir ? [] : [...estado.catalogo]; cambiar(); },
     zonasTodas(incluir) { if (window.PortalDatos?.consulta) return; estado.zonas = incluir ? [] : [...estado.catalogo_zonas]; cambiar(); },
     restaurarVistas() { if (window.PortalDatos?.consulta) return; estado.ocultos = []; cambiar(); }

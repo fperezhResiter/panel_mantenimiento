@@ -67,10 +67,63 @@ const root=path.resolve(__dirname,'..');
       await page.waitForFunction(id=>!document.querySelector(id).disabled,boton);
       assert.equal(await page.locator('#modo-zona').getAttribute('aria-pressed'),'true');
       assert.equal(await page.locator('#modo-zona').textContent(),'Modo región');
-      assert(await page.locator('#zona-linea').isVisible());
+      assert(await page.locator('#zona-linea').locator('..').isVisible());
       const despues=panel==='Seguimiento_KM_HR'?await page.locator(datos).count():await page.locator(datos).textContent();
       if(panel!=='Calendario_Mantencion')assert.equal(despues,antes,panel+': total conservado');
       assert(await page.locator('tbody').first().textContent().then(t=>/ZONA/.test(t)),panel+': zonas presentes');
+      const opcionesZona = await page.locator('#region option,#km-region option,#mt-region-resumen option,#mt-region-cal option,#region-programa option').evaluateAll(os=>os.map(o=>o.value));
+      assert(!opcionesZona.some(z=>/^ZONA (4|8)[AB]$/.test(z)),panel+': sin subzonas en filtros');
+      assert(opcionesZona.includes('ZONA 4') && opcionesZona.includes('ZONA 8'),panel+': zonas 4 y 8 agrupadas');
+      const totalesZonas = await page.evaluate(async panel => {
+        const api = panel === 'Reportabilidad' ? '/api/reporte?fecha=2026-09-29' : panel === 'Programa_Mantencion' ? '/api/programa-mantencion?mes=2026-09' : '/api/seguimiento-km-hr?inicio=2026-08-04&fecha=2026-09-29';
+        let original;
+        if (PortalDatos.consulta) {
+          const p = await PortalDatos.listo;
+          if (panel === 'Reportabilidad') original = p.reportes['2026-09-29'];
+          else if (panel === 'Programa_Mantencion') original = p.programas['2026-09'];
+          else {
+            const indices = p.fechas.map((d,i)=>d>='2026-08-04'&&d<='2026-09-29'?i:-1).filter(i=>i>=0);
+            original = p.intervalos[`${indices[0]}:${indices.at(-1)}`];
+          }
+        } else original = await (await fetch(api)).json();
+        const vista = await (await PortalDatos.consultar(api)).json();
+        const agrupar = z => z.replace(/^ZONA (4|8)[AB]$/, 'ZONA $1');
+        const resumir = (datos, agrupada) => {
+          const grupos = new Map();
+          const agregar = (zona, fila) => {
+            const clave = agrupada ? zona : agrupar(zona);
+            if (!grupos.has(clave)) grupos.set(clave, {});
+            const suma = grupos.get(clave);
+            for (const campo of ['total','reportadas','realizadas','regularizadas','no_realizadas','na','sin_clasificar'])
+              if (campo in fila) suma[campo] = (suma[campo] || 0) + fila[campo];
+          };
+          if (datos.equipos) {
+            for (const e of datos.equipos)
+              if (agrupada || (PortalConfig.incluida(e.region) && PortalConfig.cecoIncluido(e.ceco) && PortalConfig.zonaIncluida(e.zona))) agregar(e.zona, {total:1});
+          } else if (agrupada) {
+            for (const r of datos.regiones) agregar(r.region, r);
+          } else {
+            const permitidas = new Set((datos.regiones || []).filter(r=>PortalConfig.incluida(r.region)).flatMap(r=>r.cecos.map(c=>c.ceco)));
+            for (const r of datos.detalle_zona) if (PortalConfig.zonaIncluida(r.region))
+              for (const c of r.cecos) {
+                const [,unidad] = JSON.parse(c.ceco);
+                if (permitidas.has(unidad) && PortalConfig.cecoIncluido(unidad)) agregar(r.region,c);
+              }
+          }
+          return Object.fromEntries([...grupos].sort(([a],[b])=>a.localeCompare(b)));
+        };
+        const historico = (original.historico_zona || []).map(m => ({esperado:resumir({detalle_zona:m.regiones,regiones:original.historico.find(h=>h.mes===m.mes)?.regiones},false),actual:resumir(vista.historico.find(h=>h.mes===m.mes),true)}));
+        return {esperado:resumir(original,false), actual:resumir(vista,true), historico};
+      }, panel);
+      assert.deepEqual(totalesZonas.actual,totalesZonas.esperado,panel+': suma de ambas subzonas sin duplicar');
+      for (const mes of totalesZonas.historico) assert.deepEqual(mes.actual,mes.esperado,panel+': histórico agrupado');
+      if (panel === 'Resumen_Mantencion' && modo === 'sin servidor') {
+        await page.screenshot({path:path.join(root,'tmp/zonas/zonas-agrupadas-escritorio.png'),fullPage:true});
+        await page.setViewportSize({width:390,height:844});
+        assert(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth), 'Zonas agrupadas: sin desborde horizontal en móvil');
+        await page.screenshot({path:path.join(root,'tmp/zonas/zonas-agrupadas-movil.png'),fullPage:true});
+        await page.setViewportSize({width:1280,height:720});
+      }
       if(panel==='Reportabilidad'){
         assert.equal(await page.locator('tr.zona-linea').count(),0,'Reportabilidad: líneas contraídas por defecto');
         await page.locator('#mostrar-regiones').click();
@@ -122,6 +175,7 @@ const root=path.resolve(__dirname,'..');
         await page.locator('#programa-volver').click(); // Unidades → zonas.
         await page.locator('#programa-volver').click(); // Zonas → total.
         assert.equal(await page.locator('#programa-volver').isVisible(),false);
+        await page.locator('#titulo-estados').hover();
         assert.equal(await page.locator('.programa-porcentaje-estado[visibility="visible"]').count(),0);
         assert.equal(await page.locator('.programa-porcentaje-leyenda:visible').count(),0);
         const barra=page.locator('#grafico-estados g').first();
@@ -218,10 +272,10 @@ const root=path.resolve(__dirname,'..');
       assert(await page.locator('tr.zona-linea').count()>0,panel+': desglose de líneas');
       const region=page.locator('#region,#km-region,#mt-region-resumen,#mt-region-cal,#region-programa');
       const primera=await region.locator('option').evaluateAll(os=>os.find(o=>o.value&&o.value!=='SIN ZONA')?.value);
-      await region.selectOption(primera);
+      await region.selectOption(primera,{force:true});
       const opciones=await page.locator('#zona-linea option').evaluateAll(os=>os.filter(o=>o.value).map(o=>o.value));
       const filtro=opciones.find(l=>l==='RESIDUOS')||opciones[0];
-      await page.locator('#zona-linea').selectOption(filtro);
+      await page.locator('#zona-linea').selectOption(filtro,{force:true});
       await page.waitForFunction(id=>!document.querySelector(id).disabled,boton);
       if(panel==='Reportabilidad')await page.locator('#mostrar-regiones').click();
       const nombres=await page.locator('tr.zona-linea').allTextContents();
@@ -234,6 +288,7 @@ const root=path.resolve(__dirname,'..');
         await archivo.saveAs(destino);
         const csv=fs.readFileSync(destino,'utf8');
         assert(csv.split('\n')[0].includes('"Zona"')&&csv.split('\n')[0].includes('"Línea de negocio"'),panel+': columnas de CSV');
+        assert(!/ZONA (4|8)[AB]\b/.test(csv),panel+': CSV sin subzonas');
       }
       if(panel==='Reportabilidad'&&modo==='sin servidor') {
         const descarga=page.waitForEvent('download',{timeout:60000});await page.locator('#descargar-pdf').click();

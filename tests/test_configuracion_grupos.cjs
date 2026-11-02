@@ -42,6 +42,9 @@ const vacia = {regiones:[],cecos:[],catalogo:[],centros:[],ocultos:[],zonas:[],c
     assert.equal(await padre.locator(`input[data-valor="${nombreUnidad}"]`).isChecked(),false);
     await page.locator('#modo-zona').click();
     assert.equal(await page.locator('#modo-zona').getAttribute('aria-pressed'),'true');
+    const gruposZona = await page.locator('#config-regiones legend input').evaluateAll(ns=>ns.map(n=>n.dataset.valor));
+    assert(gruposZona.includes('ZONA 4') && gruposZona.includes('ZONA 8'));
+    assert(!gruposZona.some(z=>/^ZONA (4|8)[AB]$/.test(z)));
     const zona=page.locator('#config-regiones legend input').first();
     const nombreZona=await zona.getAttribute('data-valor');
     await zona.uncheck();

@@ -36,7 +36,8 @@ class BaseDatosTest(unittest.TestCase):
             self.assertEqual(ClasificadorZonas(maestro).resolver('CECO A','ABCD12')['linea'], linea)
             self.assertEqual(json.loads(catalogo.read_text(encoding='utf-8'))['unidades'][0]['zona'], f'ZONA {zona}')
             p = json.loads(gzip.decompress(base64.b64decode(publicacion.read_text(encoding='utf-8').splitlines()[-1].split(chr(34))[1])))
-            self.assertEqual(p['reportes']['2026-09-22']['detalle_zona'][0]['region'], f'ZONA {zona}')
+            # Reportabilidad ya usa VIGENCIA; GDM continúa en los otros paneles.
+            self.assertEqual(p['reportes']['2026-09-22']['detalle_zona'][0]['region'], 'ZONA 3')
 
     def test_error_de_publicacion_restaura_bd_catalogo_y_publicacion(self):
         catalogo = Path(self.temp.name) / 'unidades_zonas.json'
@@ -154,6 +155,9 @@ class BaseDatosTest(unittest.TestCase):
         hoja = libro.create_sheet('BD ACTIVOS MOVILES')
         hoja.append(['PATENTE', 'NOMBRE CeCo ACTUAL', 'REGION ACTUAL'])
         hoja.append(['ABCD12', 'CECO A', 'REGION BHP'])
+        hoja = libro.create_sheet('VIGENCIA')
+        hoja.append(['PATENTE','INICIO VIGENCIA','FIN VIGENCIA','NOMBRE CeCo ACTUAL','REGION ACTUAL','ZONA ACTUAL','CeCo ACTUAL','LN','Nombre LN'])
+        hoja.append(['ABCD12',date(2026,8,4),None,'CECO A','REGION BHP','ZONA 3',1001,1,'RESIDUOS'])
         hoja = libro.create_sheet('Seguimiento KM-HR')
         hoja.append(['Título'])
         hoja.append(['PATENTE', 'REGION ACTUAL', None, 'KM U HR UM', 'UN UM', 'FECHA UM',

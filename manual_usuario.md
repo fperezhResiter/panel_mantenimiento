@@ -2,13 +2,51 @@
 
 ## Consulta sin servidor
 
-Abre **Panel.html** con doble clic. Consulta Reportabilidad, Seguimiento KM-HR, Resumen de mantención, Calendario de mantención y Programa Mantención, con sus filtros, gráficos y descargas CSV/PDF. No necesitas ejecutar un BAT ni instalar Python. La franja al pie del encabezado muestra la última publicación. Los avisos de calidad y el resumen de configuración aparecen solo en el modo interactivo. Configuraciones solo se abre en el modo interactivo de Iniciar_Panel.bat. La consulta utiliza la configuración de la última publicación.
+Abre **Panel.html** con doble clic. Consulta Reportabilidad (total y efectiva), Seguimiento KM-HR, Resumen de mantención, Calendario de mantención y Programa Mantención, con sus filtros, gráficos y descargas CSV/PDF. No necesitas ejecutar un BAT ni instalar Python. La franja al pie del encabezado muestra la última publicación. Los avisos de calidad y el resumen de configuración aparecen solo en el modo interactivo. Configuraciones solo se abre en el modo interactivo de Iniciar_Panel.bat. La consulta utiliza la configuración de la última publicación.
+
+## Base vigente de cada semana
+
+El martes seleccionado determina la base. Se incluyen las patentes cuyo inicio de VIGENCIA sea igual o anterior a ese martes y cuyo fin esté vacío o sea igual o posterior. Región, zona, Unidad y línea salen del período vigente. Los envíos ADC de lunes a viernes se atribuyen a esa asignación, aunque Sheet1 declare otra Unidad. Cada patente cuenta una vez por semana.
+
+Los porcentajes anteriores usan la base de su propia semana. Los reportes sin un período vigente único y las patentes del maestro sin registro aparecen en **Reportes fuera de base y vigencias pendientes**. Su CSV separado se descarga solo en modo interactivo; la consulta sin servidor conserva el detalle visible. No se suman al cumplimiento. El CSV principal incluye también las bases históricas. El status sigue siendo el actual del maestro.
+
+## Reportabilidad total y efectiva
+
+Abre **Reportabilidad**. Inicialmente muestra la reportabilidad total. Pulsa **Mostrar reportabilidad efectiva** para desplegar los criterios, indicadores y gráficos efectivos. El mismo botón cambia a **Mostrar reportabilidad total** para volver. La fecha, los filtros de región/zona, Unidad, Línea y Status del equipo, y los criterios elegidos se conservan al alternar. Las descargas CSV/PDF corresponden al modo activo. Por defecto, cuenta la patente si el último envío ADC de la patente en la semana, después de reasignar su Unidad tiene una lectura mayor que cero, mayor o igual que su lectura anterior y menor o igual al doble de ella. Se acepta mantener una lectura positiva: 1.000 → 1.000 cumple los tres criterios. El doble exacto también se acepta.
+
+En **Criterios a considerar** puedes activar o desactivar cada una de esas tres condiciones. Deben cumplirse todas las condiciones seleccionadas. El cambio recalcula inmediatamente las cantidades efectivas y no efectivas de todas las semanas, gráficos, tablas y descargas, manteniendo el total reportado y el maestro. La selección se conserva al consultar y al cambiar entre región y zona. El resumen **Criterios aplicados** y el ejemplo se actualizan, y las descargas CSV/PDF registran la selección.
+
+Con algún criterio activo se requiere lectura numérica y control KM/HR reconocido. Si seleccionas una comparación con el dato anterior, ese antecedente debe existir y ser numérico. Si no seleccionas ningún criterio, todas las patentes reportadas se consideran efectivas, incluso si faltan lecturas o control; las no efectivas quedan en cero.
+
+La columna **Unidad de Control del equipo** de Sheet1 determina qué revisar: **Por kilometraje** usa **Kilometraje actual (km)**; **Por horómetro** usa **Horómetro actual (hrs)**. Se compara con la lectura numérica anterior disponible del mismo medidor y patente, ordenada por Hora de finalización, aunque esté fuera de las semanas visibles. Con los tres criterios activados, sin antecedente positivo o sin control reconocido no se considera efectiva. El porcentaje compara las patentes efectivas con la base vigente semanal. CSV y PDF conservan este conteo y los filtros elegidos.
+
+La **evolución semanal** muestra solo los puntos y líneas de las efectivas. Las barras de la **semana seleccionada** apilan ambas partes. El gráfico semanal que mostraba solo efectivas fue retirado. El gráfico **Reportabilidad semanal: efectivas y no efectivas** muestra las efectivas en la parte sólida y las reportadas que no cumplen los requisitos en el tramo superior achurado. La altura completa es la reportabilidad total. Por ejemplo, con 100 patentes de base, 60 efectivas y 20 reportadas no efectivas, la barra llega a 80 %: 60 % sólido y 20 % achurado. El porcentaje superior corresponde a las efectivas. En las barras de la semana seleccionada, el color sigue el porcentaje efectivo: rojo bajo 75 %, amarillo desde 75 % hasta menos de 90 %, verde desde 90 %. En **Reportabilidad semanal**, las barras y su achurado usan el color de su entidad en la leyenda, igual que la evolución semanal; ese color se conserva al cambiar criterios y filtros. Los números bajo las barras semanales remiten a su entidad en la leyenda. Pasa el mouse o enfoca un tramo para consultar las cantidades y ambos porcentajes. Los filtros y el modo zona se aplican a toda la barra. El PDF conserva el achurado y el CSV incluye las tres cantidades.
+
+Las tarjetas resumen las patentes reportadas totales, efectivas y no efectivas, además del maestro y las unidades. Muestran también los tres porcentajes respecto dla base vigente semanal. Reportadas totales = efectivas + no efectivas; todos los indicadores responden a los filtros.
+
+## Filtrar por Status del equipo
+
+En **Reportabilidad**, tanto en modo total como efectivo, el filtro **Status del equipo** utiliza la columna **STATUS DEL EQUIPO** de **BD ACTIVOS MOVILES**, asociada por patente. Puedes marcar uno o varios estados; sin selección se incluyen todos. Se filtran las patentes reportadas, efectivas, no efectivas y la base vigente semanal, incluyendo las semanas anteriores, tablas, gráficos y descargas. Los porcentajes se calculan sobre la base vigente del conjunto elegido.
+
+El status es el actual del maestro y se aplica a todas las semanas consultadas. Las patentes sin ese dato, con estados contradictorios en el maestro o que no figuran en él se conservan en **Sin status**. La selección se mantiene al consultar otra semana o alternar entre región y zona. El CSV registra el filtro y el PDF lo muestra junto con los demás filtros.
+
+## Seleccionar varias regiones y unidades
+
+Abre el filtro **Región/Zona** o **Unidad** y marca las casillas que quieras combinar. El buscador permite encontrar opciones por nombre; **Seleccionar todas** marca todas las opciones disponibles y **Limpiar selección** vuelve a incluirlas todas. Al cambiar la región o zona se conservan las unidades seleccionadas que sigan siendo válidas. Las tarjetas, gráficos, tablas y descargas utilizan el conjunto elegido. Las selecciones se mantienen al volver a consultar; cambiar entre modo región y modo zona restablece los filtros.
+
+En **Reportabilidad**, tanto total como efectiva, **Línea de negocio** también admite varias casillas en modo zona. Solo ofrece las líneas de las zonas y unidades elegidas; sin selección incluye todas. **Limpiar filtros** vuelve a incluir todas las regiones o zonas, unidades, líneas y status, conservando la fecha de referencia, el modo de reportabilidad y los criterios de efectividad.
 
 ## Agrupar por zona
 
 En cualquiera de los cinco paneles, pulsa **Modo zona**, junto a **Volver al inicio** para ver los subtotales por zona, unidad y línea de negocio. Puedes combinar los filtros de zona, unidad y línea; las tarjetas, gráficos y descargas se ajustan a la selección. El botón cambia a **Modo región** para recuperar la vista habitual; el filtro alterna entre **Zona** y **Región**. La selección del modo queda recordada en el navegador.
 
-Las subzonas 4A, 4B, 8A y 8B se muestran por separado. **SIN ZONA** y **SIN LÍNEA** conservan los equipos cuya asociación no es única o está incompleta. La línea de negocio es distinta de la medida KM/HR. La relación de unidades y zonas se conserva en `config/unidades_zonas.json`; al actualizarla, se debe regenerar la publicación para usarla sin servidor.
+Las subzonas **4A y 4B se muestran juntas como ZONA 4**; **8A y 8B, como ZONA 8**. La agrupación se aplica a filtros, tablas, gráficos, descargas y Configuraciones, conservando los totales. Basta con recargar la página para verla, también sin servidor. **SIN ZONA** y **SIN LÍNEA** conservan los equipos cuya asociación no es única o está incompleta. La línea de negocio es distinta de la medida KM/HR. La relación de unidades y zonas se conserva en `config/unidades_zonas.json`; al actualizarla, se debe regenerar la publicación para usarla sin servidor.
+
+## Barras semanales de Reportabilidad
+
+El gráfico **Cumplimiento semanal en barras** muestra todas las semanas disponibles hasta la fecha de referencia, con una barra por región o zona, Unidad o línea de negocio según el nivel actual, y su porcentaje encima. Abre en las semanas más recientes; mueve la barra deslizadora hacia la izquierda para revisar las anteriores. La evolución en líneas también incluye todas esas semanas. Los dos gráficos superiores se presentan lado a lado y juntos ocupan todo el ancho de la página; las barras semanales van debajo a todo el ancho. En móvil se apilan para mantener la lectura.
+
+Las franjas de fondo indican **rojo: menos de 75 %**, **amarillo: desde 75 % y menos de 90 %** y **verde: 90 % o más**. Los colores de las barras identifican las entidades de la leyenda. Pasa el mouse o enfoca una barra para ver entidad, semana, porcentaje, patentes reportadas y total; se destaca esa misma entidad y semana en los demás gráficos. Pasa el mouse o enfoca una franja o su leyenda para destacar todas las barras y puntos de ese rango en los tres gráficos, sin cambiar los filtros ni los totales. **Sin base** destaca los casos con total igual a cero. Pulsa una barra para bajar de nivel y usa **Volver al nivel anterior** para regresar. El PDF de Reportabilidad usa páginas A4 verticales y agrupa el gráfico en bloques de cinco semanas: S1-S5, S6-S10 y así sucesivamente; el último bloque incluye las semanas restantes. Cada bloque muestra todas las unidades filtradas juntas, con margen izquierdo compacto y barras que ajustan su ancho según la cantidad. Cuando hay muchas barras, los porcentajes se giran y escalonan para evitar que se superpongan; cada bloque repite sus ejes y leyendas.
 
 ## 🛠️ Preparación inicial (solo la primera vez)
 

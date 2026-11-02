@@ -1,4 +1,4 @@
-/* Navegación y tema compartidos por todos los paneles Resiter. */
+/* Navegación compartida y tema independiente por pestaña en los paneles Resiter. */
 (() => {
   'use strict';
   const script = document.currentScript;
@@ -6,7 +6,7 @@
   const clave = 'resiterTema';
   const parametro = new URLSearchParams(location.search).get('tema');
   let tema = parametro;
-  try { tema = tema || localStorage.getItem(clave) || localStorage.getItem('panelAdmTema'); } catch (_) {}
+  try { tema = tema || sessionStorage.getItem(clave); } catch (_) {}
   tema = tema === 'oscuro' ? 'oscuro' : 'claro';
   // Conservar el matiz de cada serie y aclararlo solo en modo oscuro.
   // light-dark se resuelve por CSS: cambiar el tema no reconstruye los gráficos
@@ -34,11 +34,13 @@
   function aplicar(valor) {
     tema = valor;
     raiz.setAttribute('data-tema', valor);
-    try { localStorage.setItem(clave, valor); localStorage.setItem('panelAdmTema', valor); } catch (_) {}
+    // La elección pertenece a esta pestaña; nunca se publica en localStorage.
+    try { sessionStorage.setItem(clave, valor); } catch (_) {}
     try {
       const url = new URL(location.href);
-      if (url.searchParams.has('tema')) {
-        url.searchParams.set('tema', valor);
+      // La URL conserva el tema al recargar incluso si el almacenamiento está bloqueado.
+      url.searchParams.set('tema', valor);
+      if (url.href !== location.href) {
         history.replaceState(history.state, '', url.href);
       }
     } catch (_) {}
@@ -98,7 +100,4 @@
     if (destino.protocol !== 'file:' && destino.origin !== location.origin) return;
     destino.searchParams.set('tema', tema); enlace.href = destino.href;
   }, true);
-  window.addEventListener('storage', evento => {
-    if (evento.key === clave && ['claro', 'oscuro'].includes(evento.newValue)) aplicar(evento.newValue);
-  });
 })();

@@ -1,4 +1,4 @@
-// Informe autónomo: calendario mensual y tabla completa de una sola región.
+// Informe autónomo: calendario mensual y tabla de las regiones y unidades filtradas.
 function escaparCalendario(valor)
 {
     return String(valor??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -7,10 +7,10 @@ function equiposCalendarioMt(equipos,excluidas=new Set())
 {
     return equipos.filter(e=>!excluidas.has(e.patente)).map(e=>({...e,calculo:{...e.calculo,fecha_proyectada:e.fecha_proyectada_real||e.calculo.fecha_proyectada}}));
 }
-function informeCalendarioMt(equipos,mes,region,inicio,referencia)
+function informeCalendarioMt(equipos,mes,region,inicio,referencia,regiones=[region])
 {
     if(!/^\d{4}-(0[1-9]|1[0-2])$/.test(mes)||Number(mes.slice(0,4))<1000||!region)throw new Error('Selecciona un mes y una región válidos.');
-    const eventos=equiposCalendarioMt(equipos).filter(e=>e.region===region&&e.calculo.fecha_proyectada?.slice(0,7)===mes).sort((a,b)=>a.calculo.fecha_proyectada.localeCompare(b.calculo.fecha_proyectada)||a.patente.localeCompare(b.patente));
+    const eventos=equiposCalendarioMt(equipos).filter(e=>regiones.includes(e.region)&&e.calculo.fecha_proyectada?.slice(0,7)===mes).sort((a,b)=>a.calculo.fecha_proyectada.localeCompare(b.calculo.fecha_proyectada)||a.patente.localeCompare(b.patente));
     const [ano,m]=mes.split('-').map(Number),offset=(new Date(Date.UTC(ano,m-1,1)).getUTCDay()+6)%7,dias=new Date(Date.UTC(ano,m,0)).getUTCDate(),celdas=Array(offset).fill(null);
     for(let d=1;d<=dias;d++)celdas.push(`${mes}-${String(d).padStart(2,'0')}`);
     while(celdas.length%7)celdas.push(null);
@@ -75,7 +75,7 @@ function informeCalendarioMt(equipos,mes,region,inicio,referencia)
             <tbody>${tabla}</tbody>
         </table>
     </section>
-    <footer>Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR. Se utiliza FECHA PROYECTADA REAL cuando contiene una fecha válida; en los demás casos, la proyección según uso. Las fechas no son órdenes de trabajo confirmadas. Se incluyen solo las patentes seleccionadas para descarga de esta región con fecha en el mes elegido. Los equipos sin fecha quedan fuera. Si un equipo está en No operativo, valida la fecha si su ritmo de uso cambió.</footer>
+    <footer>Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR. Se utiliza FECHA PROYECTADA REAL cuando contiene una fecha válida; en los demás casos, la proyección según uso. Las fechas no son órdenes de trabajo confirmadas. Se incluyen solo las patentes seleccionadas para descarga de las regiones y unidades filtradas con fecha en el mes elegido. Los equipos sin fecha quedan fuera. Si un equipo está en No operativo, valida la fecha si su ritmo de uso cambió.</footer>
     </body>
     </html>`;
 }

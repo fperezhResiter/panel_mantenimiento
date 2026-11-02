@@ -16,6 +16,8 @@ ACTUALIZACION = Lock()
 REQUERIDAS = {
     'Sheet1': ['Hora de finalización', 'CeCo (Centro de costo)', 'REGION', 'PATENTE', 'Reportabilidad a realizar'],
     'BD ACTIVOS MOVILES': ['PATENTE', 'NOMBRE CeCo ACTUAL', 'REGION ACTUAL'],
+    'VIGENCIA': ['PATENTE', 'INICIO VIGENCIA', 'FIN VIGENCIA', 'NOMBRE CeCo ACTUAL',
+                 'REGION ACTUAL', 'ZONA ACTUAL', 'CeCo ACTUAL', 'LN', 'Nombre LN'],
     'Seguimiento KM-HR': ['PATENTE', 'REGION ACTUAL', 'KM U HR UM', 'UN UM', 'FECHA UM', 'INTERVALO', 'UN IN', 'STATUS EQUIPO'],
     'PROGRAMA': ['REGION ACTUAL', 'NOMBRE CeCo ACTUAL', 'PATENTE', 'FECHA PROYECTADA', 'ESTADO'],
 }
@@ -88,7 +90,7 @@ def actualizar_base_datos(excel, maestro, destino, publicacion=None, zonas=None,
                                         PRIMARY KEY (rol, hoja, numero));
                 ''')
                 for rol, ruta, titulos in [('excel', Path(excel), ['Sheet1', 'Seguimiento KM-HR', 'PROGRAMA']),
-                                           ('maestro', Path(maestro), ['BD ACTIVOS MOVILES'])]:
+                                           ('maestro', Path(maestro), ['BD ACTIVOS MOVILES', 'VIGENCIA'])]:
                     firma = ruta.stat()
                     libro = load_workbook(ruta, read_only=True, data_only=True)
                     try:

@@ -1,0 +1,26 @@
+ZONA 8
+S12
+20-10-2026
+Línea continua: efectivas
+Patentes efectivas: 44 (72,1 %)
+Reportadas no efectivas: 16 (26,2 %)
+Reportadas totales: 60 (98,4 %)
+Total patentes: 61
+
+ZONA 8
+S12
+20-10-2026
+Tramo achurado: reportadas no efectivas
+Patentes efectivas: 44 (72,1 %)
+Reportadas no efectivas: 16 (26,2 %)
+Reportadas totales: 60 (98,4 %)
+Total patentes: 61
+
+ZONA 8
+S12
+20-10-2026
+Tramo achurado: reportadas no efectivas
+Patentes efectivas: 44 (72,1 %)
+Reportadas no efectivas: 16 (26,2 %)
+Reportadas totales: 60 (98,4 %)
+Total patentes: 61

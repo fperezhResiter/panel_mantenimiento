@@ -17,7 +17,7 @@
     $('modo-zona').textContent = esZona ? 'Modo región' : 'Modo zona';
     $('modo-zona').setAttribute('aria-pressed', String(esZona));
     $('config-titulo').textContent = esZona ? 'Zonas y unidades compartidas' : 'Regiones y unidades compartidas';
-    const grupos = [...new Set(esZona ? [...estado.catalogo_zonas, ...estado.zonas] : [...estado.catalogo, ...estado.regiones])].sort();
+    const grupos = [...new Set(esZona ? [...estado.catalogo_zonas, ...estado.zonas].map(config.agruparZona) : [...estado.catalogo, ...estado.regiones])].sort();
     const relaciones = (esZona ? estado.unidades_zonas : estado.unidades_regiones).map(v=>JSON.parse(v));
     for (const nombre of grupos) {
       const grupo = document.createElement('fieldset'), leyenda = document.createElement('legend');

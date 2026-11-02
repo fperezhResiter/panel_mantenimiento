@@ -67,6 +67,9 @@ class ClasificadorZonas:
 
 
 def enriquecer_zonas(datos, excel, maestro):
+    # Reportabilidad ya contiene ambos modos y sus bases históricas de VIGENCIA.
+    if datos.get('base_semanal') == 'VIGENCIA':
+        return datos
     from .reportes import crear_reporte
     from .programa import crear_programa
     from datetime import date
@@ -75,7 +78,8 @@ def enriquecer_zonas(datos, excel, maestro):
         for equipo in datos['equipos']:
             equipo.update(clasificador.resolver(equipo['ceco'], equipo['patente']))
     elif 'version_reporte' in datos:
-        datos['detalle_zona'] = crear_reporte(excel, maestro, date.fromisoformat(datos['fecha']), clasificador.clave)['regiones']
+        datos['detalle_zona'] = crear_reporte(excel, maestro, date.fromisoformat(datos['fecha']), clasificador.clave,
+                                             efectiva=datos.get('reportabilidad_efectiva', False))['regiones']
     elif 'historico' in datos:
         zonal = crear_programa(excel, datos['mes'], clasificador.clave)
         datos['detalle_zona'] = zonal['regiones']

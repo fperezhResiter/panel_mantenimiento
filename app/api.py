@@ -13,6 +13,10 @@ def reporte(excel, maestro, parametros):
     return crear_reporte(excel, maestro, fecha_consulta(parametros))
 
 
+def reporte_efectivo(excel, maestro, parametros):
+    return crear_reporte(excel, maestro, fecha_consulta(parametros), efectiva=True)
+
+
 def seguimiento(excel, maestro, parametros):
     inicio = date.fromisoformat(parametros.get('inicio', ['2026-08-04'])[0])
     return crear_seguimiento(excel, maestro, fecha_consulta(parametros), inicio)
@@ -27,5 +31,5 @@ def programa(excel, maestro, parametros):
     return crear_programa(excel, parametros.get('mes', [date.today().strftime('%Y-%m')])[0])
 
 
-API_RUTAS = {'/api/reporte': reporte, '/api/seguimiento-km-hr': seguimiento, '/api/mantenciones': mantenciones,
+API_RUTAS = {'/api/reporte': reporte, '/api/reporte-efectivo': reporte_efectivo, '/api/seguimiento-km-hr': seguimiento, '/api/mantenciones': mantenciones,
              '/api/programa-mantencion': programa}

@@ -167,49 +167,29 @@ function renderKM() {
   botonLineas.textContent = kmMostrarLineas ? "Ocultar líneas" : "Mostrar por línea";
   botonLineas.setAttribute("aria-pressed", String(kmMostrarLineas));
   if (!kmDatos) return;
-  const previaRegion = km$("km-region").value;
-  km$("km-region").replaceChildren(
-    new Option("Todas las regiones incluidas", ""),
-  );
-  [
-    ...new Set(
-      kmDatos.equipos
-        .filter((e) => (PortalConfig.incluida(e.region) && PortalConfig.cecoIncluido(e.ceco)))
-        .map((e) => e.region),
-    ),
-  ]
-    .sort()
-    .forEach((r) => km$("km-region").add(new Option(r, r)));
-  if ([...km$("km-region").options].some((o) => o.value === previaRegion))
-    km$("km-region").value = previaRegion;
+  PortalFiltros.opciones('km-region', [...new Set(kmDatos.equipos.filter(e=>PortalConfig.incluida(e.region)&&PortalConfig.cecoIncluido(e.ceco)).map(e=>e.region))].sort(), 'Todas las regiones incluidas');
   const buscar = km$("km-buscar").value.trim().toUpperCase(),
-    estado = km$("km-estado").value,
-    region = km$("km-region").value;
-  const selectorCeco = km$("km-ceco"),
-    cecoPrevio = selectorCeco.value;
+    estado = km$("km-estado").value;
+  const selectorCeco = km$("km-ceco");
   const cecos = [
     ...new Set(
       kmDatos.equipos
         .filter(
           (e) =>
-            (PortalConfig.incluida(e.region) && PortalConfig.cecoIncluido(e.ceco)) && (!region || e.region === region),
+            (PortalConfig.incluida(e.region) && PortalConfig.cecoIncluido(e.ceco)) && PortalFiltros.coincide('km-region', e.region),
         )
         .map((e) => e.ceco),
     ),
   ].sort((a, b) => a.localeCompare(b, "es", { numeric: true }));
-  selectorCeco.replaceChildren(new Option("Todas las unidades", ""));
-  cecos.forEach((c) =>
-    selectorCeco.add(new Option(PortalConfig.nombreCeco?.(c) ?? c, c)),
-  );
-  selectorCeco.value = cecos.includes(cecoPrevio) ? cecoPrevio : "";
+  PortalFiltros.opciones(selectorCeco, cecos.map(c=>[c,PortalConfig.nombreCeco?.(c) ?? c]), 'Todas las unidades');
   kmVisibles = kmDatos.equipos
     .filter(
       (e) =>
         (PortalConfig.incluida(e.region) && PortalConfig.cecoIncluido(e.ceco)) &&
         e.patente.toUpperCase().includes(buscar) &&
-        (!selectorCeco.value || e.ceco === selectorCeco.value) &&
+        PortalFiltros.coincide(selectorCeco, e.ceco) &&
         (!estado || e.calculo.estado === estado) &&
-        (!region || e.region === region) &&
+        PortalFiltros.coincide('km-region', e.region) &&
         (km$("km-diferencia").value !== "rojo" || kmComparacionLectura(e)?.alerta),
     )
     .sort((a, b) =>
@@ -397,7 +377,7 @@ function renderKM() {
 function svgElemento(tag, atributos = {}, texto) {
   const el = document.createElementNS("http://www.w3.org/2000/svg", tag);
   for (const [k, v] of Object.entries(atributos)) el.setAttribute(k, String(v));
-  if (texto !== undefined) el.textContent = texto;
+  if (texto !== undefined) el.textContent = tag === "title" ? texto.replaceAll(" · ", "\n") : texto;
   return el;
 }
 function kmDestacarSemana(semana) {
@@ -445,7 +425,7 @@ function dibujarGrafico(id, puntos, unidad, barras = false, objetivo = null) {
   });
   svg.append(
     svgElemento(
-      "title",
+      window.PortalAyudaGrafico ? "desc" : "title",
       {},
       `${barras ? "Consumo diario" : "Lecturas semanales"} en ${unidad}`,
     ),
@@ -512,6 +492,7 @@ function dibujarGrafico(id, puntos, unidad, barras = false, objetivo = null) {
     grupo.onmouseleave = grupo.onblur = () => kmDestacarSemana(null);
     grupo.setAttribute("tabindex", "0");
     grupo.setAttribute("aria-label", `Semana ${p.semana}: ${Number.isFinite(p.valor) ? kmMedida(p.valor, unidad) : "Sin datos"}. ${p.detalle}`);
+    window.PortalAyudaGrafico?.conectar(grupo, p.detalle);
     svg.append(grupo);
     if (i % paso === 0 || i === n - 1)
       svg.append(
@@ -524,7 +505,7 @@ function dibujarGrafico(id, puntos, unidad, barras = false, objetivo = null) {
     if (!Number.isFinite(p.valor)) {
       if (barras && p.alerta) {
         const aviso = svgElemento("g", { "aria-label": p.detalle });
-        aviso.append(svgElemento("title", {}, p.detalle));
+        if (!window.PortalAyudaGrafico) aviso.append(svgElemento("title", {}, p.detalle));
         aviso.append(svgElemento("circle", { cx: px, cy: h - m.b - 12, r: 10, fill: "#b42318" }));
         aviso.append(svgElemento("text", { x: px, y: h - m.b - 8, "text-anchor": "middle", fill: "white", "font-size": 14, "font-weight": "bold" }, "!"));
         grupo.append(aviso);
@@ -545,7 +526,7 @@ function dibujarGrafico(id, puntos, unidad, barras = false, objetivo = null) {
         "data-pdf-valor": kmFmt(p.valor),
         "aria-label": p.detalle,
       });
-      bar.append(svgElemento("title", {}, p.detalle));
+      if (!window.PortalAyudaGrafico) bar.append(svgElemento("title", {}, p.detalle));
       grupo.append(bar);
       grupo.append(svgElemento("rect", { x: px - ancho / 2, y: Math.min(py, y(0) - 12), width: ancho, height: Math.max(12, y(0) - py), fill: "transparent", class: "km-area" }));
     } else {
@@ -567,7 +548,7 @@ function dibujarGrafico(id, puntos, unidad, barras = false, objetivo = null) {
         "data-pdf-valor": kmFmt(p.valor),
         "aria-label": p.detalle,
       });
-      punto.append(svgElemento("title", {}, p.detalle));
+      if (!window.PortalAyudaGrafico) punto.append(svgElemento("title", {}, p.detalle));
       grupo.append(punto);
       grupo.append(svgElemento("circle", { cx: px, cy: py, r: 12, fill: "transparent", class: "km-area" }));
       previo = { x: px, y: py };
@@ -606,7 +587,7 @@ function renderGraficos() {
       semana: s.numero,
       valor: l && l.unidad === e.unidad ? l.valor : null,
       alerta,
-      detalle: `Semana ${s.numero} (${kmFecha(s.fecha)}): ${l ? kmFmt(l.valor) : "sin reporte"} ${l?.unidad || ""}${alerta ? " · " + kmTextoAlerta(comparacion) : ""}`,
+      detalle: `Semana: ${s.numero} · Fecha: ${kmFecha(s.fecha)} · Lectura: ${l ? kmFmt(l.valor) : "sin reporte"} ${l?.unidad || ""}${alerta ? " · " + kmTextoAlerta(comparacion) : ""}`,
     };
   });
   dibujarGrafico(
@@ -624,7 +605,7 @@ function renderGraficos() {
       valor: v?.ritmo ?? null,
       alerta,
       detalle: v
-        ? `S${v.desde_semana} a S${v.semana}: ${kmFmt(v.incremento)} ${e.unidad} en ${v.dias} días · ${kmFmt(v.ritmo)} ${e.unidad}/día${alerta ? " · " + kmTextoAlerta(comparacion) : ""}`
+        ? `Período: S${v.desde_semana} a S${v.semana} · Incremento: ${kmFmt(v.incremento)} ${e.unidad} · Días: ${v.dias} · Consumo diario: ${kmFmt(v.ritmo)} ${e.unidad}/día${alerta ? " · " + kmTextoAlerta(comparacion) : ""}`
         : `Sin consumo diario válido${alerta ? " · " + kmTextoAlerta(comparacion) : ""}`,
     };
   });
@@ -664,13 +645,6 @@ async function consultarKM(event) {
     kmDatos = datos;
     PortalConfig.registrarCecos?.(datos);
     PortalConfig.registrar(datos.equipos.map((e) => e.region));
-    const previa = km$("km-region").value;
-    km$("km-region").replaceChildren(new Option("Todas", ""));
-    [...new Set(datos.equipos.map((e) => e.region))]
-      .sort()
-      .forEach((r) => km$("km-region").add(new Option(r, r)));
-    if ([...km$("km-region").options].some((o) => o.value === previa))
-      km$("km-region").value = previa;
     km$("km-periodo").textContent =
       `${datos.semanas.length} semanas · S1: ${kmFecha(datos.inicio)} · Última referencia: ${kmFecha(datos.semanas.at(-1).fecha)}. Fechas tomadas de las columnas del Excel.`;
     renderKM();

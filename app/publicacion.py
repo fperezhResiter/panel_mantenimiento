@@ -31,7 +31,7 @@ def crear_publicacion(bd):
     if len(set(fechas)) != len(fechas):
         raise ValueError('Seguimiento KM-HR: hay columnas con fechas duplicadas.')
     datos = dict(estado=estado, configuracion=leer_configuracion(bd), cecos_codigos=catalogo_cecos(maestro),
-                 fechas=[d.isoformat() for d in fechas], reportes={}, intervalos={}, programas={})
+                 fechas=[d.isoformat() for d in fechas], reportes={}, reportes_efectivos={}, intervalos={}, programas={})
     imagenes = Path(__file__).resolve().parent.parent / 'web/img'
     datos['imagenes'] = {p.name: 'data:image/png;base64,' + base64.b64encode(p.read_bytes()).decode()
                          for p in imagenes.glob('*.png')}
@@ -42,6 +42,15 @@ def crear_publicacion(bd):
         enriquecer_zonas(reporte, excel, maestro)
         reporte['actualizado'] = reporte['bd_actualizada'] = estado['actualizado']
         datos['reportes'][martes.isoformat()] = reporte
+        try:
+            efectivo = crear_reporte(excel, maestro, martes, efectiva=True)
+        except ValueError as error:
+            # Una fuente antigua conserva sus paneles; esta vista explica qué falta.
+            efectivo = {'error': str(error)}
+        else:
+            enriquecer_zonas(efectivo, excel, maestro)
+            efectivo['actualizado'] = efectivo['bd_actualizada'] = estado['actualizado']
+        datos['reportes_efectivos'][martes.isoformat()] = efectivo
         martes += timedelta(days=7)
     for i, inicio in enumerate(fechas):
         for j in range(i, len(fechas)):

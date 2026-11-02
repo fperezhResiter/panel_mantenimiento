@@ -25,9 +25,12 @@ fs.mkdirSync(salida,{recursive:true});
       assert.equal(await page.locator('#avisos:visible,#resumen-config:visible').count(),0);
       // Los filtros elegidos y las vistas ocultas se congelan al descargar.
       const selector=page.locator('form select').first();
-      if(await selector.count() && await selector.locator('option').count()>1)await selector.selectOption({index:1});
+      if(await selector.count() && await selector.locator('option').count()>1)await selector.selectOption((await selector.locator('option').count()>2)?[{index:1},{index:2}]:[{index:1}],{force:true});
       const titulo=await page.locator('h1').innerText();
-      const region=await selector.locator('option:checked').textContent();
+      const regiones=await selector.locator('option:checked').allTextContents();
+      const filtroUnidad=page.locator('#buscar,#km-ceco,#mt-ceco-resumen,#mt-ceco-cal,#ceco-programa');
+      if(await filtroUnidad.locator('option').count()>2) await filtroUnidad.selectOption([{index:1},{index:2}],{force:true});
+      const unidades=await filtroUnidad.locator('option:checked').allTextContents();
       const nombres=await page.locator('table button').evaluateAll(els=>els.filter(e=>e.getClientRects().length).map(e=>{const n=e.cloneNode(true);window.PortalConfig?.limpiarCecosPDF?.(n);return n.textContent.trim();}));
       await page.evaluate(()=>{
         const oculto=document.createElement('p');oculto.className='vista-oculta';oculto.textContent='CONTENIDO_OCULTO_PDF';document.querySelector('main').append(oculto);
@@ -42,7 +45,7 @@ fs.mkdirSync(salida,{recursive:true});
         const puntosLeyenda=new Map();
         const diasProgramados=panel==='Calendario_Mantencion' ? await page.evaluate(regional=>{
           if(!regional)return document.querySelectorAll('#mt-cal-grid .programado').length;
-          const html=informeCalendarioMt(mtSeleccionDescarga(),document.getElementById('mt-mes').value,document.getElementById('mt-region-cal').value,document.getElementById('mt-inicio').value,document.getElementById('mt-fecha').value);
+          const html=informeCalendarioMt(mtSeleccionDescarga(),document.getElementById('mt-mes').value,PortalFiltros.texto('mt-region-cal'),document.getElementById('mt-inicio').value,document.getElementById('mt-fecha').value,[...new Set(mtSeleccionDescarga().map(e=>e.region))]);
           return new DOMParser().parseFromString(html,'text/html').querySelectorAll('.calendario .programado').length;
         },boton==='#mt-exportar-informe') : null;
         const descarga=page.waitForEvent('download',{timeout:60000});await page.locator(boton).click();
@@ -80,16 +83,19 @@ fs.mkdirSync(salida,{recursive:true});
         }
         assert(paginas[0].includes(titulo),'Título nativo en la primera página');
         assert(paginas[0].includes('Unidad:'),'Unidad escrita como texto');
-        assert(paginas[0].includes(region),'Región seleccionada escrita como texto');
+        for(const region of regiones) assert(paginas[0].includes(region),'Cada región seleccionada escrita como texto');
+        for(const unidad of unidades) assert(paginas[0].includes(unidad.replace(/ \(.*?\)$/,'')),'Cada unidad seleccionada escrita como texto');
         assert(/(referencia|hasta|proyectada|lecturas)/i.test(paginas[0]),'Fecha escrita como texto');
         assert(!texto.includes('CONTENIDO_OCULTO_PDF'),'Respeta vistas ocultas');
         assert(!texto.includes('Consulta sin servidor'),'Sin mensajes del modo de acceso');
         if(panel==='Reportabilidad'){
+          assert(pdf.getPages().every(p=>p.getHeight()>p.getWidth()),'Reportabilidad se descarga en páginas verticales');
           assert(!texto.includes('Pasa el mouse'),'El PDF omite las instrucciones interactivas');
           assert(!texto.includes('Ambos gráficos usan marcas'),'El PDF omite el párrafo de ayuda de la página');
           const semanal=paginas.find(t=>t.includes('Cumplimiento semanal por'));
           const barras=paginas.find(t=>t.includes('el color indica su rango de cumplimiento'));
-          assert(semanal?.includes('y hasta siete anteriores.'),'La descripción breve acompaña al gráfico semanal');
+          assert(semanal?.includes('todas las semanas disponibles hasta la seleccionada.'),'La descripción breve acompaña al gráfico semanal');
+          assert(paginas.some(t=>t.includes('Cumplimiento semanal en barras por')),'Incluye el gráfico de barras de todas las semanas');
           assert(barras?.includes('Desde 75 % y menos de 90 %'),'Las barras conservan su leyenda de colores');
           assert(paginas.some(t=>t.includes('Detalle por')&&t.includes('% semana seleccionada')),'El título del detalle acompaña a la tabla');
         }

@@ -2,7 +2,9 @@
 <html lang="es">
     <head>
         <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Calendario de mantención — Resiter Minería</title><link rel="stylesheet" href="../css/panel.css?v=20261015-13">
+        <title>Calendario de mantención — Resiter Minería</title>
+        <link rel="icon" href="../img/logo_sin_fondo_resiter.png">
+        <link rel="stylesheet" href="../css/panel.css?v=20261016-1">
         <link rel="stylesheet" href="../css/mantenciones.css?v=20261015-11">
       <script src="../js/abrir_portal.js"></script>
   <script src="../datos/publicacion.js"></script>
@@ -41,13 +43,13 @@
         <p>Solo patentes con fecha proyectada dentro del mes elegido.</p>
     </div>
     <div class="config-acciones">
-        <button id="mt-exportar-informe" type="button" disabled>Descargar calendario + tabla de la región</button>
+        <button id="mt-exportar-informe" type="button" disabled>Descargar calendario + tabla</button>
     </div>
     <button id="mt-exportar-calendario" type="button" disabled>Descargar tabla CSV</button>
 </div>
 
 <p id="mt-config-estado" class="nota" role="status" aria-live="polite" data-solo-interactivo></p>
-<p id="mt-informe-nota" class="nota" data-pdf-omitir>Elige una región para habilitar la descarga.</p>
+<p id="mt-informe-nota" class="nota" data-pdf-omitir>La descarga utiliza las regiones y unidades filtradas.</p>
 <p id="mt-cal-nota" class="nota"></p>
 <div data-vista="calendario.calendario" id="mt-cal-grid" class="mt-cal-grid" aria-label="Calendario mensual de mantenciones"></div>
 <div class="mt-dia-filtro">
@@ -66,17 +68,18 @@
         </table>
     </div>
 </section>
-<p class="nota" data-pdf-omitir>Los días destacados tienen mantenciones proyectadas. Pulsa un día para ver su detalle. Las descargas PDF por región y CSV incluyen solo las patentes marcadas del mes y la región seleccionados, aunque se esté viendo un solo día. En el modo interactivo, desmarca «Incluir en publicación y descargas» para excluir una patente de las descargas y de la próxima publicación sin servidor. La selección se guarda en la BD. Ejecuta Actualizar_BD.bat para publicar los cambios. La consulta sin servidor muestra solo las patentes incluidas y no presenta casillas. Los equipos No operativo con proyección se incluyen; valida su fecha si su ritmo de uso cambió.</p>
+<p class="nota" data-pdf-omitir>Los días destacados tienen mantenciones proyectadas. Pulsa un día para ver su detalle. Las descargas PDF y CSV incluyen solo las patentes marcadas del mes y de las regiones y unidades seleccionadas, aunque se esté viendo un solo día. En el modo interactivo, desmarca «Incluir en publicación y descargas» para excluir una patente de las descargas y de la próxima publicación sin servidor. La selección se guarda en la BD. Ejecuta Actualizar_BD.bat para publicar los cambios. La consulta sin servidor muestra solo las patentes incluidas y no presenta casillas. Los equipos No operativo con proyección se incluyen; valida su fecha si su ritmo de uso cambió.</p>
 <p class="nota" data-pdf-solo hidden>Los días destacados tienen mantenciones proyectadas. Los equipos sin fecha proyectada quedan fuera del calendario. Se incluyen los equipos No operativo que tienen proyección; la estimación depende del ritmo de uso.</p>
 </section>
 
 <footer>Fuente: Control de Equipos Móviles – Minería.xlsx · Seguimiento KM-HR · Cálculos de Seguimiento KM-HR</footer>
 </main>
-<script src="../js/configuracion.js" defer></script>
-    <script src="../js/zonas.js?v=20261015-13" defer></script><script src="../js/calendario_descarga.js?v=20261015-11" defer></script>
-<script src="../js/mantenciones.js?v=20261015-10" defer></script>
+<script src="../js/configuracion.js?v=20261021-14" defer></script>
+    <script src="../js/filtros_multiples.js?v=20261016-1" defer></script>
+    <script src="../js/zonas.js?v=20261016-1" defer></script><script src="../js/calendario_descarga.js?v=20261016-1" defer></script>
+<script src="../js/mantenciones.js?v=20261016-1" defer></script>
   <script src="../js/base_datos.js" defer></script>
 <script src="../vendor/pdf-lib.min.js" defer></script>
 <script src="../vendor/html2canvas.min.js" defer></script>
-<script src="../js/panel_pdf.js?v=20261015-12" defer></script>
+<script src="../js/panel_pdf.js?v=20261016-1" defer></script>
 </body></html>

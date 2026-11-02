@@ -18,11 +18,14 @@
       if (opciones?.method && opciones.method !== 'GET') throw new Error('Consulta sin servidor: no se permite guardar cambios.');
       if (u.pathname === '/api/bd') datos = p.estado;
       else if (u.pathname === '/api/configuracion') datos = p.configuracion;
-      else if (u.pathname === '/api/reporte') {
+      else if (['/api/reporte', '/api/reporte-efectivo'].includes(u.pathname)) {
         const d = new Date(q.get('fecha') + 'T12:00:00Z');
         d.setUTCDate(d.getUTCDate() + 1 - ((d.getUTCDay()+6)%7));
-        datos = p.reportes[d.toISOString().slice(0,10)];
+        const efectiva = u.pathname === '/api/reporte-efectivo';
+        if (efectiva && !p.reportes_efectivos) throw new Error('Actualiza la publicación con Actualizar_BD.bat para consultar Reportabilidad efectiva.');
+        datos = (efectiva ? p.reportes_efectivos : p.reportes)[d.toISOString().slice(0,10)];
         if (!datos) throw new Error('Esta semana no está publicada. Selecciona una semana desde 04-08-2026 hasta la última actualización.');
+        if (datos.error) throw new Error(datos.error);
       } else if (['/api/seguimiento-km-hr', '/api/mantenciones'].includes(u.pathname)) {
         const inicio = q.get('inicio') || '2026-08-04', fecha = q.get('fecha');
         if (fecha < inicio) throw new Error('La última semana debe ser igual o posterior al inicio.');

@@ -17,7 +17,7 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
     assert(!(await page.locator('#bd-barra').innerText()).includes('Consulta sin servidor'));
     assert.equal(await page.locator('[aria-label="Base de datos"] button').isVisible(), false);
     assert.equal(await page.locator('a[href$="Panel_Configuraciones.html"]').isVisible(), false);
-    for (const panel of ['Reportabilidad','Seguimiento_KM_HR','Resumen_Mantencion','Calendario_Mantencion','Programa_Mantencion']) {
+    for (const panel of ['Reportabilidad','Reportabilidad_Efectiva','Seguimiento_KM_HR','Resumen_Mantencion','Calendario_Mantencion','Programa_Mantencion']) {
       await page.goto(pathToFileURL(path.resolve(`web/pages/Panel_${panel}.html`)).href);
       await page.waitForFunction(()=>document.querySelector('#consultar,#km-consultar,#mt-consultar')?.disabled === false, {timeout:30000});
       await page.waitForTimeout(500);
@@ -28,7 +28,7 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
       if (panel === 'Calendario_Mantencion') assert.equal(await page.locator('#mt-agenda input[type="checkbox"]').count(),0);
       for (const id of ['region','km-region','mt-region-resumen','mt-region-cal','region-programa', 'buscar','km-ceco','mt-ceco-resumen','mt-ceco-cal','ceco-programa']) {
         const filtro = page.locator('select#'+id);
-        if (await filtro.count() && await filtro.locator('option').count() > 1) await filtro.selectOption({index:1});
+        if (await filtro.count() && await filtro.locator('option').count() > 1) await filtro.selectOption({index:1},{force:true});
       }
       const csv = page.locator('#exportar,#km-exportar,#mt-exportar-resumen,#mt-exportar-calendario').first();
       if (await csv.count()) {
@@ -48,7 +48,8 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
       console.log('OK file:// '+panel+': datos, filtros y PDF');
     }
     await page.goto(pathToFileURL(path.resolve('web/pages/Panel_Configuraciones.html')).href);
-    await page.waitForURL(pathToFileURL(path.resolve('Panel.html')).href);
+    // El tema se conserva en la URL al volver al inicio.
+    await page.waitForURL(url => url.pathname === pathToFileURL(path.resolve('Panel.html')).pathname);
     assert.equal(await page.locator('#config-vistas').count(),0);
     const r = await page.evaluate(async()=>{const r=await PortalDatos.consultar('/api/configuracion',{method:'POST'});return r.ok;});
     assert.equal(r,false);
@@ -60,7 +61,7 @@ const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
       const enlace = page.locator('#paneles article').filter({has:page.locator('h3', {hasText:'Panel Mantenimiento'})});
       assert.equal(await enlace.count(),1);
       assert.equal(await enlace.locator('a').getAttribute('href'),'Panel Mantenimiento/panel_mantenimiento/Panel.html');
-      assert.equal(await enlace.locator('.estado').textContent(),'HTML disponible');
+      assert.equal(await enlace.locator('a').isVisible(),true);
       console.log('OK Panel Universal: un acceso a Mantenimiento sin servidor');
     }
   } finally {await browser.close();}
